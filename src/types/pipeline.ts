@@ -1,9 +1,10 @@
-import type { TranscriptSegment, ViralMoment } from "./clip.js";
-import type { Platform } from "./config.js";
+import type { TranscriptSegment, ViralMoment, WordTimestamp } from "./clip.js";
+import type { BackgroundFillStyle, Platform } from "./config.js";
 
 export interface DownloadOptions {
   quality: string;
   outputDir: string;
+  cookiesFile?: string;
   onProgress?: (percent: number) => void;
 }
 
@@ -15,12 +16,26 @@ export interface DownloadResult {
   durationSeconds: number;
 }
 
+export interface ScoringWeights {
+  hook: number;
+  standalone: number;
+  controversy: number;
+  education: number;
+  emotion: number;
+  twist: number;
+  quotable: number;
+  visual: number;
+  nicheBonus: number;
+}
+
 export interface AnalysisOptions {
   model: string;
+  temperature?: number;
   maxClips: number;
   minScore: number;
   maxDuration: number;
   niche?: string;
+  scoringWeights?: ScoringWeights;
 }
 
 export interface ClipOptions {
@@ -30,12 +45,14 @@ export interface ClipOptions {
   padAfter: number;
   burnSubtitles: boolean;
   transcript?: TranscriptSegment[];
+  backgroundFillStyle?: BackgroundFillStyle;
 }
 
 export interface ClipResult {
   momentIndex: number;
   title: string;
   filePath: string;
+  rawFilePath?: string;
   thumbnailPath: string;
   durationSeconds: number;
   fileSizeBytes: number;
@@ -81,6 +98,7 @@ export interface PipelineState {
   completedAt?: string;
   download?: DownloadResult;
   transcript?: TranscriptSegment[];
+  wordTimestamps?: WordTimestamp[];
   moments?: ViralMoment[];
   clips?: ClipResult[];
   posts?: PostResult[];

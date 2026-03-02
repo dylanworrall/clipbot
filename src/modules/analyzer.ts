@@ -3,27 +3,81 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { AnalysisResponseSchema, type ViralMoment } from "../types/clip.js";
-import type { AnalysisOptions } from "../types/pipeline.js";
+import type { AnalysisOptions, ScoringWeights } from "../types/pipeline.js";
 import { log } from "../utils/logger.js";
 import { retry } from "../utils/retry.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const promptCache = new Map<string, string>();
+const DEFAULT_WEIGHTS: ScoringWeights = {
+  hook: 3,
+  standalone: 3,
+  controversy: 3,
+  education: 3,
+  emotion: 1.5,
+  twist: 1.5,
+  quotable: 1,
+  visual: 1,
+  nicheBonus: 1,
+};
 
-async function getSystemPrompt(niche?: string): Promise<string> {
-  const cacheKey = niche ?? "__base__";
-  if (promptCache.has(cacheKey)) return promptCache.get(cacheKey)!;
+function buildScoringSection(weights: ScoringWeights): string {
+  const w = { ...DEFAULT_WEIGHTS, ...weights };
 
+  const lines: string[] = [];
+
+  // Group by weight magnitude for readability
+  const primary = [
+    { key: "hook", label: "Strong Hook", weight: w.hook, desc: "The first 2 seconds must grab attention. Look for surprising statements, provocative questions, bold claims, or \"wait what?\" moments. A weak hook = dead clip regardless of content quality." },
+    { key: "standalone", label: "Standalone Value", weight: w.standalone, desc: "The clip MUST make complete sense without any prior context. A viewer scrolling their feed should immediately understand what's happening. If it requires setup from earlier in the video, skip it." },
+    { key: "controversy", label: "Controversy/Debate", weight: w.controversy, desc: "Polarizing opinions, hot takes, or statements that will split the comments. \"This is the best X on the planet\" or \"Everyone's doing this wrong\" — anything that makes people NEED to comment their opinion." },
+    { key: "education", label: "Educational Nuggets", weight: w.education, desc: "\"I didn't know that\" moments. Specific numbers, techniques, insider knowledge, or expert tips that make viewers feel like they learned something valuable in under 60 seconds." },
+  ];
+
+  const secondary = [
+    { key: "emotion", label: "Emotional Peaks", weight: w.emotion, desc: "Genuine moments of excitement, shock, pride, frustration, or passion. The speaker's energy must be high — monotone delivery kills virality." },
+    { key: "twist", label: "Unexpected Twists", weight: w.twist, desc: "Surprising reveals, counterintuitive facts, before/after contrasts, or moments where the outcome defies expectations." },
+  ];
+
+  const tertiary = [
+    { key: "quotable", label: "Quotable Lines", weight: w.quotable, desc: "Memorable one-liners people would share, stitch, or use as audio." },
+    { key: "visual", label: "Visual Cue Potential", weight: w.visual, desc: "When the transcript references something visually impressive, the actual video is likely compelling even though you can only read the transcript." },
+  ];
+
+  for (const group of [primary, secondary, tertiary]) {
+    for (const c of group) {
+      lines.push(`- **${c.label} (${c.weight}x)**: ${c.desc}`);
+    }
+  }
+
+  return lines.join("\n");
+}
+
+function buildScoringFormula(weights: ScoringWeights): string {
+  const w = { ...DEFAULT_WEIGHTS, ...weights };
+  const divisor = w.hook + w.standalone + w.controversy + w.education + w.emotion + w.twist + w.quotable + w.visual;
+  return `(hook*${w.hook} + standalone*${w.standalone} + controversy*${w.controversy} + education*${w.education} + emotion*${w.emotion} + twist*${w.twist} + quotable*${w.quotable} + visual*${w.visual}) / ${divisor}`;
+}
+
+async function getSystemPrompt(niche?: string, scoringWeights?: ScoringWeights): Promise<string> {
   const promptPath = path.resolve(__dirname, "../../prompts/viral-moments.md");
   let prompt = await readFile(promptPath, "utf-8");
+
+  // Inject scoring weights
+  const weights = { ...DEFAULT_WEIGHTS, ...scoringWeights };
+  prompt = prompt.replace("{{SCORING_WEIGHTS}}", buildScoringSection(weights));
+  prompt = prompt.replace("{{SCORING_FORMULA}}", buildScoringFormula(weights));
 
   // Inject niche-specific instructions if configured
   if (niche) {
     try {
       const nichePath = path.resolve(__dirname, `../../prompts/niches/${niche}.md`);
       const nicheInstructions = await readFile(nichePath, "utf-8");
-      prompt = prompt.replace("{{NICHE_INSTRUCTIONS}}", nicheInstructions);
+      // Adjust niche bonus wording based on weight
+      const bonusNote = weights.nicheBonus !== 1
+        ? nicheInstructions.replace(/\+1 to final score/g, `+${weights.nicheBonus} to final score`)
+        : nicheInstructions;
+      prompt = prompt.replace("{{NICHE_INSTRUCTIONS}}", bonusNote);
     } catch {
       prompt = prompt.replace("{{NICHE_INSTRUCTIONS}}", "No niche-specific scoring for this video. Apply general viral criteria only.");
     }
@@ -31,7 +85,6 @@ async function getSystemPrompt(niche?: string): Promise<string> {
     prompt = prompt.replace("{{NICHE_INSTRUCTIONS}}", "No niche-specific scoring for this video. Apply general viral criteria only.");
   }
 
-  promptCache.set(cacheKey, prompt);
   return prompt;
 }
 
@@ -42,7 +95,7 @@ export async function analyzeTranscript(
   options: AnalysisOptions
 ): Promise<ViralMoment[]> {
   const client = new Anthropic({ apiKey });
-  const systemPrompt = await getSystemPrompt(options.niche);
+  const systemPrompt = await getSystemPrompt(options.niche, options.scoringWeights);
 
   const userMessage = `Video Title: "${videoTitle}"
 
@@ -58,6 +111,7 @@ ${transcript}`;
       const msg = await client.messages.create({
         model: options.model,
         max_tokens: 4096,
+        temperature: options.temperature ?? 0.2,
         system: systemPrompt,
         messages: [{ role: "user", content: userMessage }],
       });

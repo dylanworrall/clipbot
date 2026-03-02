@@ -1,153 +1,109 @@
-import { createWriteStream } from "node:fs";
-import { stat } from "node:fs/promises";
+import { stat, access } from "node:fs/promises";
 import path from "node:path";
-import { pipeline } from "node:stream/promises";
-import { Readable } from "node:stream";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import ffmpegPath from "ffmpeg-static";
 import { log } from "../utils/logger.js";
-import { retry } from "../utils/retry.js";
 import { extractVideoId } from "../utils/url.js";
 import type { DownloadOptions, DownloadResult } from "../types/pipeline.js";
 
 const execFileAsync = promisify(execFile);
 
-interface CobaltResponse {
-  status: "tunnel" | "redirect" | "picker" | "error";
-  url?: string;
-  filename?: string;
-  error?: string;
+/**
+ * Resolve the yt-dlp binary. Prefer the standalone binary; fall back to python -m yt_dlp.
+ */
+async function resolveYtDlp(): Promise<{ bin: string; prefixArgs: string[] }> {
+  // Try standalone binary first (much faster — no Python startup)
+  for (const bin of ["yt-dlp", "yt-dlp.exe"]) {
+    try {
+      await execFileAsync(bin, ["--version"], { timeout: 5000 });
+      return { bin, prefixArgs: [] };
+    } catch {
+      // not found, try next
+    }
+  }
+
+  // Fall back to python module
+  for (const py of ["python", "python3", "py"]) {
+    try {
+      await execFileAsync(py, ["-m", "yt_dlp", "--version"], { timeout: 8000 });
+      return { bin: py, prefixArgs: ["-m", "yt_dlp"] };
+    } catch {
+      // not found
+    }
+  }
+
+  throw new Error(
+    "yt-dlp not found. Install it with: pip install yt-dlp  or download the binary from https://github.com/yt-dlp/yt-dlp/releases"
+  );
+}
+
+/**
+ * Find a cookies file. Checks (in order):
+ * 1. Explicit path from config
+ * 2. cookies.txt in project root
+ */
+async function findCookiesFile(explicit?: string): Promise<string | null> {
+  if (explicit) {
+    const resolved = path.resolve(explicit);
+    try {
+      await access(resolved);
+      return resolved;
+    } catch {
+      log.warn(`Cookies file not found at ${resolved}`);
+    }
+  }
+
+  // Auto-detect cookies.txt in project root
+  const autoPath = path.resolve(process.cwd(), "cookies.txt");
+  try {
+    await access(autoPath);
+    log.debug(`Auto-detected cookies file: ${autoPath}`);
+    return autoPath;
+  } catch {
+    // no cookies file
+  }
+
+  return null;
 }
 
 export async function downloadVideo(
-  youtubeUrl: string,
-  cobaltUrl: string,
-  options: DownloadOptions
-): Promise<DownloadResult> {
-  // Try cobalt first, fall back to yt-dlp
-  try {
-    return await downloadViaCobalt(youtubeUrl, cobaltUrl, options);
-  } catch (cobaltErr) {
-    log.warn(
-      `Cobalt unavailable (${cobaltErr instanceof Error ? cobaltErr.message : String(cobaltErr)}), falling back to yt-dlp...`
-    );
-    return await downloadViaYtDlp(youtubeUrl, options);
-  }
-}
-
-async function downloadViaCobalt(
-  youtubeUrl: string,
-  cobaltUrl: string,
-  options: DownloadOptions
-): Promise<DownloadResult> {
-  const apiUrl = cobaltUrl.replace(/\/$/, "");
-
-  const cobaltRes = await retry(async () => {
-    const res = await fetch(`${apiUrl}/`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        url: youtubeUrl,
-        videoQuality: options.quality,
-        youtubeVideoCodec: "h264",
-        filenameStyle: "nerdy",
-      }),
-    });
-
-    if (!res.ok) {
-      throw new Error(`Cobalt API returned ${res.status}: ${res.statusText}`);
-    }
-
-    return (await res.json()) as CobaltResponse;
-  }, { maxAttempts: 1 });
-
-  if (cobaltRes.status === "error") {
-    throw new Error(`Cobalt error: ${cobaltRes.error ?? "Unknown error"}`);
-  }
-
-  if (!cobaltRes.url) {
-    throw new Error(`Cobalt returned status "${cobaltRes.status}" with no URL`);
-  }
-
-  const filename = cobaltRes.filename ?? "video.mp4";
-  const filePath = path.join(options.outputDir, filename);
-
-  log.debug(`Downloading from tunnel: ${cobaltRes.url}`);
-
-  const downloadRes = await retry(async () => {
-    const res = await fetch(cobaltRes.url!);
-    if (!res.ok) {
-      throw new Error(`Download failed: ${res.status} ${res.statusText}`);
-    }
-    return res;
-  });
-
-  const totalBytes = parseInt(
-    downloadRes.headers.get("Content-Length") ??
-      downloadRes.headers.get("Estimated-Content-Length") ??
-      "0",
-    10
-  );
-
-  if (!downloadRes.body) {
-    throw new Error("Download response has no body");
-  }
-
-  let downloadedBytes = 0;
-  const reader = downloadRes.body.getReader();
-  const nodeStream = new Readable({
-    async read() {
-      const { done, value } = await reader.read();
-      if (done) {
-        this.push(null);
-        return;
-      }
-      downloadedBytes += value.length;
-      if (totalBytes > 0) {
-        options.onProgress?.(Math.round((downloadedBytes / totalBytes) * 100));
-      }
-      this.push(Buffer.from(value));
-    },
-  });
-
-  const writeStream = createWriteStream(filePath);
-  await pipeline(nodeStream, writeStream);
-
-  const fileStats = await stat(filePath);
-
-  return {
-    filePath,
-    filename,
-    fileSize: fileStats.size,
-    quality: options.quality,
-    durationSeconds: 0,
-  };
-}
-
-async function downloadViaYtDlp(
   youtubeUrl: string,
   options: DownloadOptions
 ): Promise<DownloadResult> {
   const videoId = extractVideoId(youtubeUrl) ?? "video";
   const outputTemplate = path.join(options.outputDir, `${videoId}.%(ext)s`);
 
-  log.debug(`Downloading via yt-dlp: ${youtubeUrl}`);
+  const { bin, prefixArgs } = await resolveYtDlp();
+  const cookiesFile = await findCookiesFile(options.cookiesFile);
+
+  log.debug(`Downloading via ${bin} ${prefixArgs.join(" ")}: ${youtubeUrl}`);
+  if (cookiesFile) log.debug(`Using cookies from: ${cookiesFile}`);
 
   const args = [
-    "-m", "yt_dlp",
-    "-f", `bestvideo[height<=${options.quality}]+bestaudio/best[height<=${options.quality}]/best`,
+    ...prefixArgs,
+    // Prefer a single pre-muxed mp4 stream when available (avoids merge step entirely).
+    // Fall back to separate video+audio only when a single stream isn't good enough.
+    "-f", `best[height<=${options.quality}][ext=mp4]/bestvideo[height<=${options.quality}]+bestaudio/best`,
     "--merge-output-format", "mp4",
     "-o", outputTemplate,
     "--no-playlist",
+    // Parallel fragment downloads — the single biggest speed-up for DASH streams
+    "--concurrent-fragments", "4",
+    // Retry fragments that fail
+    "--fragment-retries", "3",
+    // Buffer size for faster I/O
+    "--buffer-size", "16K",
+    // Cookies for age-restricted / private videos
+    ...(cookiesFile ? ["--cookies", cookiesFile] : []),
     ...(typeof ffmpegPath === "string" ? ["--ffmpeg-location", ffmpegPath] : []),
     youtubeUrl,
   ];
 
-  await execFileAsync("python", args, { timeout: 300000 });
+  await execFileAsync(bin, args, {
+    timeout: 600000, // 10 min timeout
+    maxBuffer: 10 * 1024 * 1024, // 10 MB stdout buffer
+  });
 
   // Find the downloaded file
   const expectedPath = path.join(options.outputDir, `${videoId}.mp4`);

@@ -1,5 +1,4 @@
 {
-  "cobaltUrl": "http://localhost:9000",
   "claudeModel": "claude-sonnet-4-20250514",
   "accounts": {
     "tiktok": "699d13658ab8ae478b3fe2ab",

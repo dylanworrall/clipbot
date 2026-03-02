@@ -35,7 +35,8 @@ export interface TranscriptResult {
 }
 
 export async function fetchTranscript(
-  videoUrl: string
+  videoUrl: string,
+  options?: { cookiesFile?: string }
 ): Promise<TranscriptResult> {
   const videoId = extractVideoId(videoUrl);
   if (!videoId) {
@@ -48,8 +49,25 @@ export async function fetchTranscript(
 
   try {
     // Use yt-dlp to download subtitles as json3
+    // Build cookies args if a cookies file is available
+    const cookiesArgs: string[] = [];
+    if (options?.cookiesFile) {
+      cookiesArgs.push("--cookies", options.cookiesFile);
+    } else {
+      // Auto-detect cookies.txt in project root
+      const autoPath = path.join(process.cwd(), "cookies.txt");
+      try {
+        const { access } = await import("node:fs/promises");
+        await access(autoPath);
+        cookiesArgs.push("--cookies", autoPath);
+      } catch {
+        // no cookies file
+      }
+    }
+
     await execFileAsync("python", [
       "-m", "yt_dlp",
+      ...cookiesArgs,
       "--write-subs",
       "--write-auto-subs",
       "--sub-langs", "en",
@@ -57,7 +75,7 @@ export async function fetchTranscript(
       "--skip-download",
       "-o", outPath,
       `https://www.youtube.com/watch?v=${videoId}`,
-    ], { timeout: 30000 });
+    ], { timeout: 60000 });
 
     // Read the json3 file
     const json3Path = `${outPath}.en.json3`;

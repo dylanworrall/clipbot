@@ -1,9 +1,9 @@
 import type { ClipBotConfig } from "../types/config.js";
 
 export const DEFAULT_CONFIG: ClipBotConfig = {
-  cobaltUrl: "http://localhost:9000",
   claudeApiKey: "",
   claudeModel: "claude-sonnet-4-20250514",
+  claudeTemperature: 0.2,
   lateApiKey: "",
   accounts: {},
   defaultQuality: "1080",
@@ -16,4 +16,6 @@ export const DEFAULT_CONFIG: ClipBotConfig = {
   padBefore: 1.5,
   padAfter: 0.5,
   defaultPlatforms: ["tiktok", "youtube", "instagram"],
+  backgroundFillStyle: "blurred-zoom",
+  captionMode: "overlay",
 };

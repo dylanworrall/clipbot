@@ -24,6 +24,13 @@ export const processCommand = new Command("process")
   .option("--preview", "Analyze only, do not clip or post")
   .option("--no-post", "Generate clips but do not post")
   .option("-o, --output-dir <dir>", "Output directory")
+  .option("--run-id <id>", "Override the run ID (used by UI)")
+  .option("--niche <niche>", "Content niche for AI analysis")
+  .option("--no-subtitles", "Disable subtitle/caption burning")
+  .option("--bg-style <style>", "Background fill style: center-crop, blurred-zoom, mirror-reflection, split-fill")
+  .option("--caption-style <json>", "Caption style as base64-encoded JSON")
+  .option("--scoring-weights <json>", "Scoring weights as base64-encoded JSON")
+  .option("--caption-mode <mode>", "Caption mode: overlay (live captions) or burn-in (baked into video)")
   .option("--config <path>", "Path to config file")
   .action(async (url: string, opts) => {
     if (!isYouTubeUrl(url)) {
@@ -32,6 +39,9 @@ export const processCommand = new Command("process")
     }
 
     const config = await loadConfig(opts.config);
+    if (opts.niche) config.niche = opts.niche;
+    if (opts.subtitles === false) config.subtitles = false;
+    if (opts.captionMode) config.captionMode = opts.captionMode;
 
     if (!config.claudeApiKey) {
       log.error("Missing ANTHROPIC_API_KEY. Set it in .env or environment.");
@@ -41,8 +51,29 @@ export const processCommand = new Command("process")
     const spinner = ora("Starting pipeline...").start();
 
     try {
+      // Parse caption style from base64 JSON if provided
+      let captionStyle;
+      if (opts.captionStyle) {
+        try {
+          captionStyle = JSON.parse(Buffer.from(opts.captionStyle, "base64").toString("utf-8"));
+        } catch {
+          log.warn("Invalid --caption-style JSON, using defaults");
+        }
+      }
+
+      // Parse scoring weights from base64 JSON if provided
+      let scoringWeights;
+      if (opts.scoringWeights) {
+        try {
+          scoringWeights = JSON.parse(Buffer.from(opts.scoringWeights, "base64").toString("utf-8"));
+        } catch {
+          log.warn("Invalid --scoring-weights JSON, using defaults");
+        }
+      }
+
       const result = await runPipeline(config, {
         url,
+        runId: opts.runId,
         quality: opts.quality,
         maxClips: parseInt(opts.maxClips),
         minScore: parseInt(opts.minScore),
@@ -51,6 +82,9 @@ export const processCommand = new Command("process")
         previewOnly: opts.preview,
         skipPublish: opts.post === false,
         outputDir: opts.outputDir,
+        backgroundFillStyle: opts.bgStyle,
+        captionStyle,
+        scoringWeights,
         onStep: (step) => {
           spinner.text = step;
         },

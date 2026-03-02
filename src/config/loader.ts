@@ -67,7 +67,6 @@ export async function loadConfig(cliConfigPath?: string): Promise<ClipBotConfig>
   // 4. Environment variable overrides
   if (process.env.ANTHROPIC_API_KEY) config.claudeApiKey = process.env.ANTHROPIC_API_KEY;
   if (process.env.LATE_API_KEY) config.lateApiKey = process.env.LATE_API_KEY;
-  if (process.env.COBALT_URL) config.cobaltUrl = process.env.COBALT_URL;
   if (process.env.CLAUDE_MODEL) config.claudeModel = process.env.CLAUDE_MODEL;
 
   return config as unknown as ClipBotConfig;

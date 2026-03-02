@@ -21,6 +21,7 @@ import type { ViralMoment } from "../types/clip.js";
 
 export interface RunOptions {
   url: string;
+  runId?: string;
   quality?: string;
   maxClips?: number;
   minScore?: number;
@@ -29,6 +30,9 @@ export interface RunOptions {
   previewOnly?: boolean;
   skipPublish?: boolean;
   outputDir?: string;
+  backgroundFillStyle?: string;
+  captionStyle?: import("../types/captions.js").CaptionStyle;
+  scoringWeights?: import("../types/config.js").ScoringWeights;
   onStep?: (step: string) => void;
 }
 
@@ -43,7 +47,7 @@ export async function runPipeline(
   config: ClipBotConfig,
   options: RunOptions
 ): Promise<RunResult> {
-  const runId = randomUUID().slice(0, 8);
+  const runId = options.runId ?? randomUUID().slice(0, 8);
   const outputDir = path.resolve(options.outputDir ?? config.outputDir, runId);
   await ensureDir(outputDir);
 
@@ -62,9 +66,10 @@ export async function runPipeline(
     state.status = "downloading";
     await saveState(state, outputDir);
 
-    const download = await downloadVideo(youtubeUrl, config.cobaltUrl, {
+    const download = await downloadVideo(youtubeUrl, {
       quality,
       outputDir,
+      cookiesFile: config.cookiesFile,
     });
 
     // Get actual video duration via ffprobe
@@ -79,8 +84,11 @@ export async function runPipeline(
     state.status = "transcribing";
     await saveState(state, outputDir);
 
-    const { segments, wordTimestamps } = await fetchTranscript(youtubeUrl);
+    const { segments, wordTimestamps } = await fetchTranscript(youtubeUrl, {
+      cookiesFile: config.cookiesFile,
+    });
     state.transcript = segments;
+    state.wordTimestamps = wordTimestamps;
     log.success(`Transcript: ${segments.length} segments, ${wordTimestamps.length} word timestamps`);
 
     // Step 3: Analyze
@@ -95,10 +103,12 @@ export async function runPipeline(
       config.claudeApiKey,
       {
         model: config.claudeModel,
+        temperature: config.claudeTemperature,
         maxClips,
         minScore,
         maxDuration,
         niche: config.niche || undefined,
+        scoringWeights: options.scoringWeights ?? config.scoringWeights,
       }
     );
 
@@ -119,6 +129,8 @@ export async function runPipeline(
     state.status = "clipping";
     await saveState(state, outputDir);
 
+    const bgStyle = (options.backgroundFillStyle ?? config.backgroundFillStyle) as import("../types/config.js").BackgroundFillStyle;
+
     const clips = await createAllClips(download.filePath, moments, {
       outputDir,
       maxDuration,
@@ -126,14 +138,20 @@ export async function runPipeline(
       padAfter: config.padAfter,
       burnSubtitles: config.subtitles,
       transcript: segments,
+      backgroundFillStyle: bgStyle,
     });
+
+    // Preserve raw file paths on every clip
+    for (const clip of clips) {
+      clip.rawFilePath = clip.filePath;
+    }
 
     state.clips = clips;
     log.success(`Created ${clips.length} clips`);
     await saveState(state, outputDir);
 
-    // Step 4b: Add captions overlay via Remotion
-    if (config.subtitles && clips.length > 0) {
+    // Step 4b: Add captions overlay via Remotion (skip in overlay mode — captions render live in editor)
+    if (config.subtitles && config.captionMode !== "overlay" && clips.length > 0) {
       options.onStep?.("Adding captions and hook text...");
 
       for (let i = 0; i < clips.length; i++) {
@@ -158,6 +176,7 @@ export async function runPipeline(
               hookText: moment.hookText,
               hookDuration: 3,
               durationInSeconds: clip.durationSeconds,
+              captionStyle: options.captionStyle,
             });
             clip.filePath = captionedPath;
             log.success(`Added captions to clip ${clip.momentIndex}`);

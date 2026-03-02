@@ -11,11 +11,23 @@ export interface WordTiming {
 interface CaptionOverlayProps {
   words: WordTiming[];
   maxWordsPerLine?: number;
+  fontSize?: number;
+  fontFamily?: string;
+  position?: "top" | "center" | "bottom";
+  activeColor?: string;
+  inactiveColor?: string;
+  animationPreset?: "karaoke-highlight" | "word-pop" | "typewriter" | "simple-fade";
 }
 
 export const CaptionOverlay: React.FC<CaptionOverlayProps> = ({
   words,
   maxWordsPerLine = 5,
+  fontSize = 56,
+  fontFamily = "Arial Black, sans-serif",
+  position = "bottom",
+  activeColor,
+  inactiveColor,
+  animationPreset,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -37,15 +49,24 @@ export const CaptionOverlay: React.FC<CaptionOverlayProps> = ({
 
   if (!currentPage) return null;
 
+  const positionStyle = (() => {
+    switch (position) {
+      case "top": return { top: "12%", bottom: "auto" };
+      case "center": return { top: "50%", bottom: "auto", transform: "translateY(-50%)" };
+      case "bottom":
+      default: return { bottom: "18%", top: "auto" };
+    }
+  })();
+
   return (
     <div
       style={{
         position: "absolute",
-        bottom: "18%",
         left: 0,
         right: 0,
         display: "flex",
         justifyContent: "center",
+        ...positionStyle,
       }}
     >
       <div
@@ -54,8 +75,8 @@ export const CaptionOverlay: React.FC<CaptionOverlayProps> = ({
           flexWrap: "wrap",
           justifyContent: "center",
           maxWidth: "90%",
-          fontSize: 56,
-          fontFamily: "Arial Black, sans-serif",
+          fontSize,
+          fontFamily,
           lineHeight: 1.4,
         }}
       >
@@ -69,6 +90,9 @@ export const CaptionOverlay: React.FC<CaptionOverlayProps> = ({
               text={word.word}
               startFrame={startFrame}
               active={isActive}
+              activeColor={activeColor}
+              inactiveColor={inactiveColor}
+              animationPreset={animationPreset}
             />
           );
         })}

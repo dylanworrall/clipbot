@@ -1,9 +1,26 @@
 export type Platform = "tiktok" | "youtube" | "instagram" | "facebook";
 
+export type BackgroundFillStyle = "center-crop" | "blurred-zoom" | "mirror-reflection" | "split-fill";
+
+export type CaptionMode = "overlay" | "burn-in";
+
+export interface ScoringWeights {
+  hook: number;
+  standalone: number;
+  controversy: number;
+  education: number;
+  emotion: number;
+  twist: number;
+  quotable: number;
+  visual: number;
+  nicheBonus: number;
+}
+
 export interface ClipBotConfig {
-  cobaltUrl: string;
+  cookiesFile?: string;
   claudeApiKey: string;
   claudeModel: string;
+  claudeTemperature: number;
   lateApiKey: string;
   accounts: Record<string, string>;
   defaultQuality: string;
@@ -16,4 +33,7 @@ export interface ClipBotConfig {
   padBefore: number;
   padAfter: number;
   defaultPlatforms: Platform[];
+  backgroundFillStyle: BackgroundFillStyle;
+  captionMode?: CaptionMode;
+  scoringWeights?: ScoringWeights;
 }

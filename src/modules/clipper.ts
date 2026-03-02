@@ -5,6 +5,7 @@ import { stat } from "node:fs/promises";
 import path from "node:path";
 import type { ViralMoment } from "../types/clip.js";
 import type { ClipOptions, ClipResult } from "../types/pipeline.js";
+import { buildFilterChain } from "./background-fill.js";
 import { log } from "../utils/logger.js";
 
 if (typeof ffmpegPath === "string" && ffmpegPath) {
@@ -53,22 +54,32 @@ export async function createClip(
     `Clipping "${moment.title}" [${startSec.toFixed(1)}s - ${(startSec + duration).toFixed(1)}s]`
   );
 
-  // Create the clip: center-crop to 9:16 and scale to 1080x1920
-  await new Promise<void>((resolve, reject) => {
-    const filters = [
-      // Center crop to 9:16 aspect ratio
-      "crop=ih*9/16:ih:(iw-ih*9/16)/2:0",
-      // Scale to 1080x1920
-      "scale=1080:1920",
-      // Short fade in/out
-      "fade=in:0:d=0.3",
-      `fade=out:st=${Math.max(0, duration - 0.3)}:d=0.3`,
-    ];
+  // Create the clip with the selected background fill style
+  const bgStyle = options.backgroundFillStyle ?? "center-crop";
 
-    ffmpeg(sourcePath)
+  await new Promise<void>((resolve, reject) => {
+    const cmd = ffmpeg(sourcePath)
       .inputOptions([`-ss ${startSec}`])
-      .duration(duration)
-      .videoFilters(filters)
+      .duration(duration);
+
+    if (bgStyle === "center-crop") {
+      // Legacy mode: center-crop to 9:16 and scale to 1080x1920
+      const filters = [
+        "crop=ih*9/16:ih:(iw-ih*9/16)/2:0",
+        "scale=1080:1920",
+        "fade=in:0:d=0.3",
+        `fade=out:st=${Math.max(0, duration - 0.3)}:d=0.3`,
+      ];
+      cmd.videoFilters(filters);
+    } else {
+      // New styles: use complexFilter to composite onto 1080x1920 canvas
+      const chain = buildFilterChain(bgStyle);
+      cmd
+        .complexFilter(`${chain};[out]fade=in:0:d=0.3,fade=out:st=${Math.max(0, duration - 0.3)}:d=0.3[final]`)
+        .outputOptions(["-map", "[final]", "-map", "0:a"]);
+    }
+
+    cmd
       .videoCodec("libx264")
       .addOutputOptions([
         "-preset medium",
@@ -88,16 +99,27 @@ export async function createClip(
       .run();
   });
 
-  // Extract thumbnail from 1 second into the clip
-  await new Promise<void>((resolve, reject) => {
-    ffmpeg(outputPath)
-      .inputOptions(["-ss 1"])
-      .frames(1)
-      .output(thumbPath)
-      .on("end", () => resolve())
-      .on("error", (err) => reject(err))
-      .run();
-  });
+  // Extract thumbnail, trying multiple positions to avoid black/dark frames.
+  // A solid-black 1080x1920 JPEG is ~2-3 KB; real content is 30 KB+.
+  const thumbCandidates = [0.25, 0.5, 0.75].map((pct) =>
+    Math.min(Math.max(duration * pct, 0.5), duration - 0.3)
+  );
+
+  for (const thumbTime of thumbCandidates) {
+    await new Promise<void>((resolve, reject) => {
+      ffmpeg(outputPath)
+        .seekInput(thumbTime)
+        .frames(1)
+        .outputOptions(["-update", "1", "-q:v", "2"])
+        .output(thumbPath)
+        .on("end", () => resolve())
+        .on("error", (err) => reject(err))
+        .run();
+    });
+
+    const thumbStats = await stat(thumbPath);
+    if (thumbStats.size > 5000) break; // non-black frame found
+  }
 
   const fileStats = await stat(outputPath);
 

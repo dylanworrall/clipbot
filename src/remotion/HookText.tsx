@@ -4,11 +4,19 @@ import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 interface HookTextProps {
   text: string;
   durationSeconds: number;
+  hookColor?: string;
+  hookBgColor?: string;
+  hookFontSize?: number;
+  hookPosition?: "top" | "center";
 }
 
 export const HookText: React.FC<HookTextProps> = ({
   text,
   durationSeconds,
+  hookColor = "#FFFFFF",
+  hookBgColor = "rgba(0, 0, 0, 0.7)",
+  hookFontSize = 48,
+  hookPosition = "top",
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -33,22 +41,25 @@ export const HookText: React.FC<HookTextProps> = ({
 
   if (frame > totalFrames) return null;
 
+  const positionStyle = hookPosition === "center"
+    ? { top: "50%", transform: `scale(${scale}) translateY(-50%)` }
+    : { top: "12%", transform: `scale(${scale})` };
+
   return (
     <div
       style={{
         position: "absolute",
-        top: "12%",
         left: 0,
         right: 0,
         display: "flex",
         justifyContent: "center",
         opacity,
-        transform: `scale(${scale})`,
+        ...positionStyle,
       }}
     >
       <div
         style={{
-          background: "rgba(0, 0, 0, 0.7)",
+          background: hookBgColor,
           backdropFilter: "blur(10px)",
           borderRadius: 16,
           padding: "16px 32px",
@@ -57,8 +68,8 @@ export const HookText: React.FC<HookTextProps> = ({
       >
         <span
           style={{
-            color: "#FFFFFF",
-            fontSize: 48,
+            color: hookColor,
+            fontSize: hookFontSize,
             fontFamily: "Arial Black, sans-serif",
             fontWeight: 900,
             textAlign: "center",
