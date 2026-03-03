@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/Card";
 import { ClipPlayer } from "./ClipPlayer";
-import { Badge } from "@/components/ui/Badge";
+import { Badge } from "@/components/ui/badge";
 import { formatDuration, formatFileSize, toMediaUrl } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 

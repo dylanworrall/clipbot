@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { InlineClipCard } from "./InlineClipCard";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { ChevronRight, Film } from "lucide-react";
 
 interface Clip {

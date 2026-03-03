@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { execSync } from "node:child_process";
 import { getRun, updateRun } from "@/lib/run-store";
 
 export async function POST(
@@ -19,9 +20,13 @@ export async function POST(
   // Kill the process tree if we have a PID
   if (run.pid) {
     try {
-      // On Windows, kill the process tree (shell spawns child processes)
-      const { execSync } = require("child_process");
-      execSync(`taskkill /PID ${run.pid} /T /F`, { stdio: "ignore" });
+      if (process.platform === "win32") {
+        // Windows: kill process tree
+        execSync(`taskkill /PID ${run.pid} /T /F`, { stdio: "ignore" });
+      } else {
+        // Unix: kill process group
+        process.kill(-run.pid, "SIGTERM");
+      }
     } catch {
       // Process may already be dead
     }

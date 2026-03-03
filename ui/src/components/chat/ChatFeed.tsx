@@ -1,26 +1,29 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { motion } from "motion/react";
+import {
+  Conversation,
+  ConversationContent,
+  ConversationScrollButton,
+  ConversationEmptyState,
+} from "@/components/ai-elements/conversation";
+import { Shimmer } from "@/components/ai-elements/shimmer";
 import { ChatThread } from "./ChatThread";
+import { AiMessage } from "./AiMessage";
+import { AiToolCall } from "./AiToolCall";
+import { UserMessage } from "./UserMessage";
 import { Clapperboard } from "lucide-react";
 import type { ChatMessage } from "@/hooks/useChatMessages";
+import type { AiChatMessage } from "@/hooks/useAiChat";
 
 interface ChatFeedProps {
   messages: ChatMessage[];
+  aiMessages?: AiChatMessage[];
+  isAiThinking?: boolean;
   loading: boolean;
   onRetry: () => void;
 }
 
-export function ChatFeed({ messages, loading, onRetry }: ChatFeedProps) {
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll to bottom on new messages or status changes
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length, messages[messages.length - 1]?.status]);
-
+export function ChatFeed({ messages, aiMessages = [], isAiThinking, loading, onRetry }: ChatFeedProps) {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -33,33 +36,58 @@ export function ChatFeed({ messages, loading, onRetry }: ChatFeedProps) {
     );
   }
 
-  if (messages.length === 0) {
+  const hasContent = messages.length > 0 || aiMessages.length > 0;
+
+  if (!hasContent && !isAiThinking) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-          className="flex flex-col items-center justify-center text-center px-4"
-        >
-          <Clapperboard className="h-14 w-14 text-muted mb-4 float" />
-          <h2 className="text-xl font-semibold mb-2">No clips yet</h2>
-          <p className="text-muted text-sm max-w-sm">
-            Paste a YouTube URL below to create your first viral clips
-          </p>
-        </motion.div>
+        <ConversationEmptyState
+          title="No clips yet"
+          description="Paste a YouTube URL below to create your first viral clips, or ask ClipBot anything"
+          icon={<Clapperboard className="h-14 w-14 float" />}
+        />
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} className="flex-1 overflow-y-auto px-4 py-6">
-      <div className="max-w-2xl mx-auto space-y-8">
+    <Conversation className="flex-1">
+      <ConversationContent className="max-w-2xl mx-auto gap-6">
+        {/* Pipeline run threads */}
         {messages.map((msg) => (
           <ChatThread key={msg.runId} message={msg} onRetry={onRetry} />
         ))}
-        <div ref={bottomRef} />
-      </div>
-    </div>
+
+        {/* AI chat messages */}
+        {aiMessages.map((msg) => {
+          if (msg.type === "user") {
+            return (
+              <UserMessage
+                key={msg.id}
+                text={msg.content}
+                startedAt={msg.timestamp}
+              />
+            );
+          }
+          if (msg.type === "tool-call" && msg.toolCall) {
+            return <AiToolCall key={msg.id} toolCall={msg.toolCall} />;
+          }
+          if (msg.type === "assistant" && msg.content) {
+            return <AiMessage key={msg.id} content={msg.content} />;
+          }
+          return null;
+        })}
+
+        {/* AI thinking indicator */}
+        {isAiThinking && (
+          <div className="flex items-center gap-2">
+            <Shimmer as="span" className="text-sm text-muted-foreground">
+              ClipBot is thinking...
+            </Shimmer>
+          </div>
+        )}
+      </ConversationContent>
+      <ConversationScrollButton />
+    </Conversation>
   );
 }

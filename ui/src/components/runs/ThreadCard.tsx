@@ -1,21 +1,33 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { timeAgo } from "@/lib/utils";
-import { Clock, MoreHorizontal, Film } from "lucide-react";
+import { Clock, MoreHorizontal, Film, Layers } from "lucide-react";
 import type { ThreadSummary } from "@/hooks/useThreadList";
+
+interface SpaceInfo {
+  id: string;
+  name: string;
+  icon: string;
+}
 
 interface ThreadCardProps {
   thread: ThreadSummary;
   onClick: () => void;
+  spaces?: SpaceInfo[];
 }
 
-export function ThreadCard({ thread, onClick }: ThreadCardProps) {
+export function ThreadCard({ thread, onClick, spaces }: ThreadCardProps) {
+  const router = useRouter();
+
   const subtitle = [
     `${thread.runCount} ${thread.runCount === 1 ? "run" : "runs"}`,
     thread.hasActiveRun ? "Currently processing" : null,
   ]
     .filter(Boolean)
     .join(" · ");
+
+  const threadSpaces = spaces?.filter((s) => thread.spaceIds.includes(s.id)) ?? [];
 
   return (
     <div
@@ -47,9 +59,29 @@ export function ThreadCard({ thread, onClick }: ThreadCardProps) {
           <p className="text-sm text-muted mt-1 leading-relaxed line-clamp-2">
             {subtitle}
           </p>
-          <div className="flex items-center gap-1.5 mt-2 text-xs text-muted">
-            <Clock className="h-3 w-3" />
-            <span>{timeAgo(thread.lastRunAt)}</span>
+          <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-1.5 text-xs text-muted">
+              <Clock className="h-3 w-3" />
+              <span>{timeAgo(thread.lastRunAt)}</span>
+            </div>
+            {threadSpaces.map((space) => (
+              <button
+                key={space.id}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/spaces/${space.id}`);
+                }}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-accent/8 text-accent text-[11px] font-medium hover:bg-accent/15 transition-colors cursor-pointer"
+              >
+                {space.icon ? (
+                  <span className="text-xs">{space.icon}</span>
+                ) : (
+                  <Layers className="h-2.5 w-2.5" />
+                )}
+                {space.name}
+              </button>
+            ))}
           </div>
         </div>
 

@@ -1,7 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
-
-const NOTIFICATIONS_FILE = path.join(process.cwd(), "data", "notifications.json");
+import { NOTIFICATIONS_FILE } from "./paths";
 
 export interface VideoNotification {
   id: string;

@@ -1,12 +1,10 @@
 import { readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { getEffectiveConfig } from "./settings-store";
+import { SPACES_FILE } from "./paths";
 import type { Space } from "./types";
 
 // Re-export types so existing server imports keep working
 export type { SpaceSettings, Space } from "./types";
-
-const SPACES_FILE = path.join(process.cwd(), "data", "spaces.json");
 
 export async function getSpaces(): Promise<Space[]> {
   try {

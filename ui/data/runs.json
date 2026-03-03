@@ -1,5 +1,28 @@
 [
   {
+    "runId": "afe4ecfd",
+    "sourceUrl": "you can add this creator to our creators lists its a new creator https://www.youtube.com/channel/UC_OEVIRPI6KQcb2h3gsq93Q",
+    "status": "failed",
+    "spaceId": "f7c84db4",
+    "options": {
+      "quality": "1080",
+      "maxClips": 5,
+      "minScore": 7,
+      "maxDuration": 59,
+      "platforms": [
+        "tiktok",
+        "youtube",
+        "instagram"
+      ],
+      "subtitles": true,
+      "niche": "cannabis",
+      "backgroundFillStyle": "blurred-zoom"
+    },
+    "startedAt": "2026-03-02T19:17:25.243Z",
+    "outputDir": "C:\\Users\\worra\\OneDrive\\Desktop\\clipbot\\clipbot-output\\afe4ecfd",
+    "pid": 40524
+  },
+  {
     "runId": "4f826de5",
     "sourceUrl": "https://www.youtube.com/watch?v=teMiim4RyzQ",
     "status": "complete",

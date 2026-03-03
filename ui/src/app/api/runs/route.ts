@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
+import { getOutputDir } from "@/lib/paths";
 import {
   listRuns,
   createRun,
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
     ? (await getSpaceEffectiveSettings(spaceId)) ?? (await getEffectiveConfig())
     : await getEffectiveConfig();
   const runId = randomUUID().slice(0, 8);
-  const outputDir = path.resolve(process.cwd(), "..", "clipbot-output", runId);
+  const outputDir = path.join(getOutputDir(), runId);
 
   const run = {
     runId,

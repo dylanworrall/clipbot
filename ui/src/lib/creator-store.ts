@@ -1,7 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
-
-const CREATORS_FILE = path.join(process.cwd(), "data", "creators.json");
+import { CREATORS_FILE } from "./paths";
 
 export interface Creator {
   id: string;

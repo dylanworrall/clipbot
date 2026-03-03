@@ -3,7 +3,7 @@
 import { Fragment, useState, useEffect, useRef } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { PostChip, type ScheduledPost } from "./PostChip";
 
 function getWeekStart(date: Date): Date {

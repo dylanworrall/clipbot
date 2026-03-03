@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { SpaceProvider } from "@/contexts/SpaceContext";
 import { ThreadProvider } from "@/contexts/ThreadContext";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -34,14 +35,16 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-surface-0 text-foreground`}
       >
         <ThemeProvider>
-          <SidebarProvider>
-            <SpaceProvider>
-              <ThreadProvider>
-                <Sidebar />
-                <MainContent>{children}</MainContent>
-              </ThreadProvider>
-            </SpaceProvider>
-          </SidebarProvider>
+          <TooltipProvider>
+            <SidebarProvider>
+              <SpaceProvider>
+                <ThreadProvider>
+                  <Sidebar />
+                  <MainContent>{children}</MainContent>
+                </ThreadProvider>
+              </SpaceProvider>
+            </SidebarProvider>
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

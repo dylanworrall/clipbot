@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { Send, RotateCcw, XCircle, Loader2 } from "lucide-react";
 
 interface ActionBarProps {

@@ -1,6 +1,9 @@
 import { spawn } from "node:child_process";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
+import { getCliRoot, getCliEntrypoint, getOutputDir } from "./paths";
+
+const isProduction = process.env.CLIPBOT_PRODUCTION === "1";
 
 export interface PipelineOptions {
   url: string;
@@ -30,10 +33,12 @@ export interface PipelineOptions {
 export async function spawnPipeline(options: PipelineOptions): Promise<{
   pid: number | undefined;
 }> {
-  const clipbotRoot = path.resolve(process.cwd(), "..");
-  const cliPath = path.join(clipbotRoot, "src", "cli", "index.ts");
+  const clipbotRoot = getCliRoot();
+  const cliPath = getCliEntrypoint();
 
-  const args = ["tsx", "--tsconfig", path.join(clipbotRoot, "tsconfig.json"), cliPath, "process", options.url];
+  const args = isProduction
+    ? [cliPath, "process", options.url]
+    : ["tsx", "--tsconfig", path.join(clipbotRoot, "tsconfig.json"), cliPath, "process", options.url];
 
   if (options.runId) {
     args.push("--run-id", options.runId);
@@ -75,7 +80,7 @@ export async function spawnPipeline(options: PipelineOptions): Promise<{
   // Create log directory and build shell command with output redirect
   let logRedirect = ">NUL 2>&1";
   if (options.runId) {
-    const logDir = path.join(clipbotRoot, "clipbot-output", options.runId);
+    const logDir = path.join(getOutputDir(), options.runId);
     try {
       await mkdir(logDir, { recursive: true });
       const logPath = path.join(logDir, "pipeline.log");
@@ -85,7 +90,9 @@ export async function spawnPipeline(options: PipelineOptions): Promise<{
     }
   }
 
-  const fullCommand = `npx ${args.join(" ")} ${logRedirect}`;
+  const fullCommand = isProduction
+    ? `node ${args.join(" ")} ${logRedirect}`
+    : `npx ${args.join(" ")} ${logRedirect}`;
 
   const child = spawn(fullCommand, [], {
     cwd: clipbotRoot,

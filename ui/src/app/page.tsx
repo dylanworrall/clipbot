@@ -6,11 +6,15 @@ import { ChatFeed } from "@/components/chat/ChatFeed";
 import { PromptInput } from "@/components/chat/PromptInput";
 import { useThreads } from "@/hooks/useThreads";
 import { useThread } from "@/contexts/ThreadContext";
+import { useSpace } from "@/contexts/SpaceContext";
+import { useAiChat } from "@/hooks/useAiChat";
 import { normalizeUrl } from "@/lib/utils";
 
 export default function ChatPage() {
   const { threads, loading, addRun, refetch } = useThreads();
-  const { activeThreadId, setActiveThread } = useThread();
+  const { activeThreadId, setActiveThread, chatThreadId } = useThread();
+  const { activeSpaceId } = useSpace();
+  const { sendMessage, aiMessages, isThinking } = useAiChat(chatThreadId);
 
   const threadMessages = useMemo(() => {
     if (!activeThreadId) return [];
@@ -32,12 +36,21 @@ export default function ChatPage() {
     [addRun, setActiveThread]
   );
 
+  const handleChat = useCallback(
+    (message: string) => {
+      sendMessage(message, activeSpaceId);
+    },
+    [sendMessage, activeSpaceId]
+  );
+
   const handleRetry = useCallback(() => {
     refetch();
   }, [refetch]);
 
-  // Centered hero layout when no thread is active
-  if (!activeThreadId && !loading) {
+  const hasAiActivity = aiMessages.length > 0 || isThinking;
+
+  // Centered hero layout when no thread is active and no AI chat
+  if (!activeThreadId && !loading && !hasAiActivity) {
     return (
       <div className="flex flex-col h-screen overflow-hidden">
         <div className="flex-1 flex flex-col items-center justify-center px-4">
@@ -60,22 +73,28 @@ export default function ChatPage() {
             transition={{ duration: 0.5, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="w-full max-w-2xl"
           >
-            <PromptInput onSubmit={handleSubmit} />
+            <PromptInput onSubmit={handleSubmit} onChat={handleChat} />
           </motion.div>
         </div>
       </div>
     );
   }
 
-  // Normal chat layout with active thread
+  // Chat layout: active thread or AI conversation
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <ChatFeed
         messages={threadMessages}
+        aiMessages={aiMessages}
+        isAiThinking={isThinking}
         loading={loading}
         onRetry={handleRetry}
       />
-      <PromptInput onSubmit={handleSubmit} />
+      <PromptInput
+        onSubmit={handleSubmit}
+        onChat={handleChat}
+        disabled={isThinking}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Badge } from "@/components/ui/Badge";
+import { Badge } from "@/components/ui/badge";
 
 const STATUS_MAP: Record<string, { label: string; variant: "green" | "gold" | "red" | "blue" | "default" }> = {
   downloading: { label: "Downloading", variant: "blue" },

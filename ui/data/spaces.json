@@ -2,12 +2,155 @@
   {
     "id": "f7c84db4",
     "name": "Default",
-    "description": "",
+    "description": "General purpose, uses global settings",
     "icon": "",
     "settings": {},
     "accounts": [],
     "creators": [],
     "createdAt": "2026-03-02T06:40:18.395Z",
     "updatedAt": "2026-03-02T06:40:18.395Z"
+  },
+  {
+    "id": "a1b2c3d4",
+    "name": "Pop Culture",
+    "description": "Celebrity drama, trending topics, hot takes",
+    "icon": "🔥",
+    "settings": {
+      "niche": "general",
+      "defaultMaxClips": 8,
+      "defaultMinScore": 6,
+      "defaultMaxDuration": 45
+    },
+    "accounts": [],
+    "creators": [],
+    "createdAt": "2026-03-02T07:00:00.000Z",
+    "updatedAt": "2026-03-02T07:00:00.000Z"
+  },
+  {
+    "id": "e5f6g7h8",
+    "name": "Podcasts",
+    "description": "Long-form interviews, debates, storytelling",
+    "icon": "🎙️",
+    "settings": {
+      "niche": "general",
+      "defaultMaxClips": 10,
+      "defaultMinScore": 7,
+      "defaultMaxDuration": 59
+    },
+    "accounts": [],
+    "creators": [],
+    "createdAt": "2026-03-02T07:00:00.000Z",
+    "updatedAt": "2026-03-02T07:00:00.000Z"
+  },
+  {
+    "id": "i9j0k1l2",
+    "name": "Gaming",
+    "description": "Gameplay highlights, reactions, esports",
+    "icon": "🎮",
+    "settings": {
+      "niche": "general",
+      "defaultMaxClips": 6,
+      "defaultMinScore": 7,
+      "defaultMaxDuration": 40
+    },
+    "accounts": [],
+    "creators": [],
+    "createdAt": "2026-03-02T07:00:00.000Z",
+    "updatedAt": "2026-03-02T07:00:00.000Z"
+  },
+  {
+    "id": "m3n4o5p6",
+    "name": "Sports",
+    "description": "Highlights, analysis, fan reactions",
+    "icon": "⚽",
+    "settings": {
+      "niche": "general",
+      "defaultMaxClips": 8,
+      "defaultMinScore": 7,
+      "defaultMaxDuration": 45
+    },
+    "accounts": [],
+    "creators": [],
+    "createdAt": "2026-03-02T07:00:00.000Z",
+    "updatedAt": "2026-03-02T07:00:00.000Z"
+  },
+  {
+    "id": "q7r8s9t0",
+    "name": "Comedy",
+    "description": "Standup bits, skits, funny moments",
+    "icon": "😂",
+    "settings": {
+      "niche": "general",
+      "defaultMaxClips": 6,
+      "defaultMinScore": 8,
+      "defaultMaxDuration": 50
+    },
+    "accounts": [],
+    "creators": [],
+    "createdAt": "2026-03-02T07:00:00.000Z",
+    "updatedAt": "2026-03-02T07:00:00.000Z"
+  },
+  {
+    "id": "u1v2w3x4",
+    "name": "Music",
+    "description": "Performances, reactions, music news",
+    "icon": "🎵",
+    "settings": {
+      "niche": "general",
+      "defaultMaxClips": 5,
+      "defaultMinScore": 7,
+      "defaultMaxDuration": 55
+    },
+    "accounts": [],
+    "creators": [],
+    "createdAt": "2026-03-02T07:00:00.000Z",
+    "updatedAt": "2026-03-02T07:00:00.000Z"
+  },
+  {
+    "id": "y5z6a7b8",
+    "name": "News & Politics",
+    "description": "Breaking news, political commentary, debates",
+    "icon": "📰",
+    "settings": {
+      "niche": "general",
+      "defaultMaxClips": 8,
+      "defaultMinScore": 6,
+      "defaultMaxDuration": 50
+    },
+    "accounts": [],
+    "creators": [],
+    "createdAt": "2026-03-02T07:00:00.000Z",
+    "updatedAt": "2026-03-02T07:00:00.000Z"
+  },
+  {
+    "id": "c9d0e1f2",
+    "name": "Cannabis",
+    "description": "Grow tips, strain reviews, weed culture",
+    "icon": "🌿",
+    "settings": {
+      "niche": "cannabis",
+      "defaultMaxClips": 5,
+      "defaultMinScore": 7
+    },
+    "accounts": [],
+    "creators": [],
+    "createdAt": "2026-03-02T07:00:00.000Z",
+    "updatedAt": "2026-03-02T07:00:00.000Z"
+  },
+  {
+    "id": "g3h4i5j6",
+    "name": "Tech",
+    "description": "Gadgets, software, AI, unboxings",
+    "icon": "💻",
+    "settings": {
+      "niche": "tech",
+      "defaultMaxClips": 8,
+      "defaultMinScore": 6,
+      "defaultMaxDuration": 45
+    },
+    "accounts": [],
+    "creators": [],
+    "createdAt": "2026-03-02T07:00:00.000Z",
+    "updatedAt": "2026-03-02T07:00:00.000Z"
   }
 ]

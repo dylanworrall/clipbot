@@ -1,8 +1,6 @@
 import { readFile, writeFile, readdir } from "node:fs/promises";
 import path from "node:path";
-
-const DATA_DIR = path.join(process.cwd(), "data");
-const RUNS_FILE = path.join(DATA_DIR, "runs.json");
+import { RUNS_FILE, getOutputDir } from "./paths";
 
 export interface RunRecord {
   runId: string;
@@ -177,7 +175,7 @@ export async function getManifest(
 
 /** Scan clipbot-output directories for any manifests not tracked in runs.json */
 export async function syncRunsFromOutput(): Promise<void> {
-  const outputBase = path.resolve(process.cwd(), "..", "clipbot-output");
+  const outputBase = getOutputDir();
   try {
     const dirs = await readdir(outputBase, { withFileTypes: true });
     const runs = await listRuns();

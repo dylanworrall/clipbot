@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useRef, useState, useCallback } from "react";
 import {
   MessageSquare,
+  Search,
   Layers,
   Settings,
   Clapperboard,
@@ -21,6 +22,7 @@ import { useThread } from "@/contexts/ThreadContext";
 
 const links = [
   { href: "/", label: "New Thread", icon: MessageSquare },
+  { href: "/search", label: "Search", icon: Search },
   { href: "/runs", label: "Spaces", icon: Layers },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/creators", label: "Creators", icon: Users },
@@ -31,7 +33,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const notificationCount = useNotificationCount();
   const { collapsed, toggle } = useSidebar();
-  const { setActiveThread } = useThread();
+  const { newChat } = useThread();
   const [hoverExpanded, setHoverExpanded] = useState(false);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -65,7 +67,7 @@ export function Sidebar() {
       {/* Logo */}
       <Link
         href="/"
-        onClick={() => setActiveThread(null)}
+        onClick={() => newChat()}
         className="flex items-center gap-2.5 px-5 py-5 border-b border-border rounded-t-xl min-h-[65px]"
       >
         <Clapperboard className="h-7 w-7 text-accent flex-shrink-0" />
@@ -88,7 +90,7 @@ export function Sidebar() {
               key={href}
               href={href}
               title={!visualExpanded ? label : undefined}
-              onClick={href === "/" ? () => setActiveThread(null) : undefined}
+              onClick={href === "/" ? () => newChat() : undefined}
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 relative",
                 !visualExpanded && "justify-center px-0",

@@ -1,19 +1,28 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 
 interface ThreadContextValue {
   activeThreadId: string | null;
   setActiveThread: (id: string | null) => void;
+  chatThreadId: string;
+  setChatThreadId: (id: string) => void;
+  newChat: () => void;
 }
 
 const ThreadContext = createContext<ThreadContextValue | null>(null);
 
 export function ThreadProvider({ children }: { children: ReactNode }) {
   const [activeThreadId, setActiveThread] = useState<string | null>(null);
+  const [chatThreadId, setChatThreadId] = useState(() => crypto.randomUUID());
+
+  const newChat = useCallback(() => {
+    setActiveThread(null);
+    setChatThreadId(crypto.randomUUID());
+  }, []);
 
   return (
-    <ThreadContext value={{ activeThreadId, setActiveThread }}>
+    <ThreadContext value={{ activeThreadId, setActiveThread, chatThreadId, setChatThreadId, newChat }}>
       {children}
     </ThreadContext>
   );

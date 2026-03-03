@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRun, getManifest } from "@/lib/run-store";
 import { getEffectiveConfig } from "@/lib/settings-store";
+import { getCliRoot, getRerenderScript } from "@/lib/paths";
 import path from "node:path";
 import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
+
+const isProduction = process.env.CLIPBOT_PRODUCTION === "1";
 
 export async function POST(
   req: NextRequest,
@@ -59,7 +62,8 @@ export async function POST(
           } else {
             // Burn captions on-the-fly by spawning rerender-clip
             try {
-              const clipbotRoot = path.resolve(process.cwd(), "..");
+              const clipbotRoot = getCliRoot();
+              const rerenderScript = getRerenderScript();
               const { writeFileSync, mkdirSync } = await import("node:fs");
               const jobDir = path.join(run.outputDir, "rerender");
               mkdirSync(jobDir, { recursive: true });
@@ -87,11 +91,10 @@ export async function POST(
               const jobPath = path.join(jobDir, `publish_job_${idx}.json`);
               writeFileSync(jobPath, JSON.stringify(job, null, 2), "utf-8");
 
-              const scriptPath = path.join(clipbotRoot, "src", "cli", "rerender-clip.ts");
-              execSync(
-                `npx tsx --tsconfig "${path.join(clipbotRoot, "tsconfig.json")}" "${scriptPath}" "${jobPath}"`,
-                { cwd: clipbotRoot, timeout: 120000, stdio: "pipe" }
-              );
+              const command = isProduction
+                ? `node "${rerenderScript}" "${jobPath}"`
+                : `npx tsx --tsconfig "${path.join(clipbotRoot, "tsconfig.json")}" "${rerenderScript}" "${jobPath}"`;
+              execSync(command, { cwd: clipbotRoot, timeout: 120000, stdio: "pipe" });
 
               if (existsSync(captionedPath)) {
                 publishFilePath = captionedPath;

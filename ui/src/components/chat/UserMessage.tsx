@@ -1,20 +1,35 @@
 "use client";
 
+import { Message, MessageContent } from "@/components/ai-elements/message";
 import { extractVideoId, youtubeThumbUrl, timeAgo } from "@/lib/utils";
 import { ExternalLink } from "lucide-react";
 
 interface UserMessageProps {
-  sourceUrl: string;
+  sourceUrl?: string;
+  text?: string;
   startedAt: string;
 }
 
-export function UserMessage({ sourceUrl, startedAt }: UserMessageProps) {
-  const videoId = extractVideoId(sourceUrl);
+export function UserMessage({ sourceUrl, text, startedAt }: UserMessageProps) {
+  // Plain text message (AI chat)
+  if (text && !sourceUrl) {
+    return (
+      <Message from="user">
+        <MessageContent>
+          <p className="text-sm">{text}</p>
+          <p className="text-[10px] text-muted-foreground mt-1">{timeAgo(startedAt)}</p>
+        </MessageContent>
+      </Message>
+    );
+  }
+
+  // URL message (video pipeline)
+  const videoId = sourceUrl ? extractVideoId(sourceUrl) : null;
   const thumbUrl = videoId ? youtubeThumbUrl(videoId) : null;
 
   return (
-    <div className="flex justify-end">
-      <div className="max-w-md bg-accent/10 border border-accent/15 rounded-2xl rounded-br-md px-4 py-3 space-y-2">
+    <Message from="user">
+      <MessageContent>
         <div className="flex items-center gap-3">
           {thumbUrl && (
             <div className="w-16 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-surface-2">
@@ -35,10 +50,10 @@ export function UserMessage({ sourceUrl, startedAt }: UserMessageProps) {
               <ExternalLink className="h-3 w-3 inline mr-1" />
               {sourceUrl}
             </a>
-            <p className="text-[10px] text-muted mt-0.5">{timeAgo(startedAt)}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{timeAgo(startedAt)}</p>
           </div>
         </div>
-      </div>
-    </div>
+      </MessageContent>
+    </Message>
   );
 }

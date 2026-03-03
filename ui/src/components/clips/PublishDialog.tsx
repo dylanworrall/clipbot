@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Dialog } from "@/components/ui/Dialog";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle2, XCircle, CalendarDays } from "lucide-react";
 
 interface PublishDialogProps {

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRun, getManifest } from "@/lib/run-store";
+import { getCliRoot, getRerenderScript } from "@/lib/paths";
 import { spawn } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+
+const isProduction = process.env.CLIPBOT_PRODUCTION === "1";
 
 export async function POST(
   req: NextRequest,
@@ -36,7 +39,8 @@ export async function POST(
   }
 
   try {
-    const clipbotRoot = path.resolve(process.cwd(), "..");
+    const clipbotRoot = getCliRoot();
+    const scriptPath = getRerenderScript();
 
     // Write a re-render job file that a small script will pick up
     // This avoids re-running the entire pipeline
@@ -66,11 +70,11 @@ export async function POST(
     const jobPath = path.join(jobDir, `job_${clipIndex}.json`);
     await writeFile(jobPath, JSON.stringify(job, null, 2), "utf-8");
 
-    // Run the lightweight re-render script (not the full pipeline)
-    const scriptPath = path.join(clipbotRoot, "src", "cli", "rerender-clip.ts");
     const logPath = path.join(jobDir, `clip_${clipIndex}.log`);
 
-    const fullCommand = `npx tsx --tsconfig "${path.join(clipbotRoot, "tsconfig.json")}" "${scriptPath}" "${jobPath}" >"${logPath}" 2>&1`;
+    const fullCommand = isProduction
+      ? `node "${scriptPath}" "${jobPath}" >"${logPath}" 2>&1`
+      : `npx tsx --tsconfig "${path.join(clipbotRoot, "tsconfig.json")}" "${scriptPath}" "${jobPath}" >"${logPath}" 2>&1`;
 
     const child = spawn(fullCommand, [], {
       cwd: clipbotRoot,

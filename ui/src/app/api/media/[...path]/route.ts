@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stat, open } from "node:fs/promises";
 import path from "node:path";
+import { getOutputDir } from "@/lib/paths";
 
-const OUTPUT_DIR = path.resolve(process.cwd(), "..", "clipbot-output");
+const OUTPUT_DIR = getOutputDir();
 
 export async function GET(
   req: NextRequest,

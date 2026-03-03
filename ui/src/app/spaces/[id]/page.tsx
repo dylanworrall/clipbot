@@ -31,7 +31,7 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
   const routerRef = useRef(router);
   routerRef.current = router;
   const { setActiveSpace } = useSpace();
-  const { setActiveThread } = useThread();
+  const { setActiveThread, setChatThreadId } = useThread();
   const { threads, addRun } = useThreads();
 
   const [space, setSpace] = useState<SpaceData | null>(null);
@@ -130,6 +130,7 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
 
   const handleThreadClick = (threadId: string) => {
     setActiveThread(threadId);
+    setChatThreadId(threadId);
     router.push("/");
   };
 

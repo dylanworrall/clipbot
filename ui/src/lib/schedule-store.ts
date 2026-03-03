@@ -1,7 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
-
-const SCHEDULE_FILE = path.join(process.cwd(), "data", "scheduled.json");
+import { SCHEDULE_FILE } from "./paths";
 
 export interface ScheduledPost {
   id: string;

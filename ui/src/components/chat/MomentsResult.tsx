@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Badge } from "@/components/ui/Badge";
+import { Badge } from "@/components/ui/badge";
 import { formatDuration } from "@/lib/utils";
 import { ChevronRight, Sparkles, Clock } from "lucide-react";
 

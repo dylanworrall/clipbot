@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import { AddCreatorDialog } from "@/components/creators/AddCreatorDialog";
 import { CreatorCard } from "@/components/creators/CreatorCard";
 import { NotificationQueue } from "@/components/creators/NotificationQueue";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/Card";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { PlusCircle, RefreshCw, Loader2 } from "lucide-react";

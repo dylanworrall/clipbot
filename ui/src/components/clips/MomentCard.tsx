@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
+import { Badge } from "@/components/ui/badge";
 import { formatDuration } from "@/lib/utils";
 import { motion } from "motion/react";
 import { Sparkles, Clock, Hash } from "lucide-react";

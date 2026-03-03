@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { Trash2, ExternalLink } from "lucide-react";
 import { timeAgo } from "@/lib/utils";
 

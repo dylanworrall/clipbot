@@ -1,13 +1,11 @@
 import { readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { DEFAULT_CAPTION_STYLE, DEFAULT_SCORING_WEIGHTS } from "./types";
+import { SETTINGS_FILE, ENV_PATH, CONFIG_PATH } from "./paths";
 import type { AppSettings } from "./types";
 
 // Re-export types and defaults so existing server imports keep working
 export { DEFAULT_CAPTION_STYLE, DEFAULT_SCORING_WEIGHTS };
 export type { CaptionStyle, ScoringWeights, BackgroundFillStyle, CaptionMode, AppSettings } from "./types";
-
-const SETTINGS_FILE = path.join(process.cwd(), "data", "settings.json");
 
 export async function getSettings(): Promise<AppSettings> {
   try {
@@ -45,19 +43,17 @@ export async function getEffectiveConfig(): Promise<AppSettings> {
 
   let parentEnv: Record<string, string> = {};
   try {
-    const envPath = path.resolve(process.cwd(), "..", ".env");
-    const envRaw = await readFile(envPath, "utf-8");
+    const envRaw = await readFile(ENV_PATH, "utf-8");
     parentEnv = parseEnvFile(envRaw);
   } catch {
-    // No parent .env
+    // No .env file
   }
 
   const claudeApiKey = process.env.ANTHROPIC_API_KEY || parentEnv.ANTHROPIC_API_KEY;
   const lateApiKey = process.env.LATE_API_KEY || parentEnv.LATE_API_KEY;
 
   try {
-    const configPath = path.resolve(process.cwd(), "..", "clipbot.config.json");
-    const raw = await readFile(configPath, "utf-8");
+    const raw = await readFile(CONFIG_PATH, "utf-8");
     const parentConfig = JSON.parse(raw);
 
     return {
