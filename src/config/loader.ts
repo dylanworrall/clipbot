@@ -1,13 +1,20 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { homedir } from "node:os";
+import { existsSync } from "node:fs";
 import { config as loadEnv } from "dotenv";
 import type { ClipBotConfig } from "../types/config.js";
 import { ConfigFileSchema } from "./schema.js";
 import { DEFAULT_CONFIG } from "./defaults.js";
+import { getEnvPath } from "./paths.js";
 import { log } from "../utils/logger.js";
 
-loadEnv();
+// Load .env from ~/.clipbot/.env first, then process.cwd()/.env as fallback
+const homeEnvPath = getEnvPath();
+if (existsSync(homeEnvPath)) {
+  loadEnv({ path: homeEnvPath });
+}
+loadEnv(); // process.cwd()/.env — won't override already-set vars
 
 async function tryLoadJson(filePath: string): Promise<Record<string, unknown> | null> {
   try {

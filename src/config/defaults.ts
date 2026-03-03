@@ -1,4 +1,5 @@
 import type { ClipBotConfig } from "../types/config.js";
+import { getDefaultOutputDir } from "./paths.js";
 
 export const DEFAULT_CONFIG: ClipBotConfig = {
   claudeApiKey: "",
@@ -10,7 +11,7 @@ export const DEFAULT_CONFIG: ClipBotConfig = {
   defaultMaxClips: 5,
   defaultMinScore: 7,
   defaultMaxDuration: 59,
-  outputDir: "./clipbot-output",
+  outputDir: getDefaultOutputDir(),
   niche: "",
   subtitles: true,
   padBefore: 1.5,

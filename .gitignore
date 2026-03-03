@@ -6,3 +6,7 @@ clipbot-output/
 *.mp3
 *.webm
 .DS_Store
+cookies.txt
+*.webp
+ui-standalone/
+.next/

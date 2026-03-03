@@ -1,13 +1,20 @@
 {
-  "name": "clipbot",
-  "version": "0.1.0",
+  "name": "clippy-ai",
+  "version": "1.0.0",
   "description": "Automated viral clip pipeline: YouTube → AI analysis → clip → post",
   "type": "module",
   "bin": {
     "clipbot": "./dist/cli/index.js"
   },
+  "files": [
+    "dist/",
+    "ui-standalone/",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
+    "build:package": "node scripts/build-package.mjs",
+    "prepublishOnly": "npm run build:package",
     "dev": "tsx src/cli/index.ts",
     "start": "node dist/cli/index.js",
     "typecheck": "tsc --noEmit"
@@ -43,7 +50,8 @@
     "react-dom": "^19.2.4",
     "remotion": "^4.0.428",
     "uuid": "^13.0.0",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "next": "^16.1.6"
   },
   "devDependencies": {
     "@types/ffprobe-static": "^2.0.3",
