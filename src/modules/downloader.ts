@@ -4,7 +4,8 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import ffmpegPath from "ffmpeg-static";
 import { log } from "../utils/logger.js";
-import { extractVideoId } from "../utils/url.js";
+import { extractVideoSlug } from "../utils/url.js";
+import { getCookiesPath } from "../config/paths.js";
 import type { DownloadOptions, DownloadResult } from "../types/pipeline.js";
 
 const execFileAsync = promisify(execFile);
@@ -41,7 +42,8 @@ async function resolveYtDlp(): Promise<{ bin: string; prefixArgs: string[] }> {
 /**
  * Find a cookies file. Checks (in order):
  * 1. Explicit path from config
- * 2. cookies.txt in project root
+ * 2. cookies.txt in project root (cwd)
+ * 3. ~/.clipbot/cookies.txt
  */
 async function findCookiesFile(explicit?: string): Promise<string | null> {
   if (explicit) {
@@ -61,6 +63,16 @@ async function findCookiesFile(explicit?: string): Promise<string | null> {
     log.debug(`Auto-detected cookies file: ${autoPath}`);
     return autoPath;
   } catch {
+    // no cookies file in cwd
+  }
+
+  // Fallback: ~/.clipbot/cookies.txt
+  const homeCookies = getCookiesPath();
+  try {
+    await access(homeCookies);
+    log.debug(`Using cookies from home dir: ${homeCookies}`);
+    return homeCookies;
+  } catch {
     // no cookies file
   }
 
@@ -68,16 +80,16 @@ async function findCookiesFile(explicit?: string): Promise<string | null> {
 }
 
 export async function downloadVideo(
-  youtubeUrl: string,
+  videoUrl: string,
   options: DownloadOptions
 ): Promise<DownloadResult> {
-  const videoId = extractVideoId(youtubeUrl) ?? "video";
-  const outputTemplate = path.join(options.outputDir, `${videoId}.%(ext)s`);
+  const slug = extractVideoSlug(videoUrl);
+  const outputTemplate = path.join(options.outputDir, `${slug}.%(ext)s`);
 
   const { bin, prefixArgs } = await resolveYtDlp();
   const cookiesFile = await findCookiesFile(options.cookiesFile);
 
-  log.debug(`Downloading via ${bin} ${prefixArgs.join(" ")}: ${youtubeUrl}`);
+  log.debug(`Downloading via ${bin} ${prefixArgs.join(" ")}: ${videoUrl}`);
   if (cookiesFile) log.debug(`Using cookies from: ${cookiesFile}`);
 
   const args = [
@@ -97,7 +109,7 @@ export async function downloadVideo(
     // Cookies for age-restricted / private videos
     ...(cookiesFile ? ["--cookies", cookiesFile] : []),
     ...(typeof ffmpegPath === "string" ? ["--ffmpeg-location", ffmpegPath] : []),
-    youtubeUrl,
+    videoUrl,
   ];
 
   await execFileAsync(bin, args, {
@@ -106,9 +118,9 @@ export async function downloadVideo(
   });
 
   // Find the downloaded file
-  const expectedPath = path.join(options.outputDir, `${videoId}.mp4`);
+  const expectedPath = path.join(options.outputDir, `${slug}.mp4`);
   const fileStats = await stat(expectedPath);
-  const filename = `${videoId}.mp4`;
+  const filename = `${slug}.mp4`;
 
   log.debug(`Downloaded ${fileStats.size} bytes to ${expectedPath}`);
 

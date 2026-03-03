@@ -5,20 +5,20 @@ import chalk from "chalk";
 import { loadConfig } from "../../config/loader.js";
 import { fetchTranscript, formatTranscriptForPrompt } from "../../modules/transcript.js";
 import { analyzeTranscript } from "../../modules/analyzer.js";
-import { isYouTubeUrl, normalizeYouTubeUrl } from "../../utils/url.js";
+import { isValidVideoUrl } from "../../utils/url.js";
 import { log } from "../../utils/logger.js";
 
 export const previewCommand = new Command("preview")
   .description("Analyze a video for viral moments (no download or clipping)")
-  .argument("<url>", "YouTube video URL")
+  .argument("<url>", "Video URL")
   .option("-n, --max-clips <n>", "Maximum moments to find", "10")
   .option("-s, --min-score <n>", "Minimum virality score", "5")
   .option("-d, --max-duration <n>", "Maximum clip duration", "59")
   .option("--json", "Output as JSON")
   .option("--config <path>", "Path to config file")
   .action(async (url: string, opts) => {
-    if (!isYouTubeUrl(url)) {
-      log.error("Invalid YouTube URL.");
+    if (!isValidVideoUrl(url)) {
+      log.error("Invalid URL. Provide a valid video link.");
       process.exit(1);
     }
 
@@ -32,8 +32,7 @@ export const previewCommand = new Command("preview")
     const spinner = ora("Fetching transcript...").start();
 
     try {
-      const youtubeUrl = normalizeYouTubeUrl(url);
-      const { segments } = await fetchTranscript(youtubeUrl);
+      const { segments } = await fetchTranscript(url);
 
       spinner.text = "Analyzing with Claude...";
 

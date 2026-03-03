@@ -15,7 +15,6 @@ import { sliceWordTimings, renderWithCaptions } from "../modules/captions.js";
 import { uploadAndPost } from "../modules/publisher.js";
 import { createInitialState, saveState } from "./state.js";
 import { ensureDir } from "../utils/fs.js";
-import { normalizeYouTubeUrl } from "../utils/url.js";
 import { log } from "../utils/logger.js";
 import type { ViralMoment } from "../types/clip.js";
 
@@ -51,8 +50,8 @@ export async function runPipeline(
   const outputDir = path.resolve(options.outputDir ?? config.outputDir, runId);
   await ensureDir(outputDir);
 
-  const youtubeUrl = normalizeYouTubeUrl(options.url);
-  const state = createInitialState(runId, youtubeUrl);
+  const videoUrl = options.url;
+  const state = createInitialState(runId, videoUrl);
 
   const quality = options.quality ?? config.defaultQuality;
   const maxClips = options.maxClips ?? config.defaultMaxClips;
@@ -66,7 +65,7 @@ export async function runPipeline(
     state.status = "downloading";
     await saveState(state, outputDir);
 
-    const download = await downloadVideo(youtubeUrl, {
+    const download = await downloadVideo(videoUrl, {
       quality,
       outputDir,
       cookiesFile: config.cookiesFile,
@@ -84,7 +83,7 @@ export async function runPipeline(
     state.status = "transcribing";
     await saveState(state, outputDir);
 
-    const { segments, wordTimestamps } = await fetchTranscript(youtubeUrl, {
+    const { segments, wordTimestamps } = await fetchTranscript(videoUrl, {
       cookiesFile: config.cookiesFile,
     });
     state.transcript = segments;

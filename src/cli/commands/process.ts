@@ -4,14 +4,15 @@ import Table from "cli-table3";
 import chalk from "chalk";
 import { loadConfig } from "../../config/loader.js";
 import { runPipeline } from "../../pipeline/runner.js";
-import { isYouTubeUrl } from "../../utils/url.js";
+import { isValidVideoUrl } from "../../utils/url.js";
 import { formatBytes } from "../../utils/fs.js";
 import { log } from "../../utils/logger.js";
+import { printBannerMini } from "../banner.js";
 import type { Platform } from "../../types/config.js";
 
 export const processCommand = new Command("process")
-  .description("Download, analyze, clip, and post a YouTube video")
-  .argument("<url>", "YouTube video URL")
+  .description("Download, analyze, clip, and post a video")
+  .argument("<url>", "Video URL (YouTube, Twitch, Kick, etc.)")
   .option("-q, --quality <quality>", "Video download quality", "1080")
   .option("-n, --max-clips <n>", "Maximum clips to generate", "5")
   .option("-s, --min-score <n>", "Minimum virality score (1-10)", "7")
@@ -33,8 +34,10 @@ export const processCommand = new Command("process")
   .option("--caption-mode <mode>", "Caption mode: overlay (live captions) or burn-in (baked into video)")
   .option("--config <path>", "Path to config file")
   .action(async (url: string, opts) => {
-    if (!isYouTubeUrl(url)) {
-      log.error("Invalid YouTube URL. Provide a valid youtube.com or youtu.be link.");
+    printBannerMini();
+
+    if (!isValidVideoUrl(url)) {
+      log.error("Invalid URL. Provide a valid video link.");
       process.exit(1);
     }
 

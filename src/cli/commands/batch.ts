@@ -3,12 +3,12 @@ import { readFile } from "node:fs/promises";
 import chalk from "chalk";
 import { loadConfig } from "../../config/loader.js";
 import { runPipeline } from "../../pipeline/runner.js";
-import { isYouTubeUrl } from "../../utils/url.js";
+import { isValidVideoUrl } from "../../utils/url.js";
 import { log } from "../../utils/logger.js";
 import type { Platform } from "../../types/config.js";
 
 export const batchCommand = new Command("batch")
-  .description("Process multiple YouTube URLs from a file (one per line)")
+  .description("Process multiple video URLs from a file (one per line)")
   .argument("<file>", "Text file with YouTube URLs")
   .option("-n, --max-clips <n>", "Maximum clips per video", "5")
   .option("-s, --min-score <n>", "Minimum virality score", "7")
@@ -41,10 +41,10 @@ export const batchCommand = new Command("batch")
     const urls = content
       .split("\n")
       .map((line) => line.trim())
-      .filter((line) => line && !line.startsWith("#") && isYouTubeUrl(line));
+      .filter((line) => line && !line.startsWith("#") && isValidVideoUrl(line));
 
     if (urls.length === 0) {
-      log.error("No valid YouTube URLs found in file.");
+      log.error("No valid video URLs found in file.");
       process.exit(1);
     }
 
