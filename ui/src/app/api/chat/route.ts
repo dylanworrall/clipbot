@@ -7,6 +7,10 @@ import { getEffectiveConfig } from "@/lib/settings-store";
 import { getSpace } from "@/lib/space-store";
 import { getChatMessages, saveChatMessage } from "@/lib/chat-store";
 import { loadEnv } from "@/lib/env";
+import { getConvexClient, isConvexMode } from "@/lib/convex-server";
+import { api } from "@/lib/convex-api";
+
+const CREDITS_PER_MESSAGE = 1;
 
 /** GET /api/chat?threadId=xxx — load persisted chat history */
 export async function GET(req: NextRequest) {
@@ -38,6 +42,26 @@ export async function POST(req: Request) {
       { error: "No API key configured. Go to /login to set up." },
       { status: 400 }
     );
+  }
+
+  // Check credits if in Convex mode (SaaS)
+  const userEmail = body.userEmail as string | undefined;
+  if (isConvexMode() && userEmail) {
+    const convex = getConvexClient();
+    if (convex) {
+      const credits = await convex.query(api.users.getCredits, { email: userEmail });
+      if (credits < CREDITS_PER_MESSAGE) {
+        return Response.json(
+          { error: "Insufficient credits. Purchase more to continue." },
+          { status: 402 }
+        );
+      }
+      // Deduct credits
+      await convex.mutation(api.users.deductCredits, {
+        email: userEmail,
+        amount: CREDITS_PER_MESSAGE,
+      });
+    }
   }
 
   // Build system prompt with space context

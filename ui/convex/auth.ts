@@ -1,0 +1,23 @@
+import { createClient, type GenericCtx } from "@convex-dev/better-auth";
+import { convex } from "@convex-dev/better-auth/plugins";
+import { components } from "./_generated/api";
+import type { DataModel } from "./_generated/dataModel";
+import { betterAuth } from "better-auth/minimal";
+import authConfig from "./auth.config";
+
+const siteUrl = process.env.SITE_URL!;
+
+export const authComponent = createClient<DataModel>(components.betterAuth);
+
+export const createAuth = (ctx: GenericCtx<DataModel>) => {
+  return betterAuth({
+    baseURL: siteUrl,
+    database: authComponent.adapter(ctx),
+    emailAndPassword: {
+      enabled: true,
+      requireEmailVerification: false,
+    },
+    trustedOrigins: ["http://localhost:3000", "http://localhost:3099", "https://*.vercel.app", "https://*.netlify.app"],
+    plugins: [convex({ authConfig })],
+  });
+};

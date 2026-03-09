@@ -10,3 +10,6 @@ cookies.txt
 *.webp
 ui-standalone/
 .next/
+
+# Local Netlify folder
+.netlify

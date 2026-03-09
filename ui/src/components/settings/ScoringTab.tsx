@@ -110,7 +110,7 @@ export function ScoringTab({ state, updateField, resetScoring }: ScoringTabProps
 
   return (
     <div className="space-y-6">
-      <Card className="space-y-5">
+      <Card className="space-y-5 px-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">

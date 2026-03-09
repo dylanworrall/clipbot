@@ -4,6 +4,7 @@ import { useChat } from "@ai-sdk/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useSpace } from "@/contexts/SpaceContext";
+import { useSession } from "@/lib/auth-client";
 
 interface StoredMessage {
   id: string;
@@ -75,6 +76,8 @@ function hydrateMessages(stored: StoredMessage[]): UIMessage[] {
 
 export function useAiChat(threadId: string | null) {
   const { activeSpaceId } = useSpace();
+  const session = useSession();
+  const userEmail = session.data?.user?.email ?? undefined;
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const prevThreadId = useRef<string | null>(null);
 
@@ -82,9 +85,9 @@ export function useAiChat(threadId: string | null) {
     () =>
       new DefaultChatTransport({
         api: "/api/chat",
-        body: { threadId, spaceId: activeSpaceId },
+        body: { threadId, spaceId: activeSpaceId, userEmail },
       }),
-    [threadId, activeSpaceId]
+    [threadId, activeSpaceId, userEmail]
   );
 
   const {

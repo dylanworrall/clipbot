@@ -15,7 +15,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
   return (
     <div className="space-y-6">
       {/* Pipeline Settings */}
-      <Card className="space-y-5">
+      <Card className="space-y-5 px-6">
         <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
           Pipeline
         </h2>
@@ -137,7 +137,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
       </Card>
 
       {/* Background Fill */}
-      <Card className="space-y-5">
+      <Card className="space-y-5 px-6">
         <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
           Background Fill
         </h2>
@@ -177,7 +177,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
       </Card>
 
       {/* Caption Mode */}
-      <Card className="space-y-5">
+      <Card className="space-y-5 px-6">
         <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
           Caption Mode
         </h2>
@@ -225,7 +225,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
       </Card>
 
       {/* Caption Styling */}
-      <Card className="space-y-5">
+      <Card className="space-y-5 px-6">
         <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
           Caption Styling
         </h2>
@@ -351,7 +351,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
       </Card>
 
       {/* Hook Text */}
-      <Card className="space-y-5">
+      <Card className="space-y-5 px-6">
         <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
           Hook Text
         </h2>

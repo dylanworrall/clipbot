@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Link, Layers, Users, Play } from "lucide-react";
+import { Link, Layers, Users, Play, AlertTriangle, Settings, Terminal } from "lucide-react";
 import { ChatFeed } from "@/components/chat/ChatFeed";
 import { PromptInput } from "@/components/chat/PromptInput";
 import { useThreads } from "@/hooks/useThreads";
@@ -39,6 +39,22 @@ export default function ChatPage() {
   const { sendMessage, aiMessages, isThinking } = useAiChat(chatThreadId);
 
   const [taglineIndex, setTaglineIndex] = useState(0);
+  const [apiKeyStatus, setApiKeyStatus] = useState<{ connected: boolean; checked: boolean }>({
+    connected: true, // optimistic default to avoid flash
+    checked: false,
+  });
+
+  // Check if an API key is configured
+  useEffect(() => {
+    fetch("/api/auth")
+      .then((res) => res.json())
+      .then((data: { connected: boolean }) => {
+        setApiKeyStatus({ connected: data.connected, checked: true });
+      })
+      .catch(() => {
+        setApiKeyStatus({ connected: false, checked: true });
+      });
+  }, []);
 
   // Cycle taglines every 3.5 seconds
   useEffect(() => {
@@ -88,6 +104,53 @@ export default function ChatPage() {
 
   const hasAiActivity = aiMessages.length > 0 || isThinking;
   const showHero = !activeThreadId && !loading && !hasAiActivity;
+
+  // Show API key setup prompt if no key is configured
+  if (apiKeyStatus.checked && !apiKeyStatus.connected) {
+    return (
+      <div className="flex flex-col h-screen overflow-hidden items-center justify-center px-4">
+        <div className="w-full max-w-md space-y-6 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/20">
+            <AlertTriangle className="h-7 w-7 text-amber-400" />
+          </div>
+          <div>
+            <h2 className="text-xl font-light tracking-tight text-foreground/80 mb-2">
+              API Key Required
+            </h2>
+            <p className="text-sm text-muted/70 leading-relaxed">
+              No Anthropic API key is configured. Set one up to start using ClipBot.
+            </p>
+          </div>
+          <div className="space-y-3">
+            <a
+              href="/settings"
+              className="flex items-center justify-center gap-2 w-full rounded-lg border border-accent/30 bg-accent/5 px-4 py-3 text-sm font-medium text-foreground hover:bg-accent/10 transition-colors"
+            >
+              <Settings className="h-4 w-4" />
+              Configure in Settings
+            </a>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border/40" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-surface-0 px-3 text-muted/50">or via terminal</span>
+              </div>
+            </div>
+            <div className="rounded-lg border border-border/60 bg-surface-1/50 px-4 py-3">
+              <div className="flex items-center gap-2 text-xs text-muted/70 mb-1.5">
+                <Terminal className="h-3 w-3" />
+                Set environment variable
+              </div>
+              <code className="text-xs text-foreground/70 font-mono">
+                ANTHROPIC_API_KEY=sk-ant-...
+              </code>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">

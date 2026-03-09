@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { loadEnv, saveEnvVar, removeEnvVar } from "@/lib/env";
+import { getEffectiveConfig } from "@/lib/settings-store";
 
 function maskKey(key: string): string {
   if (key.length <= 10) return "****";
@@ -9,7 +10,10 @@ function maskKey(key: string): string {
 export async function GET() {
   loadEnv(true);
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const config = await getEffectiveConfig();
+
+  // Check all possible sources: env vars, parent .env (via loadEnv), and settings/config
+  const apiKey = process.env.ANTHROPIC_API_KEY || config.claudeApiKey;
   const oauthToken = process.env.CLAUDE_OAUTH_TOKEN;
 
   return NextResponse.json({

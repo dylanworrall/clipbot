@@ -187,7 +187,7 @@ export function GeneralTab({ state, updateField }: GeneralTabProps) {
   return (
     <div className="space-y-6">
       {/* Claude Authentication */}
-      <Card className="space-y-5">
+      <Card className="space-y-5 px-6">
         <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
           Claude Authentication
         </h2>
@@ -195,7 +195,7 @@ export function GeneralTab({ state, updateField }: GeneralTabProps) {
       </Card>
 
       {/* Other API Keys */}
-      <Card className="space-y-5">
+      <Card className="space-y-5 px-6">
         <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
           Other API Keys
         </h2>
@@ -210,7 +210,7 @@ export function GeneralTab({ state, updateField }: GeneralTabProps) {
       </Card>
 
       {/* Model & Temperature */}
-      <Card className="space-y-5">
+      <Card className="space-y-5 px-6">
         <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
           Claude Configuration
         </h2>

@@ -8,6 +8,7 @@ import { SpaceProvider } from "@/contexts/SpaceContext";
 import { ThreadProvider } from "@/contexts/ThreadContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ConvexProvider } from "@/components/providers/ConvexProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -35,6 +36,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-surface-0 text-foreground`}
       >
+        <ConvexProvider>
         <ThemeProvider>
           <ToastProvider>
             <TooltipProvider>
@@ -49,6 +51,7 @@ export default function RootLayout({
             </TooltipProvider>
           </ToastProvider>
         </ThemeProvider>
+        </ConvexProvider>
       </body>
     </html>
   );

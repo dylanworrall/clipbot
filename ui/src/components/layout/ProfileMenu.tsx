@@ -14,8 +14,10 @@ import {
   Cable,
   ChevronRight,
   Check,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { signOut, useSession } from "@/lib/auth-client";
 
 const LANGUAGES = [
   { code: "en", label: "English" },
@@ -123,6 +125,13 @@ export function ProfileMenu({ compact }: ProfileMenuProps) {
       label: "Billing",
       onClick: () => { setOpen(false); router.push("/settings?tab=billing"); },
     },
+    { type: "separator" as const },
+    {
+      icon: LogOut,
+      label: "Sign out",
+      onClick: () => { setOpen(false); signOut({ fetchOptions: { onSuccess: () => { window.location.href = "/login"; } } }); },
+      danger: true,
+    },
   ];
 
   return (
@@ -166,7 +175,12 @@ export function ProfileMenu({ compact }: ProfileMenuProps) {
                     key={i}
                     type="button"
                     onClick={"onClick" in item ? item.onClick : undefined}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-left text-foreground hover:bg-surface-2 transition-colors cursor-pointer"
+                    className={cn(
+                      "w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-left transition-colors cursor-pointer",
+                      "danger" in item && item.danger
+                        ? "text-red-400 hover:bg-red-500/10"
+                        : "text-foreground hover:bg-surface-2"
+                    )}
                   >
                     <Icon className="h-4 w-4 text-muted flex-shrink-0" />
                     <span className="flex-1">{"label" in item ? item.label : ""}</span>

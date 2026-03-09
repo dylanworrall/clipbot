@@ -16,7 +16,7 @@ export function ConnectorsTab({ state, togglePlatform, fetchAccounts }: Connecto
   return (
     <div className="space-y-6">
       {/* Default Publish Platforms */}
-      <Card className="space-y-4">
+      <Card className="space-y-4 px-6">
         <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
           Default Publish Platforms
         </h2>
@@ -42,7 +42,7 @@ export function ConnectorsTab({ state, togglePlatform, fetchAccounts }: Connecto
       </Card>
 
       {/* Connected Accounts */}
-      <Card className="space-y-5">
+      <Card className="space-y-5 px-6">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
             Connected Accounts

@@ -2,8 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { getCreators, addCreator } from "@/lib/creator-store";
 import { extractChannelId, fetchChannelFeedWithMeta } from "@/lib/youtube-rss";
+import { getConvexClient, isConvexMode } from "@/lib/convex-server";
+import { api } from "@/lib/convex-api";
 
 export async function GET() {
+  if (isConvexMode()) {
+    const convex = getConvexClient()!;
+    const creators = await convex.query(api.creators.list, {});
+    return NextResponse.json(creators);
+  }
   const creators = await getCreators();
   return NextResponse.json(creators);
 }
