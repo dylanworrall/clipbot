@@ -11,7 +11,7 @@ const convex = convexUrl ? new ConvexReactClient(convexUrl) : null;
 export function ConvexProvider({ children }: { children: ReactNode }) {
   if (!convex) return <>{children}</>;
   return (
-    <ConvexBetterAuthProvider client={convex} authClient={authClient}>
+    <ConvexBetterAuthProvider client={convex} authClient={authClient as any}>
       {children}
     </ConvexBetterAuthProvider>
   );

@@ -10,7 +10,7 @@ import { loadEnv } from "@/lib/env";
 import { getConvexClient, isConvexMode } from "@/lib/convex-server";
 import { api } from "@/lib/convex-api";
 
-const CREDITS_PER_MESSAGE = 1;
+// Usage is tracked per tier in Convex
 
 /** GET /api/chat?threadId=xxx — load persisted chat history */
 export async function GET(req: NextRequest) {
@@ -44,23 +44,24 @@ export async function POST(req: Request) {
     );
   }
 
-  // Check credits if in Convex mode (SaaS)
+  // Check subscription usage if in Convex mode (SaaS)
   const userEmail = body.userEmail as string | undefined;
-  if (isConvexMode() && userEmail) {
+  if (isConvexMode()) {
+    if (!userEmail) {
+      return Response.json(
+        { error: "Authentication required. Please sign in." },
+        { status: 401 }
+      );
+    }
     const convex = getConvexClient();
     if (convex) {
-      const credits = await convex.query(api.users.getCredits, { email: userEmail });
-      if (credits < CREDITS_PER_MESSAGE) {
+      const result = await convex.mutation(api.users.useMessage, { email: userEmail });
+      if (!result.allowed) {
         return Response.json(
-          { error: "Insufficient credits. Purchase more to continue." },
+          { error: "Message limit reached. Upgrade your plan for more messages." },
           { status: 402 }
         );
       }
-      // Deduct credits
-      await convex.mutation(api.users.deductCredits, {
-        email: userEmail,
-        amount: CREDITS_PER_MESSAGE,
-      });
     }
   }
 

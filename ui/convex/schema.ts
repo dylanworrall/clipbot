@@ -5,10 +5,12 @@ export default defineSchema({
   users: defineTable({
     email: v.string(),
     name: v.string(),
-    credits: v.number(),
+    tier: v.string(), // "free" | "pro" | "business"
+    messageCount: v.number(), // messages used this period
+    periodStart: v.string(), // ISO timestamp, resets monthly
+    whopMembershipId: v.optional(v.string()),
     createdAt: v.string(),
   }).index("by_email", ["email"]),
-
 
   spaces: defineTable({
     name: v.string(),

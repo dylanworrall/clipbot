@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Link, Layers, Users, Play, AlertTriangle, Settings, Terminal } from "lucide-react";
+
+const isCloudMode = !!process.env.NEXT_PUBLIC_CONVEX_URL;
 import { ChatFeed } from "@/components/chat/ChatFeed";
 import { PromptInput } from "@/components/chat/PromptInput";
 import { useThreads } from "@/hooks/useThreads";
@@ -44,8 +46,13 @@ export default function ChatPage() {
     checked: false,
   });
 
-  // Check if an API key is configured
+  // Check if an API key is configured (local mode only — cloud uses middleware auth)
   useEffect(() => {
+    if (isCloudMode) {
+      // Cloud mode: server provides the API key, no client-side check needed
+      setApiKeyStatus({ connected: true, checked: true });
+      return;
+    }
     fetch("/api/auth")
       .then((res) => res.json())
       .then((data: { connected: boolean }) => {

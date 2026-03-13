@@ -9,19 +9,27 @@ import { StyleTab } from "@/components/settings/StyleTab";
 import { ScoringTab } from "@/components/settings/ScoringTab";
 import { ConnectorsTab } from "@/components/settings/ConnectorsTab";
 import { BillingTab } from "@/components/settings/BillingTab";
+import { AutoScoreTab } from "@/components/settings/AutoScoreTab";
 import { useSettings } from "@/hooks/useSettings";
 import { useToast } from "@/contexts/ToastContext";
 import { Save, Loader2 } from "lucide-react";
 
 // ── Tab definitions ──────────────────────────────────────────────────────────
 
-const TABS = [
+const isCloudMode = !!process.env.NEXT_PUBLIC_CONVEX_URL;
+
+const ALL_TABS = [
   { key: "general", label: "General" },
   { key: "style", label: "Style" },
   { key: "scoring", label: "Scoring" },
+  { key: "autoscore", label: "AutoScore" },
   { key: "connectors", label: "Connectors" },
   { key: "billing", label: "Billing" },
 ] as const;
+
+const TABS = isCloudMode
+  ? ALL_TABS
+  : ALL_TABS.filter((t) => t.key !== "billing");
 
 type TabKey = (typeof TABS)[number]["key"];
 
@@ -106,6 +114,7 @@ function SettingsInner() {
                 resetScoring={resetScoring}
               />
             )}
+            {activeTab === "autoscore" && <AutoScoreTab />}
             {activeTab === "connectors" && (
               <ConnectorsTab
                 state={state}

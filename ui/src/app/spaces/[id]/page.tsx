@@ -65,9 +65,11 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
   }, [id]);
 
   useEffect(() => {
+    // Clear stale thread when entering a space — show dashboard first
+    setActiveThread(null);
     setActiveSpace(id);
     fetchData();
-  }, [id, setActiveSpace, fetchData]);
+  }, [id, setActiveSpace, setActiveThread, fetchData]);
 
   const handleUpdateHeader = async (fields: { name?: string; description?: string; icon?: string }) => {
     await fetch(`/api/spaces/${id}`, {
@@ -172,52 +174,33 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
 
   if (!space) return null;
 
-  // Chat-active layout: full-height chat with settings panel
+  // Chat-active layout: clean full-height chat (space settings already applied)
   if (hasChatContent) {
     return (
-      <div className="flex h-screen overflow-hidden">
-        {/* Chat area */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Space header bar */}
-          <div className="flex items-center gap-3 px-4 py-2.5 border-b border-border/50 bg-surface-0">
-            <button
-              onClick={() => { setActiveThread(null); }}
-              className="text-xs text-muted hover:text-foreground transition-colors cursor-pointer"
-            >
-              &larr; {space.icon} {space.name}
-            </button>
-          </div>
-
-          <ChatFeed
-            messages={threadMessages}
-            aiMessages={aiMessages}
-            isAiThinking={isThinking}
-            loading={loading}
-            onRetry={handleRetry}
-          />
-          <PromptInput
-            onSubmit={handleSubmit}
-            onChat={handleChat}
-            spaceId={id}
-            disabled={isThinking}
-          />
+      <div className="flex flex-col h-screen overflow-hidden">
+        {/* Space header bar */}
+        <div className="flex items-center gap-3 px-4 py-2.5 border-b border-border/50 bg-surface-0 flex-shrink-0">
+          <button
+            onClick={() => { setActiveThread(null); }}
+            className="text-xs text-muted hover:text-foreground transition-colors cursor-pointer"
+          >
+            &larr; {space.icon} {space.name}
+          </button>
         </div>
 
-        {/* Settings panel */}
-        <div className="w-48 flex-shrink-0 border-l border-border/50 p-4 overflow-y-auto">
-          <div className="bg-surface-1 border border-border rounded-xl p-4">
-            <SpacePanel
-              spaceId={id}
-              settings={space.settings}
-              globalSettings={globalSettings}
-              accounts={space.accounts}
-              creators={space.creators}
-              onUpdateSettings={handleUpdateSettings}
-              onUpdateAccounts={handleUpdateAccounts}
-              onUpdateCreators={handleUpdateCreators}
-            />
-          </div>
-        </div>
+        <ChatFeed
+          messages={threadMessages}
+          aiMessages={aiMessages}
+          isAiThinking={isThinking}
+          loading={loading}
+          onRetry={handleRetry}
+        />
+        <PromptInput
+          onSubmit={handleSubmit}
+          onChat={handleChat}
+          spaceId={id}
+          disabled={isThinking}
+        />
       </div>
     );
   }

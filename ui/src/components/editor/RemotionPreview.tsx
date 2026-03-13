@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useMemo } from "react";
 import { Player, type PlayerRef } from "@remotion/player";
 import { Main } from "./remotion/PlayerComposition";
 import type { Track } from "./remotion/types";
@@ -14,7 +14,7 @@ interface RemotionPreviewProps {
   playerRef?: React.MutableRefObject<PlayerRef | null>;
 }
 
-export const RemotionPreview: React.FC<RemotionPreviewProps> = ({
+const RemotionPreviewInner: React.FC<RemotionPreviewProps> = ({
   tracks,
   durationInFrames,
   fps,
@@ -23,6 +23,7 @@ export const RemotionPreview: React.FC<RemotionPreviewProps> = ({
   playerRef: externalRef,
 }) => {
   const localRef = useRef<PlayerRef | null>(null);
+  const lastFrameUpdate = useRef(0);
 
   const setRef = useCallback(
     (node: PlayerRef | null) => {
@@ -32,23 +33,35 @@ export const RemotionPreview: React.FC<RemotionPreviewProps> = ({
     [externalRef]
   );
 
-  // Poll current frame + playing state for timeline sync
+  // Use Remotion event listeners for frame/playing sync
+  // Throttle frame updates to ~10fps to avoid re-render storms in parent
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (!localRef.current) return;
-      const frame = localRef.current.getCurrentFrame();
+    const player = localRef.current;
+    if (!player) return;
+
+    const onFrame = () => {
+      const now = Date.now();
+      if (now - lastFrameUpdate.current < 100) return; // ~10fps throttle
+      lastFrameUpdate.current = now;
+      const frame = player.getCurrentFrame();
       if (frame !== undefined) onFrameChange?.(frame);
-      try {
-        const playing = localRef.current.isPlaying();
-        onPlayingChange?.(playing);
-      } catch {
-        // isPlaying may not be available in all versions
-      }
-    }, 50);
-    return () => clearInterval(interval);
+    };
+    const onPlay = () => onPlayingChange?.(true);
+    const onPause = () => onPlayingChange?.(false);
+
+    player.addEventListener("frameupdate", onFrame);
+    player.addEventListener("play", onPlay);
+    player.addEventListener("pause", onPause);
+
+    return () => {
+      player.removeEventListener("frameupdate", onFrame);
+      player.removeEventListener("play", onPlay);
+      player.removeEventListener("pause", onPause);
+    };
   }, [onFrameChange, onPlayingChange]);
 
-  const inputProps = { tracks };
+  // Memoize inputProps so Player doesn't see a new object on every render
+  const inputProps = useMemo(() => ({ tracks }), [tracks]);
 
   return (
     <div className="h-full flex items-center justify-center">
@@ -65,10 +78,13 @@ export const RemotionPreview: React.FC<RemotionPreviewProps> = ({
           compositionWidth={1080}
           compositionHeight={1920}
           style={{ width: "100%", height: "100%" }}
-          loop
           autoPlay={false}
         />
       </div>
     </div>
   );
 };
+
+// React.memo prevents re-renders from parent frame/playing state changes
+// (tracks, durationInFrames, fps are the only props that should trigger re-render)
+export const RemotionPreview = React.memo(RemotionPreviewInner);

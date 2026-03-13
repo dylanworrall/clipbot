@@ -28,6 +28,7 @@ const BackgroundItemComp: React.FC<{ item: BackgroundItem }> = ({ item }) => {
     <AbsoluteFill style={{ overflow: "hidden" }}>
       <Video
         src={item.src}
+        muted
         style={{
           width: "100%",
           height: "100%",

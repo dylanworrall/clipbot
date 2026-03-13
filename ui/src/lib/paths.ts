@@ -35,6 +35,7 @@ export const NOTIFICATIONS_FILE = path.join(DATA_DIR, "notifications.json");
 export const SETTINGS_FILE = path.join(DATA_DIR, "settings.json");
 export const SCHEDULE_FILE = path.join(DATA_DIR, "scheduled.json");
 export const SPACES_FILE = path.join(DATA_DIR, "spaces.json");
+export const AUTOSCORE_FILE = path.join(DATA_DIR, "autoscore.json");
 
 /** config.json path: ~/.clipbot/config.json in production, ../clipbot.config.json in dev */
 export const CONFIG_PATH = isProduction

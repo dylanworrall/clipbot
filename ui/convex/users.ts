@@ -1,6 +1,13 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
+// Tier limits (messages per month)
+const TIER_LIMITS: Record<string, number> = {
+  free: 50,
+  pro: 1000,
+  business: 5000,
+};
+
 // Get user by email
 export const getByEmail = query({
   args: { email: v.string() },
@@ -23,49 +30,88 @@ export const getOrCreate = mutation({
 
     if (existing) return existing;
 
-    // New users get 50 free credits
     const id = await ctx.db.insert("users", {
       email,
       name,
-      credits: 50,
+      tier: "free",
+      messageCount: 0,
+      periodStart: new Date().toISOString(),
       createdAt: new Date().toISOString(),
     });
     return ctx.db.get(id);
   },
 });
 
-// Check credit balance
-export const getCredits = query({
+// Get subscription info (tier, usage, limit)
+export const getSubscription = query({
   args: { email: v.string() },
   handler: async (ctx, { email }) => {
     const user = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", email))
       .first();
-    return user?.credits ?? 0;
+    if (!user) return { tier: "free", messageCount: 0, limit: TIER_LIMITS.free, periodStart: new Date().toISOString() };
+
+    const limit = TIER_LIMITS[user.tier] ?? TIER_LIMITS.free;
+
+    // Check if period needs reset (30 days)
+    const periodStart = new Date(user.periodStart);
+    const now = new Date();
+    const daysSincePeriodStart = (now.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24);
+
+    return {
+      tier: user.tier,
+      messageCount: daysSincePeriodStart >= 30 ? 0 : user.messageCount,
+      limit,
+      periodStart: user.periodStart,
+    };
   },
 });
 
-// Deduct credits (returns false if insufficient)
-export const deductCredits = mutation({
-  args: { email: v.string(), amount: v.number() },
-  handler: async (ctx, { email, amount }) => {
+// Check if user can send a message + deduct (returns { allowed, remaining })
+export const useMessage = mutation({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
     const user = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", email))
       .first();
 
-    if (!user || user.credits < amount) return false;
+    if (!user) return { allowed: false, remaining: 0 };
 
-    await ctx.db.patch(user._id, { credits: user.credits - amount });
-    return true;
+    const limit = TIER_LIMITS[user.tier] ?? TIER_LIMITS.free;
+
+    // Reset period if 30+ days have passed
+    const periodStart = new Date(user.periodStart);
+    const now = new Date();
+    const daysSincePeriodStart = (now.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24);
+
+    let currentCount = user.messageCount;
+    if (daysSincePeriodStart >= 30) {
+      currentCount = 0;
+      await ctx.db.patch(user._id, {
+        messageCount: 0,
+        periodStart: now.toISOString(),
+      });
+    }
+
+    if (currentCount >= limit) {
+      return { allowed: false, remaining: 0 };
+    }
+
+    await ctx.db.patch(user._id, { messageCount: currentCount + 1 });
+    return { allowed: true, remaining: limit - currentCount - 1 };
   },
 });
 
-// Add credits (after purchase)
-export const addCredits = mutation({
-  args: { email: v.string(), amount: v.number() },
-  handler: async (ctx, { email, amount }) => {
+// Set tier (called from webhook)
+export const setTier = mutation({
+  args: {
+    email: v.string(),
+    tier: v.string(),
+    whopMembershipId: v.optional(v.string()),
+  },
+  handler: async (ctx, { email, tier, whopMembershipId }) => {
     const user = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", email))
@@ -73,7 +119,34 @@ export const addCredits = mutation({
 
     if (!user) return false;
 
-    await ctx.db.patch(user._id, { credits: user.credits + amount });
+    const patch: Record<string, unknown> = { tier };
+    if (whopMembershipId !== undefined) {
+      patch.whopMembershipId = whopMembershipId;
+    }
+    // Reset usage on upgrade
+    if (tier !== user.tier) {
+      patch.messageCount = 0;
+      patch.periodStart = new Date().toISOString();
+    }
+    await ctx.db.patch(user._id, patch);
     return true;
+  },
+});
+
+// Keep old name as alias for backwards compat with credits API
+export const getCredits = query({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+    if (!user) return 0;
+    const limit = TIER_LIMITS[user.tier] ?? TIER_LIMITS.free;
+    const periodStart = new Date(user.periodStart);
+    const now = new Date();
+    const daysSincePeriodStart = (now.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24);
+    const currentCount = daysSincePeriodStart >= 30 ? 0 : user.messageCount;
+    return limit - currentCount;
   },
 });

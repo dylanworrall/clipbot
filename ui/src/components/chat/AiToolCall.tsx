@@ -32,6 +32,8 @@ const TOOL_TITLES: Record<string, string> = {
   remove_creator: "Remove Creator",
   cancel_run: "Cancel Run",
   cancel_scheduled: "Cancel Scheduled Post",
+  autoscore_status: "AutoScore Status",
+  autoscore_learn: "AutoScore Learn",
 };
 
 function getToolName(part: ToolUIPart | DynamicToolUIPart): string {

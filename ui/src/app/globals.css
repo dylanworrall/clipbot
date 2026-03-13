@@ -139,4 +139,7 @@ html.dark .shadow-elevation-3 {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--color-muted); border-radius: 3px; opacity: 0.3; }
 
+.scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
 ::selection { background: var(--color-accent); color: #fff; }

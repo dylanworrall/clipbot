@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { ToolCallStep } from "./ToolCallStep";
 import { MomentsResult } from "./MomentsResult";
@@ -52,6 +52,63 @@ export function BotResponse({
   const [selectedClips, setSelectedClips] = useState<Set<number>>(new Set());
   const [showPublish, setShowPublish] = useState(false);
   const [editingClip, setEditingClip] = useState<AggregatedClip | null>(null);
+  const autoOpenedRef = useRef(false);
+
+  // Auto-open the editor for the first clip when run completes
+  // and hasn't been published or scheduled
+  useEffect(() => {
+    if (autoOpenedRef.current) return;
+    if (status !== "complete") return;
+    if (!manifest?.clips || manifest.clips.length === 0) return;
+
+    // Check if any clips have been published/scheduled
+    const hasPublished = manifest.posts?.some(
+      (p) => p.platforms?.some((pl) => pl.status === "published" || pl.status === "scheduled")
+    );
+    if (hasPublished) return;
+
+    // Auto-open editor for the first clip
+    autoOpenedRef.current = true;
+    const firstClip = manifest.clips[0];
+    const moment = manifest.moments?.find((m) => m.index === firstClip.momentIndex);
+
+    const aggregated: AggregatedClip = {
+      runId,
+      sourceUrl,
+      runStartedAt: manifest.startedAt,
+      momentIndex: firstClip.momentIndex,
+      title: firstClip.title,
+      filePath: firstClip.filePath,
+      rawFilePath: firstClip.rawFilePath,
+      thumbnailPath: firstClip.thumbnailPath,
+      durationSeconds: firstClip.durationSeconds,
+      fileSizeBytes: firstClip.fileSizeBytes,
+      resolution: firstClip.resolution,
+      viralityScore: moment?.viralityScore ?? 0,
+      hookText: moment?.hookText ?? "",
+      hashtags: moment?.hashtags ?? [],
+      category: moment?.category ?? "",
+      description: moment?.description ?? "",
+      wordTimestamps: (manifest.wordTimestamps ?? [])
+        .filter((wt) => {
+          if (!moment) return false;
+          const clipStartMs = Math.max(0, moment.startSeconds - 1.5) * 1000;
+          const clipEndMs = clipStartMs + firstClip.durationSeconds * 1000;
+          return wt.endMs > clipStartMs && wt.startMs < clipEndMs;
+        })
+        .map((wt) => {
+          const clipStartMs = Math.max(0, moment!.startSeconds - 1.5) * 1000;
+          return {
+            word: wt.word,
+            startMs: Math.round(Math.max(wt.startMs, clipStartMs) - clipStartMs),
+            endMs: Math.round(
+              Math.min(wt.endMs, clipStartMs + firstClip.durationSeconds * 1000) - clipStartMs
+            ),
+          };
+        }),
+    };
+    setEditingClip(aggregated);
+  }, [status, manifest, runId, sourceUrl]);
 
   const toggleClip = (idx: number) => {
     setSelectedClips((prev) => {
@@ -151,6 +208,7 @@ export function BotResponse({
         <ClipsResult
           clips={manifest.clips}
           moments={manifest.moments}
+          posts={manifest.posts}
           selectedClips={selectedClips}
           onToggleClip={toggleClip}
           onSelectAll={selectAllClips}

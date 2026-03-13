@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getConvexClient, isConvexMode } from "@/lib/convex-server";
 import { api } from "@/lib/convex-api";
 
-// GET /api/credits?email=xxx — get credit balance
+// GET /api/credits?email=xxx — get subscription info
 export async function GET(req: NextRequest) {
   if (!isConvexMode()) {
-    return NextResponse.json({ credits: Infinity, mode: "local" });
+    return NextResponse.json({ tier: "local", messageCount: 0, limit: Infinity, credits: Infinity, mode: "local" });
   }
 
   const email = req.nextUrl.searchParams.get("email");
@@ -15,11 +15,15 @@ export async function GET(req: NextRequest) {
 
   const convex = getConvexClient();
   if (!convex) {
-    return NextResponse.json({ credits: Infinity, mode: "local" });
+    return NextResponse.json({ tier: "local", messageCount: 0, limit: Infinity, credits: Infinity, mode: "local" });
   }
 
-  const credits = await convex.query(api.users.getCredits, { email });
-  return NextResponse.json({ credits, mode: "cloud" });
+  const sub = await convex.query(api.users.getSubscription, { email });
+  return NextResponse.json({
+    ...sub,
+    credits: sub.limit - sub.messageCount, // backwards compat
+    mode: "cloud",
+  });
 }
 
 // POST /api/credits — ensure user exists (called after sign-up/sign-in)

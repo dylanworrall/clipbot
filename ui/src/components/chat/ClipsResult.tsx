@@ -22,9 +22,16 @@ interface Moment {
   viralityScore: number;
 }
 
+interface Post {
+  clipIndex: number;
+  postId: string;
+  platforms: Array<{ platform: string; status: string; url?: string }>;
+}
+
 interface ClipsResultProps {
   clips: Clip[];
   moments?: Moment[];
+  posts?: Post[];
   selectedClips: Set<number>;
   onToggleClip: (idx: number) => void;
   onSelectAll: () => void;
@@ -34,6 +41,7 @@ interface ClipsResultProps {
 export function ClipsResult({
   clips,
   moments,
+  posts,
   selectedClips,
   onToggleClip,
   onSelectAll,
@@ -43,6 +51,13 @@ export function ClipsResult({
 
   const getScore = (momentIndex: number) =>
     moments?.find((m) => m.index === momentIndex)?.viralityScore;
+
+  const isPublished = (momentIndex: number) =>
+    posts?.some(
+      (p) =>
+        p.clipIndex === momentIndex &&
+        p.platforms?.some((pl) => pl.status === "published" || pl.status === "scheduled")
+    ) ?? false;
 
   return (
     <div className="rounded-lg border border-accent/20 bg-accent/5">
@@ -88,6 +103,7 @@ export function ClipsResult({
                     key={clip.momentIndex}
                     clip={clip}
                     viralityScore={getScore(clip.momentIndex)}
+                    published={isPublished(clip.momentIndex)}
                     selected={selectedClips.has(clip.momentIndex)}
                     onToggle={() => onToggleClip(clip.momentIndex)}
                     onClick={() => onClickClip(clip.momentIndex)}

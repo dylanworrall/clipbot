@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Mail, Lock, UserPlus, LogIn } from "lucide-react";
@@ -10,7 +10,16 @@ import { authClient } from "@/lib/auth-client";
 type Mode = "signin" | "signup";
 
 export default function LoginPage() {
-  const router = useRouter();
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,9 +29,9 @@ export default function LoginPage() {
 
   const session = authClient.useSession();
 
-  // Already logged in
+  // Already logged in — full reload so cookie is sent
   if (session.data?.user) {
-    router.push("/");
+    window.location.href = callbackUrl;
     return null;
   }
 
@@ -41,6 +50,12 @@ export default function LoginPage() {
           setError(result.error.message || "Sign up failed");
           return;
         }
+        // Provision 50 free credits in Convex
+        await fetch("/api/credits", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ email, name: name || email.split("@")[0] }),
+        });
       } else {
         const result = await authClient.signIn.email({
           email,
@@ -51,7 +66,8 @@ export default function LoginPage() {
           return;
         }
       }
-      router.push("/");
+      // Full reload so the session cookie is sent with the next request
+      window.location.href = callbackUrl;
     } catch (e) {
       setError((e as Error).message);
     } finally {

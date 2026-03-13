@@ -178,6 +178,8 @@ function AuthSection() {
   );
 }
 
+const isCloudMode = !!process.env.NEXT_PUBLIC_CONVEX_URL;
+
 interface GeneralTabProps {
   state: SettingsState;
   updateField: <K extends keyof SettingsState>(field: K, value: SettingsState[K]) => void;
@@ -186,13 +188,15 @@ interface GeneralTabProps {
 export function GeneralTab({ state, updateField }: GeneralTabProps) {
   return (
     <div className="space-y-6">
-      {/* Claude Authentication */}
-      <Card className="space-y-5 px-6">
-        <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
-          Claude Authentication
-        </h2>
-        <AuthSection />
-      </Card>
+      {/* Claude Authentication — hidden in cloud mode (server provides the key) */}
+      {!isCloudMode && (
+        <Card className="space-y-5 px-6">
+          <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
+            Claude Authentication
+          </h2>
+          <AuthSection />
+        </Card>
+      )}
 
       {/* Other API Keys */}
       <Card className="space-y-5 px-6">

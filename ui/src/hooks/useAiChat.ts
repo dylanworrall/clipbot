@@ -6,6 +6,8 @@ import { DefaultChatTransport, type UIMessage } from "ai";
 import { useSpace } from "@/contexts/SpaceContext";
 import { useSession } from "@/lib/auth-client";
 
+const isCloudMode = !!process.env.NEXT_PUBLIC_CONVEX_URL;
+
 interface StoredMessage {
   id: string;
   threadId: string;
@@ -138,12 +140,16 @@ export function useAiChat(threadId: string | null) {
     };
   }, [threadId, setMessages]);
 
+  // In cloud mode, block sending until session is loaded (so userEmail is available)
+  const sessionReady = !isCloudMode || !!userEmail;
+
   const sendMessage = useCallback(
     (message: string, _spaceId?: string | null) => {
       if (!threadId) return;
+      if (!sessionReady) return;
       chatSendMessage({ text: message });
     },
-    [threadId, chatSendMessage]
+    [threadId, chatSendMessage, sessionReady]
   );
 
   const clearMessages = useCallback(() => {
@@ -157,6 +163,7 @@ export function useAiChat(threadId: string | null) {
     activeToolCall: null, // No longer tracked separately — tool state is in message parts
     clearMessages,
     historyLoaded,
+    sessionReady,
     status,
     error,
   };
