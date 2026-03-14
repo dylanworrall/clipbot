@@ -6,7 +6,7 @@ clipbot-output
 *.mp3
 *.webm
 .DS_Store
-cookies.txt
+# cookies.txt is included for YouTube auth
 *.webp
 ui-standalone
 ui
@@ -15,7 +15,9 @@ ui
 docker
 prompts
 assets
+# allow cookies.txt but ignore other txt files
 *.txt
+!cookies.txt
 *.jpg
 *.png
 test-*

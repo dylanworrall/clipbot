@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { PipelineManifest } from "@/lib/run-store";
 
+// Connect directly to worker for SSE (bypasses Vercel function timeout)
+const WORKER_URL = process.env.NEXT_PUBLIC_WORKER_URL;
+
 export interface DownloadProgress {
   percent: number;
   speed: string;
@@ -22,13 +25,21 @@ export function useRunStream(runId: string): UseRunStreamResult {
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const sourceRef = useRef<EventSource | null>(null);
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const doneRef = useRef(false);
 
   const connect = useCallback(() => {
     if (sourceRef.current) {
       sourceRef.current.close();
     }
+    doneRef.current = false;
 
-    const es = new EventSource(`/api/runs/${runId}/stream`);
+    // Direct to worker for long-lived SSE, fallback to Vercel proxy
+    const streamUrl = WORKER_URL
+      ? `${WORKER_URL}/jobs/${runId}/stream`
+      : `/api/runs/${runId}/stream`;
+
+    const es = new EventSource(streamUrl);
     sourceRef.current = es;
 
     es.onopen = () => {
@@ -46,8 +57,8 @@ export function useRunStream(runId: string): UseRunStreamResult {
         }
         setManifest(data as PipelineManifest);
 
-        // Stop listening once pipeline is done
         if (data.status === "complete" || data.status === "failed") {
+          doneRef.current = true;
           es.close();
           setConnected(false);
         }
@@ -68,14 +79,21 @@ export function useRunStream(runId: string): UseRunStreamResult {
     });
 
     es.onerror = () => {
+      es.close();
       setConnected(false);
+      // Auto-reconnect if pipeline isn't done (handles Fly.io cold start / transient errors)
+      if (!doneRef.current) {
+        reconnectTimer.current = setTimeout(() => connect(), 2000);
+      }
     };
   }, [runId]);
 
   useEffect(() => {
     connect();
     return () => {
+      doneRef.current = true;
       sourceRef.current?.close();
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
     };
   }, [connect]);
 

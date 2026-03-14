@@ -7,7 +7,8 @@ primary_region = "dfw"
 [env]
   NODE_ENV = "production"
   WORKER_PORT = "4000"
-  CLIPBOT_OUTPUT_DIR = "/data/clipbot-output"
+  CLIPBOT_HOME = "/data"
+  CLIPBOT_OUTPUT_DIR = "/data/output"
 
 # Persistent storage for clips/output
 [mounts]
