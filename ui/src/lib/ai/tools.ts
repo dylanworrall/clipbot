@@ -1,7 +1,11 @@
 import { tool } from "ai";
 import { z } from "zod";
 import { getSpaces, createSpace } from "@/lib/space-store";
-import { listRuns, getRun, getManifest } from "@/lib/run-store";
+import { listRuns, getRun, getManifest, findExistingRun, createRun, updateRun } from "@/lib/run-store";
+import { spawnPipeline } from "@/lib/pipeline-worker";
+import { getOutputDir } from "@/lib/paths";
+import { randomUUID } from "node:crypto";
+import path from "node:path";
 import {
   getScheduledPosts,
   addScheduledPost,
@@ -10,6 +14,10 @@ import {
 import { getCreators, addCreator, removeCreator } from "@/lib/creator-store";
 import { getNotifications } from "@/lib/notification-store";
 import { getEffectiveConfig } from "@/lib/settings-store";
+import { getCliRoot, getRerenderScript } from "@/lib/paths";
+import { execSync } from "node:child_process";
+import { existsSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { fetchChannelFeedWithMeta } from "@/lib/youtube-rss";
 import {
   listPosts,
@@ -254,26 +262,60 @@ export const allTools = {
         ),
     }),
     execute: async ({ url, spaceId, force }) => {
-      const baseUrl =
-        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-      const res = await fetch(`${baseUrl}/api/runs`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, spaceId, force: force ?? false }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        return {
-          error: data.error,
-          ...(data.existingRunId && { existingRunId: data.existingRunId }),
-          ...(data.alreadyComplete && { alreadyComplete: true }),
-        };
+      if (!url) return { error: "URL is required" };
+
+      // Check for duplicate runs
+      if (!force) {
+        const existing = await findExistingRun(url);
+        if (existing) {
+          const isActive = ["downloading", "transcribing", "analyzing", "clipping", "publishing"].includes(existing.status);
+          if (isActive) return { error: "This video is already being processed", existingRunId: existing.runId };
+          return { error: "This video was already processed", existingRunId: existing.runId, alreadyComplete: true };
+        }
       }
+
+      const config = await getEffectiveConfig();
+      const runId = randomUUID().slice(0, 8);
+      const outputDir = path.join(getOutputDir(), runId);
+
+      await createRun({
+        runId,
+        sourceUrl: url,
+        status: "downloading",
+        ...(spaceId && { spaceId }),
+        options: {
+          quality: config.defaultQuality ?? "1080",
+          maxClips: config.defaultMaxClips ?? 5,
+          minScore: config.defaultMinScore ?? 7,
+          maxDuration: config.defaultMaxDuration ?? 59,
+          platforms: config.defaultPlatforms ?? ["tiktok", "youtube", "instagram"],
+          subtitles: config.subtitles ?? true,
+          niche: config.niche ?? "cannabis",
+          backgroundFillStyle: config.backgroundFillStyle ?? "blurred-zoom",
+        },
+        startedAt: new Date().toISOString(),
+        outputDir,
+      });
+
+      const { pid } = await spawnPipeline({
+        url,
+        runId,
+        quality: config.defaultQuality ?? "1080",
+        maxClips: config.defaultMaxClips ?? 5,
+        minScore: config.defaultMinScore ?? 7,
+        maxDuration: config.defaultMaxDuration ?? 59,
+        niche: config.niche ?? "cannabis",
+        subtitles: config.subtitles ?? true,
+        skipPublish: true,
+        backgroundFillStyle: config.backgroundFillStyle ?? "blurred-zoom",
+      });
+
+      if (pid) await updateRun(runId, { pid });
+
       return {
         success: true,
-        runId: data.runId,
-        message:
-          "Pipeline started — use get_run_detail to check progress",
+        runId,
+        message: "Pipeline started — use get_run_detail to check progress",
       };
     },
   }),
@@ -442,20 +484,153 @@ export const allTools = {
         ),
     }),
     execute: async ({ runId, clipIndex, platforms, scheduledFor }) => {
-      const baseUrl =
-        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-      const res = await fetch(`${baseUrl}/api/runs/${runId}/publish`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          clipIndices: [clipIndex],
-          platforms,
-          scheduledFor,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) return { error: data.error };
-      return { success: true, results: data.results };
+      const run = await getRun(runId);
+      if (!run) return { error: "Run not found" };
+
+      const manifest = await getManifest(run.outputDir);
+      if (!manifest?.clips?.length) return { error: "No clips to publish" };
+
+      const config = await getEffectiveConfig();
+      if (!config.lateApiKey) return { error: "Late API key not configured" };
+
+      const accounts = config.accounts ?? {};
+      const clipIndices = [clipIndex];
+      const results: Array<{ clipIndex: number; success: boolean; error?: string }> = [];
+      const captionMode = config.captionMode ?? "overlay";
+      const isProduction = process.env.CLIPBOT_PRODUCTION === "1";
+
+      for (const idx of clipIndices) {
+        const clip = manifest.clips.find((c: any) => c.momentIndex === idx);
+        const moment = manifest.moments?.find((m: any) => m.index === idx);
+        if (!clip || !moment) continue;
+
+        try {
+          // Auto-burn captions if in overlay mode and clip isn't already captioned
+          let publishFilePath = clip.filePath;
+          if (
+            captionMode === "overlay" &&
+            config.subtitles !== false &&
+            !clip.filePath.includes("_captioned")
+          ) {
+            const captionedPath = clip.filePath.replace(".mp4", "_captioned.mp4");
+            if (existsSync(captionedPath)) {
+              publishFilePath = captionedPath;
+            } else {
+              try {
+                const clipbotRoot = getCliRoot();
+                const rerenderScript = getRerenderScript();
+                const jobDir = path.join(run.outputDir, "rerender");
+                mkdirSync(jobDir, { recursive: true });
+
+                const job = {
+                  sourceVideo: manifest.download?.filePath ?? "",
+                  outputDir: run.outputDir,
+                  moment: {
+                    index: moment.index,
+                    title: moment.title,
+                    startSeconds: moment.startSeconds,
+                    endSeconds: moment.endSeconds,
+                    durationSeconds: moment.durationSeconds,
+                    hookText: moment.hookText,
+                  },
+                  wordTimestamps: manifest.wordTimestamps ?? [],
+                  backgroundFillStyle: config.backgroundFillStyle ?? "blurred-zoom",
+                  captionStyle: config.captionStyle ?? null,
+                  trimStart: 0,
+                  trimEnd: clip.durationSeconds,
+                  padBefore: 1.5,
+                  padAfter: 0.5,
+                };
+
+                const jobPath = path.join(jobDir, `publish_job_${idx}.json`);
+                writeFileSync(jobPath, JSON.stringify(job, null, 2), "utf-8");
+
+                const command = isProduction
+                  ? `node "${rerenderScript}" "${jobPath}"`
+                  : `npx tsx --tsconfig "${path.join(clipbotRoot, "tsconfig.json")}" "${rerenderScript}" "${jobPath}"`;
+                execSync(command, { cwd: clipbotRoot, timeout: 120000, stdio: "pipe" });
+
+                if (existsSync(captionedPath)) {
+                  publishFilePath = captionedPath;
+                }
+              } catch (burnErr) {
+                // If burn fails, publish the raw clip anyway
+              }
+            }
+          }
+
+          const filename = publishFilePath.split(/[\\/]/).pop() ?? "clip.mp4";
+
+          // 1. Get presigned URL from Late.dev
+          const presignRes = await fetch("https://getlate.dev/api/v1/media/presign", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${config.lateApiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ filename, contentType: "video/mp4" }),
+          });
+
+          if (!presignRes.ok) {
+            const errBody = await presignRes.text().catch(() => "");
+            throw new Error(`Presign failed: ${presignRes.status} ${errBody}`);
+          }
+          const presign = await presignRes.json() as { uploadUrl: string; publicUrl: string };
+
+          // 2. Upload file
+          const fileBuffer = await readFile(publishFilePath);
+          const uploadRes = await fetch(presign.uploadUrl, {
+            method: "PUT",
+            headers: { "Content-Type": "video/mp4" },
+            body: fileBuffer,
+          });
+
+          if (!uploadRes.ok) throw new Error(`Upload failed: ${uploadRes.status}`);
+
+          // 3. Create post on Late.dev
+          const hashtags = moment.hashtags.map((h: string) => `#${h}`).join(" ");
+          const shortsSuffix = platforms.includes("youtube") ? " #shorts" : "";
+          const platformTargets = platforms
+            .filter((p: string) => accounts[p])
+            .map((p: string) => ({
+              platform: p,
+              accountId: accounts[p],
+            }));
+
+          if (platformTargets.length === 0) {
+            throw new Error(`No account IDs configured for platforms: ${platforms.join(", ")}. Check clipbot.config.json "accounts" field.`);
+          }
+
+          const postRes = await fetch("https://getlate.dev/api/v1/posts", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${config.lateApiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              content: `${moment.title}\n\n${moment.hookText}\n\n${hashtags}${shortsSuffix}`,
+              mediaItems: [{ type: "video", url: presign.publicUrl }],
+              platforms: platformTargets,
+              publishNow: !scheduledFor,
+              ...(scheduledFor && { scheduledFor }),
+            }),
+          });
+
+          if (!postRes.ok) {
+            const errBody = await postRes.text().catch(() => "");
+            throw new Error(`Post failed: ${postRes.status} ${errBody}`);
+          }
+          results.push({ clipIndex: idx, success: true });
+        } catch (err) {
+          results.push({
+            clipIndex: idx,
+            success: false,
+            error: err instanceof Error ? err.message : String(err),
+          });
+        }
+      }
+
+      return { success: true, results };
     },
   }),
 
