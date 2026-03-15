@@ -109,7 +109,7 @@
   "actions": [
     {
       "name": "process_video",
-      "description": "Download, analyze, clip, and optionally publish a YouTube video",
+      "description": "Create clips from a YouTube video — downloads, analyzes, and creates short-form clips. Use this when the user wants to make a clip, create a clip, or process a video.",
       "tool": "process_video",
       "params": {
         "url": "string",
