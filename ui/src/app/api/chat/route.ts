@@ -1,3 +1,4 @@
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { streamText, stepCountIs, convertToModelMessages } from "ai";
 import { NextRequest } from "next/server";
@@ -34,13 +35,13 @@ export async function POST(req: Request) {
 
   const config = await getEffectiveConfig();
 
-  // Prefer OAuth token (flat-rate Claude setup-token) over per-call API key
-  const oauthToken = process.env.CLAUDE_OAUTH_TOKEN;
-  const apiKey = !oauthToken ? (process.env.ANTHROPIC_API_KEY || config.claudeApiKey) : undefined;
+  // Resolve provider: Gemini first, then Anthropic API key
+  const geminiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY || config.claudeApiKey;
 
-  if (!apiKey && !oauthToken) {
+  if (!geminiKey && !anthropicKey) {
     return Response.json(
-      { error: "No API key configured. Set CLAUDE_OAUTH_TOKEN or ANTHROPIC_API_KEY." },
+      { error: "No API key configured. Set GOOGLE_GENERATIVE_AI_API_KEY or ANTHROPIC_API_KEY." },
       { status: 400 }
     );
   }
@@ -76,13 +77,10 @@ export async function POST(req: Request) {
     spaceName,
   });
 
-  // Prefer OAuth (flat-rate setup-token) over per-call API key
-  const anthropic = oauthToken
-    ? createAnthropic({
-        authToken: oauthToken,
-        headers: { "anthropic-beta": "oauth-2025-04-20" },
-      })
-    : createAnthropic({ apiKey: apiKey! });
+  // Pick model: Gemini by default, Anthropic as fallback
+  const model = geminiKey
+    ? createGoogleGenerativeAI({ apiKey: geminiKey })("gemini-2.5-flash")
+    : createAnthropic({ apiKey: anthropicKey! })(config.claudeModel || "claude-sonnet-4-20250514");
 
   // Save the latest user message for persistence (best-effort — fails silently on serverless)
   if (threadId && body.messages?.length > 0) {
@@ -109,7 +107,7 @@ export async function POST(req: Request) {
   }
 
   const result = streamText({
-    model: anthropic(config.claudeModel || "claude-sonnet-4-20250514"),
+    model,
     system: systemPrompt,
     messages: modelMessages,
     tools: allTools,

@@ -1,4 +1,4 @@
-import { stat, access } from "node:fs/promises";
+import { stat, access, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -9,22 +9,76 @@ import { getCookiesPath } from "../config/paths.js";
 import type { DownloadOptions, DownloadResult } from "../types/pipeline.js";
 
 const execFileAsync = promisify(execFile);
+const isDocker = process.env.CLIPBOT_PRODUCTION === "1" || process.env.NODE_ENV === "production";
 
-/**
- * Resolve the yt-dlp binary. Prefer the standalone binary; fall back to python -m yt_dlp.
- */
+// ── Cobalt download (no cookies needed, works from datacenter IPs) ──────
+
+const COBALT_URL = process.env.COBALT_URL || "https://api.cobalt.tools";
+
+async function downloadViaCobalt(
+  videoUrl: string,
+  outputDir: string,
+  slug: string,
+  quality: string
+): Promise<string | null> {
+  try {
+    log.debug(`Trying Cobalt download: ${videoUrl}`);
+    const res = await fetch(`${COBALT_URL}/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        url: videoUrl,
+        videoQuality: quality,
+        filenameStyle: "basic",
+        downloadMode: "auto",
+      }),
+    });
+
+    if (!res.ok) {
+      log.debug(`Cobalt returned ${res.status}`);
+      return null;
+    }
+
+    const data = await res.json() as { status?: string; url?: string };
+
+    if (data.status === "tunnel" || data.status === "redirect") {
+      // Cobalt gives us a direct download URL
+      const downloadUrl = data.url;
+      if (!downloadUrl) return null;
+
+      log.debug(`Cobalt tunnel URL received, downloading...`);
+      const fileRes = await fetch(downloadUrl);
+      if (!fileRes.ok) return null;
+
+      const outputPath = path.join(outputDir, `${slug}.mp4`);
+      const buffer = Buffer.from(await fileRes.arrayBuffer());
+      await writeFile(outputPath, buffer);
+      log.debug(`Cobalt download complete: ${buffer.length} bytes`);
+      return outputPath;
+    }
+
+    log.debug(`Cobalt status: ${data.status}`);
+    return null;
+  } catch (e) {
+    log.debug(`Cobalt failed: ${(e as Error).message}`);
+    return null;
+  }
+}
+
+// ── yt-dlp download (fallback, needs cookies on cloud) ──────────────────
+
 async function resolveYtDlp(): Promise<{ bin: string; prefixArgs: string[] }> {
-  // Try standalone binary first (much faster — no Python startup)
   for (const bin of ["yt-dlp", "yt-dlp.exe"]) {
     try {
       await execFileAsync(bin, ["--version"], { timeout: 5000 });
       return { bin, prefixArgs: [] };
     } catch {
-      // not found, try next
+      // not found
     }
   }
-
-  // Fall back to python module
   for (const py of ["python", "python3", "py"]) {
     try {
       await execFileAsync(py, ["-m", "yt_dlp", "--version"], { timeout: 8000 });
@@ -33,18 +87,9 @@ async function resolveYtDlp(): Promise<{ bin: string; prefixArgs: string[] }> {
       // not found
     }
   }
-
-  throw new Error(
-    "yt-dlp not found. Install it with: pip install yt-dlp  or download the binary from https://github.com/yt-dlp/yt-dlp/releases"
-  );
+  throw new Error("yt-dlp not found");
 }
 
-/**
- * Find a cookies file. Checks (in order):
- * 1. Explicit path from config
- * 2. cookies.txt in project root (cwd)
- * 3. ~/.clipbot/cookies.txt
- */
 async function findCookiesFile(explicit?: string): Promise<string | null> {
   if (explicit) {
     const resolved = path.resolve(explicit);
@@ -55,77 +100,84 @@ async function findCookiesFile(explicit?: string): Promise<string | null> {
       log.warn(`Cookies file not found at ${resolved}`);
     }
   }
-
-  // Auto-detect cookies.txt in project root
   const autoPath = path.resolve(process.cwd(), "cookies.txt");
   try {
     await access(autoPath);
-    log.debug(`Auto-detected cookies file: ${autoPath}`);
     return autoPath;
-  } catch {
-    // no cookies file in cwd
-  }
-
-  // Fallback: ~/.clipbot/cookies.txt
+  } catch {}
   const homeCookies = getCookiesPath();
   try {
     await access(homeCookies);
-    log.debug(`Using cookies from home dir: ${homeCookies}`);
     return homeCookies;
-  } catch {
-    // no cookies file
-  }
-
+  } catch {}
   return null;
 }
+
+async function downloadViaYtDlp(
+  videoUrl: string,
+  outputDir: string,
+  slug: string,
+  options: DownloadOptions
+): Promise<string> {
+  const outputTemplate = path.join(outputDir, `${slug}.%(ext)s`);
+  const { bin, prefixArgs } = await resolveYtDlp();
+  const cookiesFile = await findCookiesFile(options.cookiesFile);
+
+  log.debug(`Downloading via yt-dlp: ${videoUrl}`);
+  if (cookiesFile) log.debug(`Using cookies from: ${cookiesFile}`);
+
+  const args = [
+    ...prefixArgs,
+    "-f", `best[height<=${options.quality}][ext=mp4]/bestvideo[height<=${options.quality}]+bestaudio/best`,
+    "--merge-output-format", "mp4",
+    "-o", outputTemplate,
+    "--no-playlist",
+    "--concurrent-fragments", "4",
+    "--fragment-retries", "3",
+    "--buffer-size", "16K",
+    // Use Android client to bypass bot detection on datacenter IPs
+    "--extractor-args", "youtube:player_client=android,web",
+    ...(cookiesFile ? ["--cookies", cookiesFile] : []),
+    ...(!isDocker && typeof ffmpegPath === "string" ? ["--ffmpeg-location", ffmpegPath] : []),
+    videoUrl,
+  ];
+
+  await execFileAsync(bin, args, {
+    timeout: 600000,
+    maxBuffer: 10 * 1024 * 1024,
+  });
+
+  return path.join(outputDir, `${slug}.mp4`);
+}
+
+// ── Main download function ──────────────────────────────────────────────
 
 export async function downloadVideo(
   videoUrl: string,
   options: DownloadOptions
 ): Promise<DownloadResult> {
   const slug = extractVideoSlug(videoUrl);
-  const outputTemplate = path.join(options.outputDir, `${slug}.%(ext)s`);
 
-  const { bin, prefixArgs } = await resolveYtDlp();
-  const cookiesFile = await findCookiesFile(options.cookiesFile);
+  // Try Cobalt first (works without cookies, no bot detection)
+  const cobaltPath = await downloadViaCobalt(videoUrl, options.outputDir, slug, options.quality);
+  let filePath: string;
 
-  log.debug(`Downloading via ${bin} ${prefixArgs.join(" ")}: ${videoUrl}`);
-  if (cookiesFile) log.debug(`Using cookies from: ${cookiesFile}`);
+  if (cobaltPath) {
+    filePath = cobaltPath;
+    log.debug(`Downloaded via Cobalt`);
+  } else {
+    // Fall back to yt-dlp
+    log.debug(`Cobalt unavailable, falling back to yt-dlp`);
+    filePath = await downloadViaYtDlp(videoUrl, options.outputDir, slug, options);
+  }
 
-  const args = [
-    ...prefixArgs,
-    // Prefer a single pre-muxed mp4 stream when available (avoids merge step entirely).
-    // Fall back to separate video+audio only when a single stream isn't good enough.
-    "-f", `best[height<=${options.quality}][ext=mp4]/bestvideo[height<=${options.quality}]+bestaudio/best`,
-    "--merge-output-format", "mp4",
-    "-o", outputTemplate,
-    "--no-playlist",
-    // Parallel fragment downloads — the single biggest speed-up for DASH streams
-    "--concurrent-fragments", "4",
-    // Retry fragments that fail
-    "--fragment-retries", "3",
-    // Buffer size for faster I/O
-    "--buffer-size", "16K",
-    // Cookies for age-restricted / private videos
-    ...(cookiesFile ? ["--cookies", cookiesFile] : []),
-    ...(typeof ffmpegPath === "string" ? ["--ffmpeg-location", ffmpegPath] : []),
-    videoUrl,
-  ];
-
-  await execFileAsync(bin, args, {
-    timeout: 600000, // 10 min timeout
-    maxBuffer: 10 * 1024 * 1024, // 10 MB stdout buffer
-  });
-
-  // Find the downloaded file
-  const expectedPath = path.join(options.outputDir, `${slug}.mp4`);
-  const fileStats = await stat(expectedPath);
+  const fileStats = await stat(filePath);
   const filename = `${slug}.mp4`;
 
-  log.debug(`Downloaded ${fileStats.size} bytes to ${expectedPath}`);
+  log.debug(`Downloaded ${fileStats.size} bytes to ${filePath}`);
 
   return {
-    filePath: expectedPath,
+    filePath,
     filename,
     fileSize: fileStats.size,
     quality: options.quality,

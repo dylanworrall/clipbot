@@ -1,4 +1,6 @@
 node_modules
+ui/node_modules
+ui/.next
 dist
 .env
 clipbot-output
@@ -6,16 +8,11 @@ clipbot-output
 *.mp3
 *.webm
 .DS_Store
-# cookies.txt is included for YouTube auth
 *.webp
 ui-standalone
-ui
-.next
 .git
 docker
-prompts
 assets
-# allow cookies.txt but ignore other txt files
 *.txt
 !cookies.txt
 *.jpg

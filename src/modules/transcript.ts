@@ -84,7 +84,11 @@ export async function fetchTranscript(
     return await fetchVttTranscript(videoUrl, slug, options);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    if (message.includes("No subtitles")) throw err;
+    if (message.includes("No subtitles")) {
+      // Final fallback: extract audio and transcribe with Whisper via Gemini
+      log.debug("No subtitles found — falling back to Whisper transcription via Gemini");
+      return await whisperFallback(videoUrl, slug, options);
+    }
     throw new Error(
       `No subtitles available for this video. The video may not have captions.`
     );
@@ -103,14 +107,14 @@ async function fetchJson3Transcript(
   const cookiesArgs = await buildCookiesArgs(options?.cookiesFile);
 
   try {
-    await execFileAsync("python", [
-      "-m", "yt_dlp",
+    await execFileAsync("yt-dlp", [
       ...cookiesArgs,
       "--write-subs",
       "--write-auto-subs",
       "--sub-langs", "en",
       "--sub-format", "json3",
       "--skip-download",
+      "--extractor-args", "youtube:player_client=android,web",
       "-o", outPath,
       videoUrl,
     ], { timeout: 60000 });
@@ -160,14 +164,14 @@ async function fetchVttTranscript(
   const cookiesArgs = await buildCookiesArgs(options?.cookiesFile);
 
   try {
-    await execFileAsync("python", [
-      "-m", "yt_dlp",
+    await execFileAsync("yt-dlp", [
       ...cookiesArgs,
       "--write-subs",
       "--write-auto-subs",
       "--sub-langs", "en",
       "--sub-format", "vtt",
       "--skip-download",
+      "--extractor-args", "youtube:player_client=android,web",
       "-o", outPath,
       videoUrl,
     ], { timeout: 60000 });
@@ -353,6 +357,126 @@ function extractWordTimestamps(events: Json3Event[]): WordTimestamp[] {
   }
 
   return words;
+}
+
+/**
+ * Whisper fallback: extract audio via yt-dlp, transcribe with Groq Whisper API (free).
+ * Falls back to Gemini audio transcription if Groq unavailable.
+ */
+async function whisperFallback(
+  videoUrl: string,
+  slug: string,
+  options?: { cookiesFile?: string }
+): Promise<TranscriptResult> {
+  const audioPath = path.join(tmpdir(), `clipbot-audio-${slug}.m4a`);
+  const cookiesArgs = await buildCookiesArgs(options?.cookiesFile);
+
+  // Step 1: Extract audio
+  try {
+    await execFileAsync("yt-dlp", [
+      ...cookiesArgs,
+      "-f", "bestaudio[ext=m4a]/bestaudio",
+      "--extractor-args", "youtube:player_client=android,web",
+      "-o", audioPath,
+      "--no-playlist",
+      videoUrl,
+    ], { timeout: 300000 });
+  } catch {
+    // Try python module fallback
+    await execFileAsync("python3", [
+      "-m", "yt_dlp",
+      ...cookiesArgs,
+      "-f", "bestaudio[ext=m4a]/bestaudio",
+      "--extractor-args", "youtube:player_client=android,web",
+      "-o", audioPath,
+      "--no-playlist",
+      videoUrl,
+    ], { timeout: 300000 });
+  }
+
+  log.debug(`Audio extracted: ${audioPath}`);
+
+  // Step 2: Transcribe with Groq Whisper (free, fast) or Gemini
+  const audioBuffer = await readFile(audioPath);
+  let transcriptText: string;
+
+  const groqKey = process.env.GROQ_API_KEY;
+  const geminiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+
+  if (groqKey) {
+    transcriptText = await transcribeWithGroq(audioBuffer, groqKey);
+  } else if (geminiKey) {
+    transcriptText = await transcribeWithGemini(audioBuffer, geminiKey);
+  } else {
+    await rm(audioPath, { force: true }).catch(() => {});
+    throw new Error("No subtitles and no Whisper API key (GROQ_API_KEY or GOOGLE_GENERATIVE_AI_API_KEY) for fallback transcription.");
+  }
+
+  await rm(audioPath, { force: true }).catch(() => {});
+
+  if (!transcriptText.trim()) {
+    throw new Error("Whisper transcription returned empty result.");
+  }
+
+  log.success(`Whisper transcription: ${transcriptText.length} chars`);
+
+  // Convert plain text to segments (approximate 30s windows based on word count)
+  const words = transcriptText.split(/\s+/).filter(Boolean);
+  const entries: TranscriptEntry[] = [];
+  const wordsPerChunk = 50; // ~30s of speech
+  for (let i = 0; i < words.length; i += wordsPerChunk) {
+    const chunk = words.slice(i, i + wordsPerChunk).join(" ");
+    const approxMs = (i / words.length) * 6000000; // rough estimate
+    entries.push({
+      text: chunk,
+      offset: Math.round(approxMs),
+      duration: 30000,
+    });
+  }
+
+  const wordTimestamps = approximateWordTimestamps(entries);
+  const segments = groupIntoSegments(entries, 30000);
+  return { segments, entries, wordTimestamps };
+}
+
+async function transcribeWithGroq(audio: Buffer, apiKey: string): Promise<string> {
+  const formData = new FormData();
+  formData.append("file", new Blob([new Uint8Array(audio)], { type: "audio/m4a" }), "audio.m4a");
+  formData.append("model", "whisper-large-v3");
+  formData.append("response_format", "text");
+
+  const res = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}` },
+    body: formData,
+  });
+
+  if (!res.ok) throw new Error(`Groq Whisper failed: ${res.status} ${await res.text()}`);
+  return await res.text();
+}
+
+async function transcribeWithGemini(audio: Buffer, apiKey: string): Promise<string> {
+  const base64Audio = audio.toString("base64");
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { inlineData: { mimeType: "audio/mp4", data: base64Audio } },
+            { text: "Transcribe this audio verbatim. Output only the transcription text, nothing else. Include all spoken words exactly as said." },
+          ],
+        }],
+      }),
+    }
+  );
+
+  if (!res.ok) throw new Error(`Gemini transcription failed: ${res.status} ${await res.text()}`);
+  const data = await res.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 }
 
 function groupIntoSegments(

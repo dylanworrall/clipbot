@@ -37,7 +37,7 @@ export async function spawnPipeline(options: PipelineOptions): Promise<{
   const cliPath = getCliEntrypoint();
 
   const args = isProduction
-    ? [cliPath, "process", options.url]
+    ? [cliPath, "process", options.url, "--output-dir", getOutputDir()]
     : ["tsx", "--tsconfig", path.join(clipbotRoot, "tsconfig.json"), cliPath, "process", options.url];
 
   if (options.runId) {
@@ -78,7 +78,8 @@ export async function spawnPipeline(options: PipelineOptions): Promise<{
   }
 
   // Create log directory and build shell command with output redirect
-  let logRedirect = ">NUL 2>&1";
+  const nullDev = process.platform === "win32" ? "NUL" : "/dev/null";
+  let logRedirect = `>${nullDev} 2>&1`;
   if (options.runId) {
     const logDir = path.join(getOutputDir(), options.runId);
     try {
@@ -90,9 +91,13 @@ export async function spawnPipeline(options: PipelineOptions): Promise<{
     }
   }
 
+  // Quote all args to prevent shell metacharacters (& in URLs) from breaking the command
+  const shellSafe = (s: string) => s.includes(" ") || s.includes("&") || s.includes(";") ? `"${s}"` : s;
+  const quotedArgs = args.map(shellSafe);
+
   const fullCommand = isProduction
-    ? `node ${args.join(" ")} ${logRedirect}`
-    : `npx ${args.join(" ")} ${logRedirect}`;
+    ? `node ${quotedArgs.join(" ")} ${logRedirect}`
+    : `npx ${quotedArgs.join(" ")} ${logRedirect}`;
 
   const child = spawn(fullCommand, [], {
     cwd: clipbotRoot,

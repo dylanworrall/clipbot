@@ -238,7 +238,8 @@ export async function renderWithCaptions(opts: {
 
   log.debug(`Generated ASS subtitles: ${opts.words.length} words`);
 
-  const ffmpegBin = typeof ffmpegPath === "string" ? ffmpegPath : "ffmpeg";
+  const isDocker = process.env.CLIPBOT_PRODUCTION === "1" || process.env.NODE_ENV === "production";
+  const ffmpegBin = (!isDocker && typeof ffmpegPath === "string") ? ffmpegPath : "ffmpeg";
   const escapedAssPath = assPath.replace(/\\/g, "/").replace(/:/g, "\\:");
 
   const logoPath = await findLogo();

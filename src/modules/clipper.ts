@@ -8,10 +8,13 @@ import type { ClipOptions, ClipResult } from "../types/pipeline.js";
 import { buildFilterChain } from "./background-fill.js";
 import { log } from "../utils/logger.js";
 
-if (typeof ffmpegPath === "string" && ffmpegPath) {
+// In Docker/production, use system ffmpeg/ffprobe (installed via apt).
+// ffmpeg-static bundles platform-specific binaries that may not match the container OS.
+const isDocker = process.env.CLIPBOT_PRODUCTION === "1" || process.env.NODE_ENV === "production";
+if (!isDocker && typeof ffmpegPath === "string" && ffmpegPath) {
   ffmpeg.setFfmpegPath(ffmpegPath);
 }
-if (ffprobePath?.path) {
+if (!isDocker && ffprobePath?.path) {
   ffmpeg.setFfprobePath(ffprobePath.path);
 }
 

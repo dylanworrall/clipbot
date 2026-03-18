@@ -55,7 +55,16 @@ export function normalizeUrl(url: string): string {
 }
 
 export function toMediaUrl(filePath: string): string {
-  const parts = filePath.split("\\").join("/").split("clipbot-output/");
-  const relative = parts[parts.length - 1];
+  const normalized = filePath.split("\\").join("/");
+  // Match both local (clipbot-output/) and cloud (/data/output/) paths
+  for (const marker of ["clipbot-output/", "/data/output/", "output/"]) {
+    const idx = normalized.indexOf(marker);
+    if (idx !== -1) {
+      return `/api/media/${normalized.slice(idx + marker.length)}`;
+    }
+  }
+  // Fallback: use last two path segments (runId/filename)
+  const segments = normalized.split("/").filter(Boolean);
+  const relative = segments.slice(-2).join("/");
   return `/api/media/${relative}`;
 }

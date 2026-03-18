@@ -1,47 +1,98 @@
-FROM node:20-slim
+FROM node:20-slim AS base
 
-# Install system deps: ffmpeg, yt-dlp, python3, deno (for yt-dlp JS extraction)
+# Install system deps: ffmpeg, yt-dlp, python3
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     python3 \
     python3-pip \
     python3-venv \
     curl \
-    unzip \
     && python3 -m venv /opt/venv \
     && /opt/venv/bin/pip install yt-dlp \
     && ln -s /opt/venv/bin/yt-dlp /usr/local/bin/yt-dlp \
-    && curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install tsx globally for running TypeScript
-RUN npm install -g tsx
-
+# ── Stage 1: Install ALL CLI deps (including dev for tsc build) ──────────
+FROM base AS cli-deps
 WORKDIR /app
-
-# Copy package files first for better caching
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN npm ci
 
-# Copy source + worker
+# ── Stage 2: Build CLI (TypeScript → dist/) ─────────────────────────────
+FROM cli-deps AS cli-build
 COPY tsconfig.json ./
 COPY src/ ./src/
-COPY worker.ts ./
+RUN npx tsc
 
-# Cookies are uploaded via PUT /cookies endpoint to persistent volume at /data/cookies.txt
-# Do NOT bake cookies into the image — they expire quickly
+# ── Stage 3: Install CLI production deps only ────────────────────────────
+FROM base AS cli-prod-deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev \
+    && rm -rf node_modules/ffmpeg-static/* \
+    && echo 'export default "/usr/bin/ffmpeg";' > node_modules/ffmpeg-static/index.mjs \
+    && echo '{"main":"index.mjs","type":"module"}' > node_modules/ffmpeg-static/package.json \
+    && rm -rf node_modules/ffprobe-static/bin \
+    && echo 'export default { path: "/usr/bin/ffprobe" };' > node_modules/ffprobe-static/index.mjs \
+    && echo '{"main":"index.mjs","type":"module"}' > node_modules/ffprobe-static/package.json
 
-# Point CLI to use /data as its home dir (persistent volume on Fly.io)
-# This makes it write output to /data/output/, read cookies from /data/cookies.txt
+# ── Stage 4: Install UI deps ─────────────────────────────────────────────
+FROM base AS ui-deps
+WORKDIR /app/ui
+COPY ui/package.json ui/package-lock.json ./
+RUN npm ci
+
+# ── Stage 5: Build UI (Next.js) ──────────────────────────────────────────
+FROM base AS ui-build
+WORKDIR /app
+
+# Copy CLI source (needed by UI build for path resolution / imports)
+COPY package.json package-lock.json tsconfig.json ./
+COPY src/ ./src/
+COPY clipbot.config.json ./
+COPY --from=cli-prod-deps /app/node_modules ./node_modules
+
+# Copy UI source + deps
+COPY ui/ ./ui/
+COPY --from=ui-deps /app/ui/node_modules ./ui/node_modules
+
+# Build Next.js
+WORKDIR /app/ui
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
+
+# ── Stage 6: Production image ────────────────────────────────────────────
+FROM base AS production
+WORKDIR /app
+
+# Copy compiled CLI + production deps + prompts
+COPY package.json package-lock.json ./
+COPY clipbot.config.json ./
+COPY prompts/ ./prompts/
+COPY --from=cli-build /app/dist ./dist
+COPY --from=cli-prod-deps /app/node_modules ./node_modules
+
+# Copy built UI + deps
+COPY --from=ui-build /app/ui/.next ./ui/.next
+COPY --from=ui-build /app/ui/public ./ui/public
+COPY ui/package.json ./ui/package.json
+COPY ui/next.config.ts ./ui/next.config.ts
+COPY --from=ui-deps /app/ui/node_modules ./ui/node_modules
+
+# Environment
 ENV NODE_ENV=production
 ENV CLIPBOT_HOME=/data
 ENV CLIPBOT_OUTPUT_DIR=/data/output
-ENV WORKER_PORT=4000
+ENV CLIPBOT_CLI_ROOT=/app
+ENV CLIPBOT_PRODUCTION=1
+ENV PORT=3000
 
-EXPOSE 4000
+EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
-    CMD curl -f http://localhost:4000/health || exit 1
+# Health check against Next.js
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s \
+    CMD curl -f http://localhost:3000/ || exit 1
 
-CMD ["tsx", "worker.ts"]
+# Start Next.js
+WORKDIR /app/ui
+CMD ["npx", "next", "start", "-H", "0.0.0.0", "-p", "3000"]

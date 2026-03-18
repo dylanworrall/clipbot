@@ -150,10 +150,13 @@ export async function POST(req: NextRequest) {
           { status: 409 }
         );
       }
-      return NextResponse.json(
-        { error: "This video was already processed", existingRunId: existing.runId, alreadyComplete: true },
-        { status: 409 }
-      );
+      // Only block if completed successfully — failed runs can be retried
+      if (existing.status === "complete") {
+        return NextResponse.json(
+          { error: "This video was already processed", existingRunId: existing.runId, alreadyComplete: true },
+          { status: 409 }
+        );
+      }
     }
   }
 
