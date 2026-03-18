@@ -71,8 +71,9 @@ export async function loadConfig(cliConfigPath?: string): Promise<ClipBotConfig>
     if (cliConfig) config = deepMerge(config, cliConfig);
   }
 
-  // 4. Environment variable overrides
-  if (process.env.ANTHROPIC_API_KEY) config.claudeApiKey = process.env.ANTHROPIC_API_KEY;
+  // 4. Environment variable overrides (Gemini first, Anthropic fallback)
+  if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) config.claudeApiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  else if (process.env.ANTHROPIC_API_KEY) config.claudeApiKey = process.env.ANTHROPIC_API_KEY;
   if (process.env.LATE_API_KEY) config.lateApiKey = process.env.LATE_API_KEY;
   if (process.env.CLAUDE_MODEL) config.claudeModel = process.env.CLAUDE_MODEL;
 

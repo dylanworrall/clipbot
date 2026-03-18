@@ -1,4 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -26,7 +25,6 @@ function buildScoringSection(weights: ScoringWeights): string {
 
   const lines: string[] = [];
 
-  // Group by weight magnitude for readability
   const primary = [
     { key: "hook", label: "Strong Hook", weight: w.hook, desc: "The first 2 seconds must grab attention. Look for surprising statements, provocative questions, bold claims, or \"wait what?\" moments. A weak hook = dead clip regardless of content quality." },
     { key: "standalone", label: "Standalone Value", weight: w.standalone, desc: "The clip MUST make complete sense without any prior context. A viewer scrolling their feed should immediately understand what's happening. If it requires setup from earlier in the video, skip it." },
@@ -63,17 +61,14 @@ async function getSystemPrompt(niche?: string, scoringWeights?: ScoringWeights):
   const promptPath = path.resolve(__dirname, "../../prompts/viral-moments.md");
   let prompt = await readFile(promptPath, "utf-8");
 
-  // Inject scoring weights
   const weights = { ...DEFAULT_WEIGHTS, ...scoringWeights };
   prompt = prompt.replace("{{SCORING_WEIGHTS}}", buildScoringSection(weights));
   prompt = prompt.replace("{{SCORING_FORMULA}}", buildScoringFormula(weights));
 
-  // Inject niche-specific instructions if configured
   if (niche) {
     try {
       const nichePath = path.resolve(__dirname, `../../prompts/niches/${niche}.md`);
       const nicheInstructions = await readFile(nichePath, "utf-8");
-      // Adjust niche bonus wording based on weight
       const bonusNote = weights.nicheBonus !== 1
         ? nicheInstructions.replace(/\+1 to final score/g, `+${weights.nicheBonus} to final score`)
         : nicheInstructions;
@@ -94,7 +89,6 @@ export async function analyzeTranscript(
   apiKey: string,
   options: AnalysisOptions
 ): Promise<ViralMoment[]> {
-  const client = new Anthropic({ apiKey });
   const systemPrompt = await getSystemPrompt(options.niche, options.scoringWeights);
 
   const userMessage = `Video Title: "${videoTitle}"
@@ -108,18 +102,34 @@ ${transcript}`;
 
   const response = await retry(
     async () => {
-      const msg = await client.messages.create({
-        model: options.model,
-        max_tokens: 4096,
-        temperature: options.temperature ?? 0.2,
-        system: systemPrompt,
-        messages: [{ role: "user", content: userMessage }],
-      });
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${options.model}:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ parts: [{ text: userMessage }] }],
+            generationConfig: {
+              temperature: options.temperature ?? 0.2,
+              maxOutputTokens: 4096,
+              responseMimeType: "application/json",
+            },
+          }),
+        }
+      );
 
-      const text =
-        msg.content[0]?.type === "text" ? msg.content[0].text : "";
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`Gemini API error ${res.status}: ${err}`);
+      }
 
-      // Strip markdown code fences if present
+      const data = await res.json() as {
+        candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+      };
+
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
       const cleaned = text
         .replace(/^```(?:json)?\s*\n?/m, "")
         .replace(/\n?```\s*$/m, "")
@@ -131,7 +141,7 @@ ${transcript}`;
     {
       maxAttempts: 2,
       onRetry: (attempt) =>
-        log.warn(`Claude response parse failed, retrying (attempt ${attempt + 1})...`),
+        log.warn(`Gemini response parse failed, retrying (attempt ${attempt + 1})...`),
     }
   );
 

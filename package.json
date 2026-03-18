@@ -33,7 +33,6 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.78.0",
     "@remotion/captions": "^4.0.428",
     "@remotion/cli": "^4.0.428",
     "@remotion/renderer": "^4.0.428",

@@ -3,7 +3,7 @@ import { getDefaultOutputDir } from "./paths.js";
 
 export const DEFAULT_CONFIG: ClipBotConfig = {
   claudeApiKey: "",
-  claudeModel: "claude-sonnet-4-20250514",
+  claudeModel: "gemini-2.5-flash",
   claudeTemperature: 0.2,
   lateApiKey: "",
   accounts: {},

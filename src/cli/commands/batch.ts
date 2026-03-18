@@ -26,7 +26,7 @@ export const batchCommand = new Command("batch")
     const config = await loadConfig(opts.config);
 
     if (!config.claudeApiKey) {
-      log.error("Missing ANTHROPIC_API_KEY.");
+      log.error("Missing API key. Set GOOGLE_GENERATIVE_AI_API_KEY.");
       process.exit(1);
     }
 

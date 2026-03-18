@@ -47,7 +47,7 @@ export const processCommand = new Command("process")
     if (opts.captionMode) config.captionMode = opts.captionMode;
 
     if (!config.claudeApiKey) {
-      log.error("Missing ANTHROPIC_API_KEY. Set it in .env or environment.");
+      log.error("Missing API key. Set GOOGLE_GENERATIVE_AI_API_KEY in .env or environment.");
       process.exit(1);
     }
 
