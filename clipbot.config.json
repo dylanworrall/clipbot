@@ -1,5 +1,5 @@
 {
-  "claudeModel": "claude-sonnet-4-20250514",
+  "claudeModel": "gemini-2.5-flash",
   "accounts": {
     "tiktok": "699d13658ab8ae478b3fe2ab",
     "youtube": "699d13808ab8ae478b3fe2d9",
