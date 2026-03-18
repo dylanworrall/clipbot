@@ -1,6 +1,6 @@
 {
   "name": "clippy-ai",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Automated viral clip pipeline: YouTube → AI analysis → clip → post",
   "type": "module",
   "bin": {
@@ -8,6 +8,8 @@
   },
   "files": [
     "dist/",
+    "prompts/",
+    "clipbot.config.json",
     "ui-standalone/",
     "README.md"
   ],

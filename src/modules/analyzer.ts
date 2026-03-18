@@ -112,7 +112,7 @@ ${transcript}`;
             contents: [{ parts: [{ text: userMessage }] }],
             generationConfig: {
               temperature: options.temperature ?? 0.2,
-              maxOutputTokens: 4096,
+              maxOutputTokens: 8192,
               responseMimeType: "application/json",
             },
           }),
@@ -139,7 +139,7 @@ ${transcript}`;
       return AnalysisResponseSchema.parse(parsed);
     },
     {
-      maxAttempts: 2,
+      maxAttempts: 3,
       onRetry: (attempt) =>
         log.warn(`Gemini response parse failed, retrying (attempt ${attempt + 1})...`),
     }
