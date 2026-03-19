@@ -4,6 +4,8 @@
   "icon": "Clapperboard",
   "color": "#00C853",
   "description": "Automated viral clip pipeline: YouTube → AI analysis → clip → publish to TikTok, YouTube Shorts, Instagram Reels",
+  "toolsCompiled": "./ui/dist/tools.js",
+  "toolsSource": "./ui/src/lib/ai/tools",
   "configSchema": {
     "googleApiKey": { "type": "string", "description": "Google Gemini API key for AI analysis" },
     "lateApiKey": { "type": "string", "description": "Late.dev API key for social publishing" },
