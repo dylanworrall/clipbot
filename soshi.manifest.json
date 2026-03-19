@@ -1,0 +1,60 @@
+{
+  "id": "content",
+  "name": "Content Pipeline",
+  "icon": "Clapperboard",
+  "color": "#00C853",
+  "description": "Automated viral clip pipeline: YouTube → AI analysis → clip → publish to TikTok, YouTube Shorts, Instagram Reels",
+  "configSchema": {
+    "googleApiKey": { "type": "string", "description": "Google Gemini API key for AI analysis" },
+    "lateApiKey": { "type": "string", "description": "Late.dev API key for social publishing" },
+    "niche": { "type": "string", "description": "Content niche for scoring (e.g. cannabis, tech, gaming)" }
+  },
+  "configFields": [
+    { "key": "googleApiKey", "label": "Gemini API Key", "type": "string", "group": "Authentication" },
+    { "key": "lateApiKey", "label": "Late.dev API Key", "type": "string", "group": "Authentication" },
+    { "key": "niche", "label": "Content Niche", "type": "string", "group": "Pipeline" }
+  ],
+  "events": [
+    {
+      "name": "pipeline_complete",
+      "description": "Fires when a video pipeline finishes processing",
+      "schema": { "runId": "string", "sourceUrl": "string", "clipCount": "number" }
+    },
+    {
+      "name": "clip_published",
+      "description": "Fires when a clip is published to a social platform",
+      "schema": { "runId": "string", "clipIndex": "number", "platform": "string", "postId": "string" }
+    },
+    {
+      "name": "creator_new_video",
+      "description": "Fires when a tracked creator uploads a new video",
+      "schema": { "creatorId": "string", "channelName": "string", "videoUrl": "string", "videoTitle": "string" }
+    }
+  ],
+  "actions": [
+    { "name": "Process Video", "description": "Run the full clipping pipeline on a YouTube URL", "tool": "content_process_video", "params": { "url": "string" } },
+    { "name": "Publish Clip", "description": "Publish a clip to social platforms", "tool": "content_publish_clip", "params": { "runId": "string", "clipIndex": "number", "platforms": "string[]" } },
+    { "name": "Schedule Clip", "description": "Schedule a clip for future posting", "tool": "content_schedule_clip", "params": { "runId": "string", "clipIndex": "number", "scheduledFor": "string" } },
+    { "name": "Add Creator", "description": "Track a YouTube creator for new videos", "tool": "content_add_creator", "params": { "channelName": "string", "channelUrl": "string" } }
+  ],
+  "routerKeywords": [
+    "clip", "clips", "video", "pipeline", "youtube", "tiktok", "instagram", "reels", "shorts",
+    "viral", "publish", "post", "schedule", "creator", "channel", "download", "transcript",
+    "caption", "subtitle", "niche", "cannabis", "autoscore", "analytics", "engagement",
+    "process", "run", "space", "workspace"
+  ],
+  "examples": [
+    { "prompt": "process this youtube video https://youtube.com/watch?v=abc", "description": "Runs the full pipeline" },
+    { "prompt": "show me my latest clips", "description": "Lists generated clips" },
+    { "prompt": "publish clip 1 from the last run to tiktok and instagram", "description": "Publishes a clip" },
+    { "prompt": "schedule clip 3 for tomorrow at 2pm", "description": "Schedules a clip" },
+    { "prompt": "add creator @mkbhd to track", "description": "Tracks a YouTube creator" },
+    { "prompt": "check for new videos from tracked creators", "description": "Checks creator feeds" },
+    { "prompt": "show autoscore accuracy", "description": "Shows prediction accuracy" },
+    { "prompt": "what are my pipeline settings", "description": "Shows current config" }
+  ],
+  "price": 0,
+  "whopPlanId": "",
+  "oauthServices": [],
+  "builtInServices": ["late.dev"]
+}
