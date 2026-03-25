@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { handleMcpRequest, registerTools, validateBearerToken, corsHeaders } from '@/lib/mcp';
 import type { JsonRpcRequest } from '@/lib/mcp';
-import { tools } from '@/lib/ai/tools';
+import * as toolsModule from '@/lib/ai/tools';
 
 let initialized = false;
 function ensureInit() {
   if (initialized) return;
   const toolMap: Record<string, any> = {};
-  for (const tool of tools) {
-    const name = (tool as any).name || (tool as any).description || "unknown";
-    if (typeof (tool as any).execute === "function") toolMap[name] = tool;
+  const toolsList = (toolsModule as any).tools || (toolsModule as any).allTools || Object.values(toolsModule).find(v => Array.isArray(v)) || [];
+  const items = Array.isArray(toolsList) ? toolsList : Object.entries(toolsList);
+  for (const item of items) {
+    const [name, tool] = Array.isArray(item) && typeof item[0] === 'string' ? item : [(item as any).name || 'unknown', item];
+    if (typeof (tool as any).execute === 'function') toolMap[name] = tool;
   }
   registerTools(toolMap);
   initialized = true;
