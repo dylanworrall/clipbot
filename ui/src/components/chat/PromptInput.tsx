@@ -48,6 +48,7 @@ interface PromptInputProps {
 }
 
 const VIDEO_EXTENSIONS = [".mov", ".mp4", ".mkv", ".avi", ".webm", ".m4v", ".flv", ".wmv"];
+const VIDEO_MIMES = ["video/", "application/octet-stream", "video/quicktime", "video/mp4", "video/x-msvideo", "video/x-matroska", "video/webm"];
 
 export function PromptInput({ onSubmit, onChat, spaceId: externalSpaceId, fullWidth, disabled }: PromptInputProps) {
   const [input, setInput] = useState("");
@@ -63,9 +64,14 @@ export function PromptInput({ onSubmit, onChat, spaceId: externalSpaceId, fullWi
   const inputIsSlashCommand = input.trim().startsWith("/");
 
   const handleFilePick = useCallback((file: File) => {
-    const ext = "." + file.name.split(".").pop()?.toLowerCase();
-    if (!VIDEO_EXTENSIONS.includes(ext)) {
-      setError(`Unsupported format "${ext}". Supported: ${VIDEO_EXTENSIONS.join(", ")}`);
+    const ext = "." + (file.name.split(".").pop()?.toLowerCase() || "");
+    const mime = file.type?.toLowerCase() || "";
+    const isVideoExt = VIDEO_EXTENSIONS.includes(ext);
+    const isVideoMime = VIDEO_MIMES.some((m) => mime.startsWith(m));
+
+    // Accept if extension OR mime type matches video
+    if (!isVideoExt && !isVideoMime) {
+      setError(`"${file.name}" doesn't look like a video. Supported: ${VIDEO_EXTENSIONS.join(", ")}`);
       return;
     }
     setPendingFile(file);
@@ -223,7 +229,7 @@ export function PromptInput({ onSubmit, onChat, spaceId: externalSpaceId, fullWi
       <input
         ref={fileRef}
         type="file"
-        accept={VIDEO_EXTENSIONS.join(",")}
+        accept={`${VIDEO_EXTENSIONS.join(",")},video/*`}
         onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFilePick(f); if (fileRef.current) fileRef.current.value = ""; }}
         className="hidden"
       />

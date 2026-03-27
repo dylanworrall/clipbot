@@ -20,11 +20,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // Validate extension
+    // Validate by extension or MIME type
     const ext = path.extname(file.name).toLowerCase();
-    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+    const mime = file.type?.toLowerCase() || "";
+    const isVideoExt = ALLOWED_EXTENSIONS.includes(ext);
+    const isVideoMime = mime.startsWith("video/") || mime === "application/octet-stream";
+
+    if (!isVideoExt && !isVideoMime) {
       return NextResponse.json(
-        { error: `Unsupported format "${ext}". Supported: ${ALLOWED_EXTENSIONS.join(", ")}` },
+        { error: `"${file.name}" (${mime || "unknown type"}) is not a supported video format. Supported: ${ALLOWED_EXTENSIONS.join(", ")}` },
         { status: 400 }
       );
     }
