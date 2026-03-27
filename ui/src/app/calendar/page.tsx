@@ -4,10 +4,18 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   DndContext,
   DragOverlay,
-  closestCenter,
+  pointerWithin,
   type DragStartEvent,
   type DragEndEvent,
+  type Modifier,
 } from "@dnd-kit/core";
+
+// Snap modifier — reduces jitter when dragging over small grid cells
+const snapModifier: Modifier = ({ transform }) => ({
+  ...transform,
+  x: Math.round(transform.x),
+  y: Math.round(transform.y),
+});
 import { WeekView } from "@/components/calendar/WeekView";
 import { PostChip, type ScheduledPost } from "@/components/calendar/PostChip";
 import { DraftEditModal } from "@/components/calendar/DraftEditModal";
@@ -127,8 +135,9 @@ export default function CalendarPage() {
 
   return (
     <PageTransition>
-      <div className="p-10 space-y-8">
-        <h1 className="text-xl font-semibold">Publishing Calendar</h1>
+      <div className="flex-1 overflow-y-auto scrollbar-hide p-6 text-white">
+        <div className="max-w-5xl mx-auto space-y-6">
+        <h1 className="text-2xl font-bold text-white/90 mb-1">Calendar</h1>
 
         {loading ? (
           <CalendarSkeleton />
@@ -136,9 +145,9 @@ export default function CalendarPage() {
           <>
             {/* Summary stats bar */}
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 rounded-lg bg-surface-1 border border-border px-4 py-2">
-                <CalendarDays className="h-4 w-4 text-accent" />
-                <span className="text-sm font-medium">
+              <div className="flex items-center gap-2 rounded-lg bg-[#2A2A2C] border border-white/5 px-4 py-2 shadow-sm">
+                <CalendarDays size={14} className="text-[#0A84FF]" />
+                <span className="text-[13px] font-medium text-white/70">
                   {weekPostCount} {weekPostCount === 1 ? "post" : "posts"} this week
                 </span>
               </div>
@@ -160,7 +169,8 @@ export default function CalendarPage() {
             )}
 
             <DndContext
-              collisionDetection={closestCenter}
+              collisionDetection={pointerWithin}
+              modifiers={[snapModifier]}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
             >
@@ -182,6 +192,7 @@ export default function CalendarPage() {
             }}
           />
         )}
+        </div>
       </div>
     </PageTransition>
   );
