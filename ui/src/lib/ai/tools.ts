@@ -1045,6 +1045,42 @@ export const allTools = {
     },
   }),
 
+  // ── Account Connection ───────────────────────────────────────────
+
+  connect_account: tool({
+    description:
+      "Connect a social media account via Zernio OAuth. Returns an authUrl the user must visit to authorize. Supported platforms: twitter, instagram, facebook, linkedin, tiktok, youtube, pinterest, reddit, bluesky, threads, googlebusiness, telegram, snapchat, whatsapp.",
+    inputSchema: z.object({
+      platform: z
+        .string()
+        .describe("Platform to connect (e.g. 'twitter', 'instagram', 'tiktok')"),
+    }),
+    execute: async ({ platform }) => {
+      const supported = [
+        "twitter", "instagram", "facebook", "linkedin", "tiktok", "youtube",
+        "pinterest", "reddit", "bluesky", "threads", "googlebusiness", "telegram",
+        "snapchat", "whatsapp",
+      ];
+      if (!supported.includes(platform)) {
+        return { error: `Unsupported platform "${platform}". Supported: ${supported.join(", ")}` };
+      }
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+      const res = await fetch(`${baseUrl}/api/accounts/connect`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ platform }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { error: data.error };
+      return {
+        success: true,
+        platform,
+        authUrl: data.authUrl,
+        message: `Visit this URL to connect your ${platform} account: ${data.authUrl}`,
+      };
+    },
+  }),
+
   // ── Content Autopilot ───────────────────────────────────────────
 
   run_autopilot: tool({
