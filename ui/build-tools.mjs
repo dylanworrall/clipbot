@@ -16,7 +16,7 @@ await build({
   platform: "node",
   target: "node20",
   format: "cjs",
-  outfile: resolve(__dirname, "dist/tools.cjs"),
+  outfile: resolve(__dirname, "../dist/tools.cjs"),
   // Resolve @/ path alias
   alias: {
     "@": resolve(__dirname, "src"),

@@ -3,6 +3,7 @@ ui/node_modules
 ui/.next
 dist
 .env
+.env.local
 clipbot-output
 *.mp4
 *.mp3
@@ -19,3 +20,8 @@ assets
 *.png
 test-*
 FIX-*
+.claude
+.claude.json
+.claude.json.backup
+ui/.claude
+ui/.next

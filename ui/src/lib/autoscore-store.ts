@@ -1,8 +1,8 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { AUTOSCORE_FILE } from "./paths";
 import { listRuns, getManifest } from "./run-store";
-import { getPost } from "./late-client";
-import { getSettings, saveSettings } from "./settings-store";
+import { getPost, listPosts } from "./late-client";
+import { getSettings, saveSettings, getEffectiveConfig } from "./settings-store";
 import type { ScoringWeights } from "./types";
 import { DEFAULT_SCORING_WEIGHTS } from "./types";
 
@@ -75,7 +75,7 @@ const CATEGORY_WEIGHT_MAP: Record<string, (keyof ScoringWeights)[]> = {
   news: ["hook", "standalone"],
   review: ["standalone", "education"],
   comedy: ["hook", "twist"],
-  cannabis: ["nicheBonus", "education"],
+  lifestyle: ["nicheBonus", "education"],
   science: ["education", "twist"],
   fitness: ["visual", "hook"],
   tech: ["education", "standalone"],
@@ -133,7 +133,7 @@ export async function getUpdates(): Promise<WeightUpdate[]> {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Collect: gather analytics for published clips                      */
+/*  Collect: gather analytics from Zernio + local pipeline             */
 /* ------------------------------------------------------------------ */
 
 export async function collectFeedback(): Promise<{
@@ -148,70 +148,139 @@ export async function collectFeedback(): Promise<{
     ...settings.scoringWeights,
   };
 
-  const knownIds = new Set(data.feedback.map((f) => `${f.runId}:${f.clipIndex}`));
-  const runs = await listRuns();
-  const completedRuns = runs.filter((r) => r.status === "complete");
+  const knownIds = new Set(data.feedback.map((f) => f.id));
+  // Also track by postId to avoid duplicates across sources
+  const knownPostIds = new Set(
+    data.feedback.map((f) => f.runId).filter((id) => id.startsWith("zernio:"))
+  );
 
   let collected = 0;
   let skipped = 0;
   const errors: string[] = [];
 
-  for (const run of completedRuns) {
-    const manifest = await getManifest(run.outputDir);
-    if (!manifest?.clips || !manifest.moments || !manifest.posts) continue;
+  // ── Source 1: Zernio analytics (all published posts) ──────────────
+  try {
+    const config = await getEffectiveConfig();
+    if (config.lateApiKey) {
+      const fromDate = new Date(Date.now() - 90 * 86400000).toISOString().split("T")[0];
+      const toDate = new Date().toISOString().split("T")[0];
 
-    for (const post of manifest.posts) {
-      const key = `${run.runId}:${post.clipIndex}`;
-      if (knownIds.has(key)) {
-        skipped++;
-        continue;
-      }
+      const res = await fetch(
+        `https://zernio.com/api/v1/analytics?fromDate=${fromDate}&toDate=${toDate}&limit=100&sortBy=date&order=desc`,
+        { headers: { Authorization: `Bearer ${config.lateApiKey}` } }
+      );
 
-      // Only collect for published posts
-      const isPublished = post.platforms.some((p) => p.status === "published");
-      if (!isPublished) continue;
+      if (res.ok) {
+        const zData = await res.json();
+        const zPosts = zData.posts ?? [];
 
-      const clip = manifest.clips.find((c) => c.momentIndex === post.clipIndex);
-      const moment = manifest.moments!.find((m) => m.index === post.clipIndex);
-      if (!clip || !moment) continue;
+        for (const post of zPosts) {
+          const postId = post._id ?? post.postId ?? post.latePostId;
+          const zKey = `zernio:${postId}`;
+          if (knownPostIds.has(zKey)) { skipped++; continue; }
 
-      try {
-        const latePost = await getPost(post.postId);
-        const analytics = latePost.analytics;
-        if (!analytics || (!analytics.views && !analytics.likes)) {
-          skipped++;
-          continue;
+          const analytics = post.analytics;
+          if (!analytics || (!analytics.views && !analytics.likes && !analytics.impressions)) {
+            skipped++;
+            continue;
+          }
+
+          const views = analytics.views ?? analytics.impressions ?? 0;
+          const likes = analytics.likes ?? 0;
+          const comments = analytics.comments ?? 0;
+          const shares = analytics.shares ?? 0;
+          const engagementRate = analytics.engagementRate ?? (views > 0 ? ((likes + comments) / views) * 100 : 0);
+
+          // Infer category from content
+          const content = (post.content ?? "").toLowerCase();
+          const category = inferCategory(content, config.niche);
+          const platform = post.platform ?? post.platforms?.[0]?.platform ?? "unknown";
+
+          // For pipeline clips we have a predicted score; for external posts estimate from engagement
+          const predictedScore = estimatePredictedScore(engagementRate);
+
+          const title = (post.content ?? "").split("\n")[0]?.slice(0, 60) || "Untitled";
+
+          data.feedback.push({
+            id: `fb-z-${Date.now()}-${collected}`,
+            runId: zKey,
+            clipIndex: 0,
+            title,
+            category,
+            predictedScore,
+            actualMetrics: { views, likes, comments, shares },
+            actualScore: 0,
+            engagementRate: Math.round(engagementRate * 100) / 100,
+            weightsUsed: currentWeights,
+            collectedAt: new Date().toISOString(),
+          });
+
+          knownPostIds.add(zKey);
+          collected++;
         }
-
-        const views = analytics.views ?? 0;
-        const likes = analytics.likes ?? 0;
-        const comments = analytics.comments ?? 0;
-        const shares = analytics.shares ?? 0;
-        const engagementRate =
-          views > 0 ? ((likes + comments) / views) * 100 : 0;
-
-        data.feedback.push({
-          id: `fb-${Date.now()}-${collected}`,
-          runId: run.runId,
-          clipIndex: post.clipIndex,
-          title: clip.title,
-          category: moment.category.toLowerCase(),
-          predictedScore: moment.viralityScore,
-          actualMetrics: { views, likes, comments, shares },
-          actualScore: 0, // normalized later
-          engagementRate,
-          weightsUsed: currentWeights,
-          collectedAt: new Date().toISOString(),
-        });
-
-        knownIds.add(key);
-        collected++;
-      } catch (err) {
-        errors.push(
-          `${clip.title}: ${err instanceof Error ? err.message : "fetch failed"}`
-        );
       }
     }
+  } catch (err) {
+    errors.push(`Zernio analytics: ${err instanceof Error ? err.message : "fetch failed"}`);
+  }
+
+  // ── Source 2: Local pipeline runs (clips with virality scores) ────
+  try {
+    const knownRunKeys = new Set(
+      data.feedback.filter((f) => !f.runId.startsWith("zernio:")).map((f) => `${f.runId}:${f.clipIndex}`)
+    );
+    const runs = await listRuns();
+    const completedRuns = runs.filter((r) => r.status === "complete");
+
+    for (const run of completedRuns) {
+      const manifest = await getManifest(run.outputDir);
+      if (!manifest?.clips || !manifest.moments || !manifest.posts) continue;
+
+      for (const post of manifest.posts) {
+        const key = `${run.runId}:${post.clipIndex}`;
+        if (knownRunKeys.has(key)) { skipped++; continue; }
+
+        const isPublished = post.platforms.some((p: { status?: string }) => p.status === "published");
+        if (!isPublished) continue;
+
+        const clip = manifest.clips.find((c) => c.momentIndex === post.clipIndex);
+        const moment = manifest.moments!.find((m) => m.index === post.clipIndex);
+        if (!clip || !moment) continue;
+
+        try {
+          const latePost = await getPost(post.postId);
+          const analytics = latePost.analytics;
+          if (!analytics || (!analytics.views && !analytics.likes)) { skipped++; continue; }
+
+          const views = analytics.views ?? 0;
+          const likes = analytics.likes ?? 0;
+          const comments = analytics.comments ?? 0;
+          const shares = analytics.shares ?? 0;
+          const engagementRate = views > 0 ? ((likes + comments) / views) * 100 : 0;
+
+          data.feedback.push({
+            id: `fb-r-${Date.now()}-${collected}`,
+            runId: run.runId,
+            clipIndex: post.clipIndex,
+            title: clip.title,
+            category: moment.category.toLowerCase(),
+            predictedScore: moment.viralityScore,
+            actualMetrics: { views, likes, comments, shares },
+            actualScore: 0,
+            engagementRate,
+            weightsUsed: currentWeights,
+            collectedAt: new Date().toISOString(),
+          });
+
+          knownRunKeys.add(key);
+          collected++;
+        } catch (err) {
+          errors.push(`${clip.title}: ${err instanceof Error ? err.message : "fetch failed"}`);
+        }
+      }
+    }
+  } catch (err) {
+    errors.push(`Pipeline runs: ${err instanceof Error ? err.message : "scan failed"}`);
   }
 
   // Normalize actualScore using percentile ranking across ALL feedback
@@ -219,6 +288,44 @@ export async function collectFeedback(): Promise<{
   await saveData(data);
 
   return { collected, skipped, errors };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Helpers: infer category + estimate predicted score                  */
+/* ------------------------------------------------------------------ */
+
+function inferCategory(content: string, niche?: string): string {
+  const keywords: Record<string, string[]> = {
+    education: ["learn", "how to", "tutorial", "guide", "tip", "lesson", "explained"],
+    entertainment: ["funny", "lol", "haha", "comedy", "prank", "meme"],
+    controversy: ["debate", "opinion", "unpopular", "hot take", "controversial"],
+    motivation: ["motivat", "inspir", "grind", "hustle", "mindset", "success"],
+    news: ["breaking", "announce", "update", "just in", "report"],
+    storytelling: ["story", "journey", "experience", "happened"],
+    howto: ["how to", "step by step", "diy", "recipe"],
+    tech: ["tech", "ai", "software", "code", "developer", "startup"],
+    lifestyle: ["lifestyle", "daily", "routine", "habit", "morning", "vlog", "day in"],
+    fitness: ["workout", "gym", "exercise", "gains", "diet", "nutrition"],
+  };
+
+  for (const [cat, words] of Object.entries(keywords)) {
+    if (words.some((w) => content.includes(w))) return cat;
+  }
+  return niche?.toLowerCase() ?? "general";
+}
+
+function estimatePredictedScore(engagementRate: number): number {
+  // Map engagement rate to a rough 1-10 predicted score
+  // This is used for external posts that don't have pipeline virality scores
+  if (engagementRate >= 15) return 10;
+  if (engagementRate >= 10) return 9;
+  if (engagementRate >= 7) return 8;
+  if (engagementRate >= 5) return 7;
+  if (engagementRate >= 3) return 6;
+  if (engagementRate >= 2) return 5;
+  if (engagementRate >= 1) return 4;
+  if (engagementRate >= 0.5) return 3;
+  return 2;
 }
 
 /* ------------------------------------------------------------------ */

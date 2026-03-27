@@ -156,6 +156,25 @@ export async function downloadVideo(
   videoUrl: string,
   options: DownloadOptions
 ): Promise<DownloadResult> {
+  // Local file: skip download entirely — file is already on disk
+  if (videoUrl.startsWith("file://")) {
+    const localPath = decodeURIComponent(videoUrl.replace("file://", ""));
+    // Verify file exists
+    await access(localPath);
+    const fileStats = await stat(localPath);
+    const filename = path.basename(localPath);
+
+    log.success(`Using local file: ${filename} (${Math.round(fileStats.size / 1024 / 1024)}MB)`);
+
+    return {
+      filePath: localPath,
+      filename,
+      fileSize: fileStats.size,
+      quality: options.quality,
+      durationSeconds: 0,
+    };
+  }
+
   const slug = extractVideoSlug(videoUrl);
 
   // Try Cobalt first (works without cookies, no bot detection)

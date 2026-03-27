@@ -1,6 +1,6 @@
 import { getEffectiveConfig } from "@/lib/settings-store";
 
-const LATE_BASE = "https://getlate.dev/api/v1";
+const LATE_BASE = "https://zernio.com/api/v1";
 
 export interface LatePostAnalytics {
   impressions?: number;
@@ -97,6 +97,33 @@ export async function updatePost(
 
 export async function deletePost(postId: string): Promise<void> {
   await lateApiFetch(`/posts/${postId}`, { method: "DELETE" });
+}
+
+export async function createPost(payload: {
+  content: string;
+  platforms: Array<{ platform: string; accountId: string }>;
+  scheduledFor?: string;
+}): Promise<LatePost> {
+  const res = await lateApiFetch("/posts", {
+    method: "POST",
+    body: JSON.stringify({
+      content: payload.content,
+      mediaItems: [],
+      platforms: payload.platforms,
+      publishNow: false,
+      ...(payload.scheduledFor && { scheduledFor: payload.scheduledFor }),
+    }),
+  });
+  const data = (await res.json()) as { post?: LatePost } & LatePost;
+  return data.post ?? data;
+}
+
+export async function publishPost(postId: string): Promise<LatePost> {
+  const res = await lateApiFetch(`/posts/${postId}/publish`, {
+    method: "POST",
+  });
+  const data = (await res.json()) as { post?: LatePost } & LatePost;
+  return data.post ?? data;
 }
 
 export async function listLateAccounts(): Promise<LateAccount[]> {

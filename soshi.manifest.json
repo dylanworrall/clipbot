@@ -4,18 +4,45 @@
   "icon": "Clapperboard",
   "color": "#00C853",
   "description": "Automated viral clip pipeline: YouTube → AI analysis → clip → publish to TikTok, YouTube Shorts, Instagram Reels",
-  "toolsCompiled": "./dist/tools.cjs",
-  "toolsSource": "./ui/src/lib/ai/tools",
-  "configSchema": {
-    "googleApiKey": { "type": "string", "description": "Google Gemini API key for AI analysis" },
-    "lateApiKey": { "type": "string", "description": "Late.dev API key for social publishing" },
-    "niche": { "type": "string", "description": "Content niche for scoring (e.g. cannabis, tech, gaming)" }
-  },
-  "configFields": [
-    { "key": "googleApiKey", "label": "Gemini API Key", "type": "string", "group": "Authentication" },
-    { "key": "lateApiKey", "label": "Late.dev API Key", "type": "string", "group": "Authentication" },
-    { "key": "niche", "label": "Content Niche", "type": "string", "group": "Pipeline" }
+
+  "credentials": [
+    { "key": "lateApiKey", "label": "Late.dev API Key", "env": "LATE_API_KEY" },
+    { "key": "googleApiKey", "label": "Gemini API Key", "env": "GOOGLE_GENERATIVE_AI_API_KEY" }
   ],
+
+  "configFields": [
+    { "key": "niche", "label": "Content Niche", "type": "string", "group": "Pipeline" },
+    { "key": "defaultPlatforms", "label": "Default Platforms", "type": "string[]", "options": ["tiktok", "youtube", "instagram"], "group": "Pipeline" },
+    { "key": "defaultMaxClips", "label": "Max Clips per Video", "type": "number", "default": 5, "group": "Pipeline" },
+    { "key": "defaultMinScore", "label": "Min Virality Score", "type": "number", "default": 7, "min": 0, "max": 10, "group": "Pipeline" },
+    { "key": "defaultMaxDuration", "label": "Max Clip Duration (sec)", "type": "number", "default": 59, "group": "Pipeline" },
+    { "key": "defaultQuality", "label": "Video Quality", "type": "select", "options": ["720", "1080", "1440", "2160"], "default": "1080", "group": "Pipeline" },
+    { "key": "subtitles", "label": "Auto-generate Captions", "type": "boolean", "default": true, "group": "Pipeline" },
+    { "key": "padBefore", "label": "Pad Before (sec)", "type": "number", "default": 1.5, "group": "Pipeline" },
+    { "key": "padAfter", "label": "Pad After (sec)", "type": "number", "default": 0.5, "group": "Pipeline" },
+    { "key": "backgroundFillStyle", "label": "Background Fill", "type": "select", "options": ["center-crop", "blurred-zoom", "mirror-reflection", "split-fill"], "default": "blurred-zoom", "group": "Pipeline" },
+    { "key": "captionMode", "label": "Caption Mode", "type": "select", "options": ["overlay", "burn-in"], "default": "overlay", "group": "Captions" },
+    { "key": "captionFontFamily", "label": "Caption Font", "type": "string", "default": "Arial", "group": "Captions" },
+    { "key": "captionFontSize", "label": "Caption Font Size", "type": "number", "default": 72, "group": "Captions" },
+    { "key": "captionActiveColor", "label": "Active Word Color", "type": "color", "default": "#FFD700", "group": "Captions" },
+    { "key": "captionInactiveColor", "label": "Inactive Word Color", "type": "color", "default": "#FFFFFF99", "group": "Captions" },
+    { "key": "captionPosition", "label": "Caption Position", "type": "select", "options": ["top", "center", "bottom"], "default": "bottom", "group": "Captions" },
+    { "key": "captionAnimation", "label": "Caption Animation", "type": "select", "options": ["karaoke-highlight", "word-pop", "typewriter", "simple-fade"], "default": "typewriter", "group": "Captions" },
+    { "key": "weightHook", "label": "Hook Weight", "type": "number", "default": 3, "min": 0, "max": 5, "group": "Scoring" },
+    { "key": "weightStandalone", "label": "Standalone Weight", "type": "number", "default": 3, "min": 0, "max": 5, "group": "Scoring" },
+    { "key": "weightControversy", "label": "Controversy Weight", "type": "number", "default": 3, "min": 0, "max": 5, "group": "Scoring" },
+    { "key": "weightEducation", "label": "Education Weight", "type": "number", "default": 3, "min": 0, "max": 5, "group": "Scoring" },
+    { "key": "weightEmotion", "label": "Emotion Weight", "type": "number", "default": 1.5, "min": 0, "max": 5, "group": "Scoring" },
+    { "key": "weightTwist", "label": "Twist Weight", "type": "number", "default": 1.5, "min": 0, "max": 5, "group": "Scoring" },
+    { "key": "weightQuotable", "label": "Quotable Weight", "type": "number", "default": 1, "min": 0, "max": 5, "group": "Scoring" },
+    { "key": "weightVisual", "label": "Visual Weight", "type": "number", "default": 1, "min": 0, "max": 5, "group": "Scoring" },
+    { "key": "weightNicheBonus", "label": "Niche Bonus Weight", "type": "number", "default": 1, "min": 0, "max": 5, "group": "Scoring" },
+    { "key": "autoscoreEnabled", "label": "AutoScore Learning", "type": "boolean", "default": false, "group": "AutoScore" },
+    { "key": "autoscoreLearningRate", "label": "Learning Rate", "type": "number", "default": 0.15, "min": 0.01, "max": 0.5, "group": "AutoScore" },
+    { "key": "autoscoreMinSamples", "label": "Min Samples Before Learning", "type": "number", "default": 5, "group": "AutoScore" },
+    { "key": "autoscoreDecayFactor", "label": "Recency Decay Factor", "type": "number", "default": 0.85, "min": 0, "max": 1, "group": "AutoScore" }
+  ],
+
   "events": [
     {
       "name": "pipeline_complete",
@@ -33,30 +60,434 @@
       "schema": { "creatorId": "string", "channelName": "string", "videoUrl": "string", "videoTitle": "string" }
     }
   ],
+
   "actions": [
-    { "name": "Process Video", "description": "Run the full clipping pipeline on a YouTube URL", "tool": "content_process_video", "params": { "url": "string" } },
-    { "name": "Publish Clip", "description": "Publish a clip to social platforms", "tool": "content_publish_clip", "params": { "runId": "string", "clipIndex": "number", "platforms": "string[]" } },
-    { "name": "Schedule Clip", "description": "Schedule a clip for future posting", "tool": "content_schedule_clip", "params": { "runId": "string", "clipIndex": "number", "scheduledFor": "string" } },
-    { "name": "Add Creator", "description": "Track a YouTube creator for new videos", "tool": "content_add_creator", "params": { "channelName": "string", "channelUrl": "string" } }
+
+    { "_comment": "--- Pipeline ---" },
+    {
+      "name": "process_video",
+      "description": "Run the full clipping pipeline on a YouTube URL",
+      "tool": "content_process_video",
+      "params": { "url": "string", "spaceId": "string", "force": "boolean" },
+      "risk": "write",
+      "estimatedMs": 60000,
+      "idempotent": false,
+      "requiredAuth": []
+    },
+    {
+      "name": "get_runs",
+      "description": "List video processing runs",
+      "tool": "content_get_runs",
+      "params": { "status": "string", "limit": "number" },
+      "risk": "read",
+      "estimatedMs": 200,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+    {
+      "name": "get_run_detail",
+      "description": "Get full details for a specific pipeline run",
+      "tool": "content_get_run_detail",
+      "params": { "runId": "string" },
+      "risk": "read",
+      "estimatedMs": 300,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+    {
+      "name": "get_clips",
+      "description": "List generated clips, optionally filtered by run or score",
+      "tool": "content_get_clips",
+      "params": { "runId": "string", "minScore": "number", "limit": "number" },
+      "risk": "read",
+      "estimatedMs": 200,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+    {
+      "name": "cancel_run",
+      "description": "Cancel an in-progress pipeline run",
+      "tool": "content_cancel_run",
+      "params": { "runId": "string" },
+      "risk": "destructive",
+      "estimatedMs": 500,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+
+    { "_comment": "--- Publishing ---" },
+    {
+      "name": "publish_clip",
+      "description": "Publish a clip to social platforms via Late.dev",
+      "tool": "content_publish_clip",
+      "params": { "runId": "string", "clipIndex": "number", "platforms": "string[]", "scheduledFor": "string" },
+      "risk": "write",
+      "estimatedMs": 5000,
+      "idempotent": false,
+      "requiredAuth": ["tiktok|youtube|instagram"]
+    },
+    {
+      "name": "schedule_clip",
+      "description": "Schedule a clip for future posting",
+      "tool": "content_schedule_clip",
+      "params": { "runId": "string", "clipIndex": "number", "clipTitle": "string", "platforms": "string[]", "scheduledFor": "string" },
+      "risk": "write",
+      "estimatedMs": 500,
+      "idempotent": false,
+      "requiredAuth": ["tiktok|youtube|instagram"]
+    },
+    {
+      "name": "list_scheduled",
+      "description": "List all scheduled posts",
+      "tool": "content_list_scheduled",
+      "params": {},
+      "risk": "read",
+      "estimatedMs": 200,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+    {
+      "name": "cancel_scheduled",
+      "description": "Cancel a scheduled post",
+      "tool": "content_cancel_scheduled",
+      "params": { "postId": "string" },
+      "risk": "destructive",
+      "estimatedMs": 300,
+      "idempotent": true,
+      "requiredAuth": ["tiktok|youtube|instagram"]
+    },
+    {
+      "name": "list_posts",
+      "description": "List published posts with optional filters",
+      "tool": "content_list_posts",
+      "params": { "status": "string", "platform": "string", "limit": "number" },
+      "risk": "read",
+      "estimatedMs": 500,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+    {
+      "name": "get_post_analytics",
+      "description": "Get performance analytics for a published post",
+      "tool": "content_get_post_analytics",
+      "params": { "postId": "string" },
+      "risk": "read",
+      "estimatedMs": 500,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+    {
+      "name": "update_post",
+      "description": "Edit a draft or scheduled post",
+      "tool": "content_update_post",
+      "params": { "postId": "string", "content": "string", "scheduledFor": "string" },
+      "risk": "write",
+      "estimatedMs": 500,
+      "idempotent": true,
+      "requiredAuth": ["tiktok|youtube|instagram"]
+    },
+    {
+      "name": "delete_post",
+      "description": "Permanently delete a draft or scheduled post",
+      "tool": "content_delete_post",
+      "params": { "postId": "string" },
+      "risk": "destructive",
+      "estimatedMs": 500,
+      "idempotent": true,
+      "requiredAuth": ["tiktok|youtube|instagram"]
+    },
+    {
+      "name": "list_accounts",
+      "description": "List connected social media accounts",
+      "tool": "content_list_accounts",
+      "params": {},
+      "risk": "read",
+      "estimatedMs": 300,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+
+    { "_comment": "--- Creators ---" },
+    {
+      "name": "list_creators",
+      "description": "List tracked YouTube creators",
+      "tool": "content_list_creators",
+      "params": {},
+      "risk": "read",
+      "estimatedMs": 200,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+    {
+      "name": "add_creator",
+      "description": "Track a YouTube creator for new video alerts",
+      "tool": "content_add_creator",
+      "params": { "channelName": "string", "channelUrl": "string", "channelId": "string", "autoProcess": "boolean" },
+      "risk": "write",
+      "estimatedMs": 500,
+      "idempotent": false,
+      "requiredAuth": []
+    },
+    {
+      "name": "remove_creator",
+      "description": "Stop tracking a YouTube creator",
+      "tool": "content_remove_creator",
+      "params": { "creatorId": "string" },
+      "risk": "destructive",
+      "estimatedMs": 300,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+    {
+      "name": "check_creator_videos",
+      "description": "Fetch latest videos from a tracked creator",
+      "tool": "content_check_creator_videos",
+      "params": { "creatorId": "string" },
+      "risk": "read",
+      "estimatedMs": 2000,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+    {
+      "name": "get_notifications",
+      "description": "Get new video notifications from tracked creators",
+      "tool": "content_get_notifications",
+      "params": { "status": "string", "limit": "number" },
+      "risk": "read",
+      "estimatedMs": 200,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+
+    { "_comment": "--- Scoring Weights ---" },
+    {
+      "name": "get_scoring_weights",
+      "description": "Get current virality scoring weights (hook, standalone, controversy, education, emotion, twist, quotable, visual, nicheBonus)",
+      "tool": "content_get_settings",
+      "params": {},
+      "risk": "read",
+      "estimatedMs": 100,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+    {
+      "name": "update_scoring_weights",
+      "description": "Adjust virality scoring weights to prioritize what matters for your content",
+      "tool": "content_update_settings",
+      "params": {
+        "scoringWeights": {
+          "hook": "number (0-5)",
+          "standalone": "number (0-5)",
+          "controversy": "number (0-5)",
+          "education": "number (0-5)",
+          "emotion": "number (0-5)",
+          "twist": "number (0-5)",
+          "quotable": "number (0-5)",
+          "visual": "number (0-5)",
+          "nicheBonus": "number (0-5)"
+        }
+      },
+      "risk": "write",
+      "estimatedMs": 200,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+
+    { "_comment": "--- AutoScore ---" },
+    {
+      "name": "autoscore_status",
+      "description": "View AutoScore learning status, accuracy metrics, and category breakdown",
+      "tool": "content_autoscore_status",
+      "params": {},
+      "risk": "read",
+      "estimatedMs": 200,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+    {
+      "name": "autoscore_learn",
+      "description": "Run AutoScore learning cycle — compares predicted scores vs real analytics and adjusts weights",
+      "tool": "content_autoscore_learn",
+      "params": {},
+      "risk": "write",
+      "estimatedMs": 5000,
+      "idempotent": false,
+      "requiredAuth": ["tiktok|youtube|instagram"]
+    },
+    {
+      "name": "autoscore_configure",
+      "description": "Configure AutoScore learning behavior",
+      "tool": "content_autoscore_config",
+      "params": {
+        "enabled": "boolean",
+        "learningRate": "number (0.01-0.5, how aggressively weights adjust)",
+        "minSamples": "number (min posts needed before learning runs)",
+        "decayFactor": "number (0-1, how much recent data is weighted over older)"
+      },
+      "risk": "write",
+      "estimatedMs": 200,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+
+    { "_comment": "--- Pipeline Defaults ---" },
+    {
+      "name": "get_pipeline_settings",
+      "description": "Get current pipeline defaults (max clips, min score, max duration, platforms, subtitles)",
+      "tool": "content_get_settings",
+      "params": {},
+      "risk": "read",
+      "estimatedMs": 100,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+    {
+      "name": "update_pipeline_settings",
+      "description": "Change default pipeline behavior for new runs",
+      "tool": "content_update_settings",
+      "params": {
+        "defaultMaxClips": "number (max clips per video)",
+        "defaultMinScore": "number (0-10, skip clips below this score)",
+        "defaultMaxDuration": "number (seconds, max clip length)",
+        "defaultPlatforms": "string[] (tiktok, youtube, instagram)",
+        "subtitles": "boolean (auto-generate captions)",
+        "padBefore": "number (seconds of padding before clip)",
+        "padAfter": "number (seconds of padding after clip)",
+        "backgroundFillStyle": "center-crop | blurred-zoom | mirror-reflection | split-fill",
+        "niche": "string (your content niche for scoring bonus)"
+      },
+      "risk": "write",
+      "estimatedMs": 200,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+
+    { "_comment": "--- Caption Style ---" },
+    {
+      "name": "get_caption_style",
+      "description": "Get current caption/subtitle style settings",
+      "tool": "content_get_settings",
+      "params": {},
+      "risk": "read",
+      "estimatedMs": 100,
+      "idempotent": true,
+      "requiredAuth": []
+    },
+    {
+      "name": "update_caption_style",
+      "description": "Customize how captions look on your clips",
+      "tool": "content_update_settings",
+      "params": {
+        "captionStyle": {
+          "fontFamily": "string",
+          "fontSize": "number",
+          "activeColor": "hex color (current word)",
+          "inactiveColor": "hex color (other words)",
+          "outlineColor": "hex color",
+          "position": "top | center | bottom",
+          "maxWordsPerLine": "number",
+          "animationPreset": "karaoke-highlight | word-pop | typewriter | simple-fade"
+        },
+        "captionMode": "overlay | burn-in"
+      },
+      "risk": "write",
+      "estimatedMs": 200,
+      "idempotent": true,
+      "requiredAuth": []
+    }
   ],
+
   "routerKeywords": [
     "clip", "clips", "video", "pipeline", "youtube", "tiktok", "instagram", "reels", "shorts",
     "viral", "publish", "post", "schedule", "creator", "channel", "download", "transcript",
-    "caption", "subtitle", "niche", "cannabis", "autoscore", "analytics", "engagement",
-    "process", "run", "space", "workspace"
+    "caption", "subtitle", "niche", "autoscore", "analytics", "engagement",
+    "process", "run", "content", "weight", "weights", "scoring", "hook", "controversy",
+    "learning rate", "min score", "max clips", "font", "karaoke", "burn-in", "overlay"
   ],
+
   "examples": [
     { "prompt": "process this youtube video https://youtube.com/watch?v=abc", "description": "Runs the full pipeline" },
     { "prompt": "show me my latest clips", "description": "Lists generated clips" },
     { "prompt": "publish clip 1 from the last run to tiktok and instagram", "description": "Publishes a clip" },
     { "prompt": "schedule clip 3 for tomorrow at 2pm", "description": "Schedules a clip" },
     { "prompt": "add creator @mkbhd to track", "description": "Tracks a YouTube creator" },
-    { "prompt": "check for new videos from tracked creators", "description": "Checks creator feeds" },
+    { "prompt": "bump the hook weight to 5 and lower controversy to 1", "description": "Adjusts scoring weights" },
+    { "prompt": "set min score to 7 so only bangers get through", "description": "Tightens pipeline filter" },
+    { "prompt": "change caption style to karaoke-highlight with gold active color", "description": "Customizes captions" },
+    { "prompt": "turn on autoscore with a learning rate of 0.1", "description": "Enables auto-learning" },
     { "prompt": "show autoscore accuracy", "description": "Shows prediction accuracy" },
-    { "prompt": "what are my pipeline settings", "description": "Shows current config" }
+    { "prompt": "set my niche to cannabis", "description": "Sets content niche for scoring bonus" },
+    { "prompt": "what are my current weights", "description": "Shows scoring weights" }
   ],
+
+  "oauthServices": [
+    {
+      "id": "tiktok",
+      "name": "TikTok",
+      "icon": "Music2",
+      "description": "Connect via Late.dev to post clips",
+      "provider": "latedev",
+      "connectUrl": "https://app.getlate.dev/accounts/connect/tiktok",
+      "statusEndpoint": "/api/accounts",
+      "statusMatch": { "field": "platform", "value": "tiktok" }
+    },
+    {
+      "id": "youtube",
+      "name": "YouTube",
+      "icon": "Youtube",
+      "description": "Connect via Late.dev to upload videos",
+      "provider": "latedev",
+      "connectUrl": "https://app.getlate.dev/accounts/connect/youtube",
+      "statusEndpoint": "/api/accounts",
+      "statusMatch": { "field": "platform", "value": "youtube" }
+    },
+    {
+      "id": "instagram",
+      "name": "Instagram",
+      "icon": "Instagram",
+      "description": "Connect via Late.dev to post reels",
+      "provider": "latedev",
+      "connectUrl": "https://app.getlate.dev/accounts/connect/instagram",
+      "statusEndpoint": "/api/accounts",
+      "statusMatch": { "field": "platform", "value": "instagram" }
+    },
+    {
+      "id": "facebook",
+      "name": "Facebook",
+      "icon": "Facebook",
+      "description": "Connect via Late.dev",
+      "provider": "latedev",
+      "connectUrl": "https://app.getlate.dev/accounts/connect/facebook",
+      "statusEndpoint": "/api/accounts",
+      "statusMatch": { "field": "platform", "value": "facebook" }
+    },
+    {
+      "id": "x-twitter",
+      "name": "X (Twitter)",
+      "icon": "Twitter",
+      "description": "Connect via Late.dev",
+      "provider": "latedev",
+      "connectUrl": "https://app.getlate.dev/accounts/connect/twitter",
+      "statusEndpoint": "/api/accounts",
+      "statusMatch": { "field": "platform", "value": "twitter" }
+    },
+    {
+      "id": "linkedin",
+      "name": "LinkedIn",
+      "icon": "Linkedin",
+      "description": "Connect via Late.dev",
+      "provider": "latedev",
+      "connectUrl": "https://app.getlate.dev/accounts/connect/linkedin",
+      "statusEndpoint": "/api/accounts",
+      "statusMatch": { "field": "platform", "value": "linkedin" }
+    }
+  ],
+
+  "builtInServices": [
+    { "id": "latedev", "name": "Late.dev", "icon": "Radio", "description": "One-call publishing to TikTok, YouTube, Instagram, X, LinkedIn and more" },
+    { "id": "ffmpeg", "name": "FFmpeg", "icon": "Film", "description": "Video processing and clip extraction" }
+  ],
+
   "price": 0,
-  "whopPlanId": "",
-  "oauthServices": [],
-  "builtInServices": ["late.dev"]
+  "whopPlanId": ""
 }

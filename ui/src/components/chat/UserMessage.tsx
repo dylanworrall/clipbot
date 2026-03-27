@@ -16,8 +16,8 @@ export function UserMessage({ sourceUrl, text, startedAt }: UserMessageProps) {
     return (
       <Message from="user">
         <MessageContent>
-          <p className="text-sm">{text}</p>
-          <p className="text-[10px] text-muted-foreground mt-1">{timeAgo(startedAt)}</p>
+          <p className="text-[15px] font-medium">{text}</p>
+          <p className="text-[10px] text-white/60 mt-1">{timeAgo(startedAt)}</p>
         </MessageContent>
       </Message>
     );
@@ -32,7 +32,7 @@ export function UserMessage({ sourceUrl, text, startedAt }: UserMessageProps) {
       <MessageContent>
         <div className="flex items-center gap-3">
           {thumbUrl && (
-            <div className="w-16 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-surface-2">
+            <div className="w-16 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-[#3A3A3C]">
               <img
                 src={thumbUrl}
                 alt="Video"
@@ -45,12 +45,12 @@ export function UserMessage({ sourceUrl, text, startedAt }: UserMessageProps) {
               href={sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-accent hover:underline truncate block"
+              className="text-[13px] font-medium text-[#0A84FF] hover:underline truncate block"
             >
               <ExternalLink className="h-3 w-3 inline mr-1" />
               {sourceUrl}
             </a>
-            <p className="text-[10px] text-muted-foreground mt-0.5">{timeAgo(startedAt)}</p>
+            <p className="text-[10px] text-white/30 mt-0.5">{timeAgo(startedAt)}</p>
           </div>
         </div>
       </MessageContent>

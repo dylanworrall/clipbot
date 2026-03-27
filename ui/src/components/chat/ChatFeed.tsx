@@ -44,7 +44,7 @@ export function ChatFeed({ messages, aiMessages = [], isAiThinking, loading, onR
       <div className="flex-1 flex items-center justify-center">
         <ConversationEmptyState
           title="No clips yet"
-          description="Paste a YouTube URL below to create your first viral clips, or ask ClipBot anything"
+          description="Paste a YouTube URL below to create your first viral clips, or ask Socials anything"
           icon={<Clapperboard className="h-14 w-14 float" />}
         />
       </div>
@@ -102,8 +102,8 @@ export function ChatFeed({ messages, aiMessages = [], isAiThinking, loading, onR
         {/* AI thinking indicator */}
         {isAiThinking && (
           <div className="flex items-center gap-2">
-            <Shimmer as="span" className="text-sm text-muted-foreground">
-              ClipBot is thinking...
+            <Shimmer as="span" className="text-[13px] font-medium text-white/40">
+              Socials is thinking...
             </Shimmer>
           </div>
         )}

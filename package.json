@@ -1,8 +1,9 @@
 {
-  "name": "clippy-ai",
-  "version": "2.1.0",
+  "name": "@soshilabs/content",
+  "version": "2.2.8",
   "description": "Automated viral clip pipeline: YouTube → AI analysis → clip → post",
   "type": "module",
+  "main": "./dist/tools.cjs",
   "bin": {
     "clipbot": "./dist/cli/index.js"
   },
@@ -10,13 +11,15 @@
     "dist/",
     "prompts/",
     "clipbot.config.json",
+    "soshi.manifest.json",
     "ui-standalone/",
     "README.md"
   ],
   "scripts": {
     "build": "tsc",
+    "build:tools": "node ui/build-tools.mjs",
     "build:package": "node scripts/build-package.mjs",
-    "prepublishOnly": "npm run build:package",
+    "prepublishOnly": "npm run build:tools",
     "dev": "tsx src/cli/index.ts",
     "start": "node dist/cli/index.js",
     "typecheck": "tsc --noEmit"

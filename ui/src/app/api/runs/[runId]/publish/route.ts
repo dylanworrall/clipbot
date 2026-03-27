@@ -35,7 +35,22 @@ export async function POST(
     return NextResponse.json({ error: "Late API key not configured" }, { status: 400 });
   }
 
-  const accounts = config.accounts ?? {};
+  // Fetch connected accounts from Zernio (supports multiple per platform)
+  let zernioAccounts: Array<{ _id: string; platform: string }> = [];
+  try {
+    const acctRes = await fetch("https://zernio.com/api/v1/accounts", {
+      headers: { Authorization: `Bearer ${config.lateApiKey}` },
+    });
+    if (acctRes.ok) {
+      const acctData = await acctRes.json();
+      zernioAccounts = acctData.accounts ?? [];
+    }
+  } catch {
+    // Fall back to config if Zernio is unreachable
+  }
+
+  // Legacy fallback: static config map
+  const legacyAccounts = config.accounts ?? {};
 
   try {
     const results: Array<{ clipIndex: number; success: boolean; error?: string }> = [];
@@ -110,7 +125,7 @@ export async function POST(
         const filename = publishFilePath.split(/[\\/]/).pop() ?? "clip.mp4";
 
         // 1. Get presigned URL
-        const presignRes = await fetch("https://getlate.dev/api/v1/media/presign", {
+        const presignRes = await fetch("https://zernio.com/api/v1/media/presign", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${config.lateApiKey}`,
@@ -139,18 +154,24 @@ export async function POST(
         // 3. Create post
         const hashtags = moment.hashtags.map((h: string) => `#${h}`).join(" ");
         const shortsSuffix = platforms.includes("youtube") ? " #shorts" : "";
-        const platformTargets = platforms
-          .filter((p: string) => accounts[p])
-          .map((p: string) => ({
-            platform: p,
-            accountId: accounts[p],
-          }));
-
-        if (platformTargets.length === 0) {
-          throw new Error(`No account IDs configured for platforms: ${platforms.join(", ")}. Check clipbot.config.json "accounts" field.`);
+        // Build platform targets: use all Zernio accounts for each platform, fallback to legacy config
+        const platformTargets: Array<{ platform: string; accountId: string }> = [];
+        for (const p of platforms as string[]) {
+          const zernioMatches = zernioAccounts.filter((a) => a.platform === p);
+          if (zernioMatches.length > 0) {
+            for (const a of zernioMatches) {
+              platformTargets.push({ platform: p, accountId: a._id });
+            }
+          } else if (legacyAccounts[p]) {
+            platformTargets.push({ platform: p, accountId: legacyAccounts[p] });
+          }
         }
 
-        const postRes = await fetch("https://getlate.dev/api/v1/posts", {
+        if (platformTargets.length === 0) {
+          throw new Error(`No connected accounts for platforms: ${platforms.join(", ")}. Connect accounts in Settings > Connectors.`);
+        }
+
+        const postRes = await fetch("https://zernio.com/api/v1/posts", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${config.lateApiKey}`,

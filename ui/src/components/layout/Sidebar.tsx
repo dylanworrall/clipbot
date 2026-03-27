@@ -8,6 +8,7 @@ import {
   Search,
   Layers,
   Clapperboard,
+  FileText,
   CalendarDays,
   BarChart3,
   Users,
@@ -24,6 +25,7 @@ const links = [
   { href: "/", label: "New Thread", icon: MessageSquare },
   { href: "/search", label: "Search", icon: Search },
   { href: "/runs", label: "Spaces", icon: Layers },
+  { href: "/drafts", label: "Drafts", icon: FileText },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/creators", label: "Creators", icon: Users },
@@ -34,6 +36,8 @@ export function Sidebar() {
   const notificationCount = useNotificationCount();
   const { collapsed, toggle } = useSidebar();
   const { newChat } = useThread();
+
+  if (pathname === "/login") return null;
   const [hoverExpanded, setHoverExpanded] = useState(false);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -58,22 +62,21 @@ export function Sidebar() {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       className={cn(
-        "fixed top-3 left-3 bottom-3 bg-surface-1 border border-border rounded-xl shadow-elevation-2 flex flex-col z-40 transition-all duration-300 overflow-hidden",
+        "fixed top-3 left-3 bottom-3 bg-[#1C1C1E]/95 backdrop-blur-2xl border border-white/10 ring-1 ring-white/5 rounded-2xl shadow-2xl flex flex-col z-40 transition-all duration-300 overflow-hidden",
         visualExpanded ? "w-56" : "w-16",
-        // When hover-expanded (collapsed but hovering), float over content
-        collapsed && hoverExpanded && "z-50 shadow-elevation-3"
+        collapsed && hoverExpanded && "z-50"
       )}
     >
       {/* Logo */}
       <Link
         href="/"
         onClick={() => newChat()}
-        className="flex items-center gap-2.5 px-4 py-4 border-b border-border/50 min-h-[56px]"
+        className="flex items-center gap-2.5 px-4 py-4 border-b border-white/5 min-h-[56px]"
       >
-        <Clapperboard className="h-5 w-5 text-accent flex-shrink-0" />
+        <Clapperboard size={18} className="text-[#0A84FF] flex-shrink-0" />
         {visualExpanded && (
-          <span className="text-[15px] font-semibold tracking-tight whitespace-nowrap">
-            Clip<span className="text-accent">Bot</span>
+          <span className="text-[15px] font-semibold tracking-tight whitespace-nowrap text-white/90">
+            Socials
           </span>
         )}
       </Link>
@@ -92,29 +95,29 @@ export function Sidebar() {
               title={!visualExpanded ? label : undefined}
               onClick={href === "/" ? () => newChat() : undefined}
               className={cn(
-                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors duration-150 relative group",
+                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors relative group",
                 !visualExpanded && "justify-center px-0",
                 active
-                  ? "bg-accent/10 text-accent"
-                  : "text-muted hover:text-foreground hover:bg-surface-2"
+                  ? "bg-[#0A84FF]/10 text-[#0A84FF]"
+                  : "text-white/40 hover:text-white hover:bg-white/10"
               )}
             >
               <Icon className={cn(
-                "h-4 w-4 flex-shrink-0 transition-colors duration-150",
-                active ? "text-accent" : "text-muted group-hover:text-foreground"
+                "h-4 w-4 flex-shrink-0 transition-colors",
+                active ? "text-[#0A84FF]" : "text-white/40 group-hover:text-white"
               )} />
               {visualExpanded && (
                 <>
                   <span className="whitespace-nowrap">{label}</span>
                   {label === "Creators" && notificationCount > 0 && (
-                    <span className="ml-auto flex h-[18px] min-w-[18px] px-1 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white leading-none">
+                    <span className="ml-auto flex h-[18px] min-w-[18px] px-1 items-center justify-center rounded-full bg-[#FF453A] text-[10px] font-bold text-white leading-none">
                       {notificationCount > 9 ? "9+" : notificationCount}
                     </span>
                   )}
                 </>
               )}
               {!visualExpanded && label === "Creators" && notificationCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white">
+                <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#FF453A] text-[8px] font-bold text-white">
                   {notificationCount > 9 ? "9+" : notificationCount}
                 </span>
               )}
@@ -124,21 +127,21 @@ export function Sidebar() {
       </nav>
 
       {/* Profile + Collapse */}
-      <div className="border-t border-border/50 p-2.5 space-y-0.5">
+      <div className="border-t border-white/5 p-2.5 space-y-0.5">
         <ProfileMenu compact={!visualExpanded} />
 
         <button
           onClick={toggle}
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           className={cn(
-            "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-muted hover:text-foreground hover:bg-surface-2 transition-colors duration-150 w-full cursor-pointer group",
+            "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-white/40 hover:text-white hover:bg-white/10 transition-colors w-full cursor-pointer group",
             !visualExpanded && "justify-center px-0"
           )}
         >
           {collapsed ? (
-            <PanelLeftOpen className="h-4 w-4 flex-shrink-0 text-muted group-hover:text-foreground transition-colors duration-150" />
+            <PanelLeftOpen size={16} className="flex-shrink-0 text-white/40 group-hover:text-white transition-colors" />
           ) : (
-            <PanelLeftClose className="h-4 w-4 flex-shrink-0 text-muted group-hover:text-foreground transition-colors duration-150" />
+            <PanelLeftClose size={16} className="flex-shrink-0 text-white/40 group-hover:text-white transition-colors" />
           )}
           {visualExpanded && (collapsed ? "Expand" : "Collapse")}
         </button>

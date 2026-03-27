@@ -1,10 +1,9 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
 import type { SettingsState } from "@/hooks/useSettings";
 
 const selectClass =
-  "w-full rounded-lg bg-surface-2 border border-border px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all duration-200";
+  "w-full bg-[#1C1C1E] rounded-lg px-3 py-2.5 text-[14px] text-white border border-white/5 focus:outline-none focus:border-[#0A84FF]/50 transition-colors";
 
 interface StyleTabProps {
   state: SettingsState;
@@ -15,13 +14,13 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
   return (
     <div className="space-y-6">
       {/* Pipeline Settings */}
-      <Card className="space-y-5 px-6">
-        <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
+      <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-5">
+        <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
           Pipeline
         </h2>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-sm text-muted">Quality</label>
+            <label className="text-[12px] font-medium text-white/40">Quality</label>
             <select
               value={state.defaultQuality}
               onChange={(e) => updateField("defaultQuality", e.target.value)}
@@ -35,7 +34,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm text-muted">Niche</label>
+            <label className="text-[12px] font-medium text-white/40">Niche</label>
             <select
               value={state.niche}
               onChange={(e) => updateField("niche", e.target.value)}
@@ -50,7 +49,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm text-muted">
+            <label className="text-[12px] font-medium text-white/40">
               Max Clips: {state.defaultMaxClips}
             </label>
             <input
@@ -59,12 +58,12 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
               max={15}
               value={state.defaultMaxClips}
               onChange={(e) => updateField("defaultMaxClips", Number(e.target.value))}
-              className="w-full accent-[var(--color-accent)]"
+              className="w-full accent-[#0A84FF]"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm text-muted">
+            <label className="text-[12px] font-medium text-white/40">
               Min Score: {state.defaultMinScore}
             </label>
             <input
@@ -73,12 +72,12 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
               max={10}
               value={state.defaultMinScore}
               onChange={(e) => updateField("defaultMinScore", Number(e.target.value))}
-              className="w-full accent-[var(--color-accent)]"
+              className="w-full accent-[#0A84FF]"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm text-muted">
+            <label className="text-[12px] font-medium text-white/40">
               Max Duration: {state.defaultMaxDuration}s
             </label>
             <input
@@ -88,12 +87,12 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
               step={5}
               value={state.defaultMaxDuration}
               onChange={(e) => updateField("defaultMaxDuration", Number(e.target.value))}
-              className="w-full accent-[var(--color-accent)]"
+              className="w-full accent-[#0A84FF]"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm text-muted">
+            <label className="text-[12px] font-medium text-white/40">
               Pad Before: {state.padBefore}s
             </label>
             <input
@@ -103,12 +102,12 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
               step={0.5}
               value={state.padBefore}
               onChange={(e) => updateField("padBefore", Number(e.target.value))}
-              className="w-full accent-[var(--color-accent)]"
+              className="w-full accent-[#0A84FF]"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm text-muted">
+            <label className="text-[12px] font-medium text-white/40">
               Pad After: {state.padAfter}s
             </label>
             <input
@@ -118,7 +117,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
               step={0.5}
               value={state.padAfter}
               onChange={(e) => updateField("padAfter", Number(e.target.value))}
-              className="w-full accent-[var(--color-accent)]"
+              className="w-full accent-[#0A84FF]"
             />
           </div>
 
@@ -128,20 +127,20 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
                 type="checkbox"
                 checked={state.subtitles}
                 onChange={(e) => updateField("subtitles", e.target.checked)}
-                className="accent-[var(--color-accent)]"
+                className="accent-[#0A84FF]"
               />
               Burn Subtitles by default
             </label>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Background Fill */}
-      <Card className="space-y-5 px-6">
-        <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
+      <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-5">
+        <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
           Background Fill
         </h2>
-        <p className="text-xs text-muted">
+        <p className="text-[11px] text-white/35 font-medium">
           How to fill the 9:16 vertical frame when the source video is wider.
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -155,8 +154,8 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
               key={opt.value}
               className={`flex flex-col gap-1 cursor-pointer rounded-lg border p-4 text-sm transition-all duration-200 ${
                 state.bgStyle === opt.value
-                  ? "border-accent/30 bg-accent/5 text-foreground"
-                  : "border-border text-muted hover:border-foreground/20"
+                  ? "border-[#0A84FF]/40 bg-[#0A84FF]/5 text-white/90"
+                  : "border-white/5 text-white/50 hover:border-white/10"
               }`}
             >
               <div className="flex items-center gap-2">
@@ -166,22 +165,22 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
                   value={opt.value}
                   checked={state.bgStyle === opt.value}
                   onChange={(e) => updateField("bgStyle", e.target.value)}
-                  className="accent-[var(--color-accent)]"
+                  className="accent-[#0A84FF]"
                 />
                 <span className="font-medium">{opt.label}</span>
               </div>
-              <span className="text-xs text-muted ml-5">{opt.desc}</span>
+              <span className="text-[10px] text-white/30 ml-5">{opt.desc}</span>
             </label>
           ))}
         </div>
-      </Card>
+      </div>
 
       {/* Caption Mode */}
-      <Card className="space-y-5 px-6">
-        <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
+      <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-5">
+        <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
           Caption Mode
         </h2>
-        <p className="text-xs text-muted">
+        <p className="text-[11px] text-white/35 font-medium">
           How captions are applied to your clips.
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -201,8 +200,8 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
               key={opt.value}
               className={`flex flex-col gap-1 cursor-pointer rounded-lg border p-4 text-sm transition-all duration-200 ${
                 state.captionMode === opt.value
-                  ? "border-accent/30 bg-accent/5 text-foreground"
-                  : "border-border text-muted hover:border-foreground/20"
+                  ? "border-[#0A84FF]/40 bg-[#0A84FF]/5 text-white/90"
+                  : "border-white/5 text-white/50 hover:border-white/10"
               }`}
             >
               <div className="flex items-center gap-2">
@@ -214,24 +213,24 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
                   onChange={(e) =>
                     updateField("captionMode", e.target.value as "overlay" | "burn-in")
                   }
-                  className="accent-[var(--color-accent)]"
+                  className="accent-[#0A84FF]"
                 />
                 <span className="font-medium">{opt.label}</span>
               </div>
-              <span className="text-xs text-muted ml-5">{opt.desc}</span>
+              <span className="text-[10px] text-white/30 ml-5">{opt.desc}</span>
             </label>
           ))}
         </div>
-      </Card>
+      </div>
 
       {/* Caption Styling */}
-      <Card className="space-y-5 px-6">
-        <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
+      <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-5">
+        <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
           Caption Styling
         </h2>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-sm text-muted">Font Family</label>
+            <label className="text-[12px] font-medium text-white/40">Font Family</label>
             <select
               value={state.captionFontFamily}
               onChange={(e) => updateField("captionFontFamily", e.target.value)}
@@ -247,7 +246,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm text-muted">Font Size: {state.captionFontSize}</label>
+            <label className="text-[12px] font-medium text-white/40">Font Size: {state.captionFontSize}</label>
             <input
               type="range"
               min={32}
@@ -255,12 +254,12 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
               step={4}
               value={state.captionFontSize}
               onChange={(e) => updateField("captionFontSize", Number(e.target.value))}
-              className="w-full accent-[var(--color-accent)]"
+              className="w-full accent-[#0A84FF]"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm text-muted">Active Word Color</label>
+            <label className="text-[12px] font-medium text-white/40">Active Word Color</label>
             <div className="flex items-center gap-2">
               <input
                 type="color"
@@ -268,12 +267,12 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
                 onChange={(e) => updateField("captionActiveColor", e.target.value)}
                 className="h-8 w-8 rounded cursor-pointer"
               />
-              <span className="text-xs text-muted font-mono">{state.captionActiveColor}</span>
+              <span className="text-[11px] text-white/30 font-mono">{state.captionActiveColor}</span>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm text-muted">Inactive Word Color</label>
+            <label className="text-[12px] font-medium text-white/40">Inactive Word Color</label>
             <div className="flex items-center gap-2">
               <input
                 type="color"
@@ -281,12 +280,12 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
                 onChange={(e) => updateField("captionInactiveColor", e.target.value + "99")}
                 className="h-8 w-8 rounded cursor-pointer"
               />
-              <span className="text-xs text-muted font-mono">{state.captionInactiveColor}</span>
+              <span className="text-[11px] text-white/30 font-mono">{state.captionInactiveColor}</span>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm text-muted">Outline Color</label>
+            <label className="text-[12px] font-medium text-white/40">Outline Color</label>
             <div className="flex items-center gap-2">
               <input
                 type="color"
@@ -294,12 +293,12 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
                 onChange={(e) => updateField("captionOutlineColor", e.target.value)}
                 className="h-8 w-8 rounded cursor-pointer"
               />
-              <span className="text-xs text-muted font-mono">{state.captionOutlineColor}</span>
+              <span className="text-[11px] text-white/30 font-mono">{state.captionOutlineColor}</span>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm text-muted">Caption Position</label>
+            <label className="text-[12px] font-medium text-white/40">Caption Position</label>
             <div className="flex gap-2">
               {(["top", "center", "bottom"] as const).map((pos) => (
                 <label
@@ -312,7 +311,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
                     value={pos}
                     checked={state.captionPosition === pos}
                     onChange={() => updateField("captionPosition", pos)}
-                    className="accent-[var(--color-accent)]"
+                    className="accent-[#0A84FF]"
                   />
                   {pos}
                 </label>
@@ -321,7 +320,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm text-muted">
+            <label className="text-[12px] font-medium text-white/40">
               Words Per Line: {state.captionMaxWords}
             </label>
             <input
@@ -330,12 +329,12 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
               max={8}
               value={state.captionMaxWords}
               onChange={(e) => updateField("captionMaxWords", Number(e.target.value))}
-              className="w-full accent-[var(--color-accent)]"
+              className="w-full accent-[#0A84FF]"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm text-muted">Animation Preset</label>
+            <label className="text-[12px] font-medium text-white/40">Animation Preset</label>
             <select
               value={state.captionAnimation}
               onChange={(e) => updateField("captionAnimation", e.target.value)}
@@ -348,16 +347,16 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
             </select>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Hook Text */}
-      <Card className="space-y-5 px-6">
-        <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
+      <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-5">
+        <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
           Hook Text
         </h2>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-sm text-muted">
+            <label className="text-[12px] font-medium text-white/40">
               Hook Font Size: {state.hookFontSize}
             </label>
             <input
@@ -367,12 +366,12 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
               step={4}
               value={state.hookFontSize}
               onChange={(e) => updateField("hookFontSize", Number(e.target.value))}
-              className="w-full accent-[var(--color-accent)]"
+              className="w-full accent-[#0A84FF]"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm text-muted">Hook Color</label>
+            <label className="text-[12px] font-medium text-white/40">Hook Color</label>
             <div className="flex items-center gap-2">
               <input
                 type="color"
@@ -380,12 +379,12 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
                 onChange={(e) => updateField("hookColor", e.target.value)}
                 className="h-8 w-8 rounded cursor-pointer"
               />
-              <span className="text-xs text-muted font-mono">{state.hookColor}</span>
+              <span className="text-[11px] text-white/30 font-mono">{state.hookColor}</span>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm text-muted">Hook Position</label>
+            <label className="text-[12px] font-medium text-white/40">Hook Position</label>
             <div className="flex gap-2">
               {(["top", "center"] as const).map((pos) => (
                 <label
@@ -398,7 +397,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
                     value={pos}
                     checked={state.hookPosition === pos}
                     onChange={() => updateField("hookPosition", pos)}
-                    className="accent-[var(--color-accent)]"
+                    className="accent-[#0A84FF]"
                   />
                   {pos}
                 </label>
@@ -406,7 +405,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
             </div>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

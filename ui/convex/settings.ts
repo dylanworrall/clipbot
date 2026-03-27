@@ -4,7 +4,12 @@ import { query, mutation } from "./_generated/server";
 export const get = query({
   args: {},
   handler: async (ctx) => {
-    const rows = await ctx.db.query("settings").collect();
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return {};
+    const rows = await ctx.db
+      .query("settings")
+      .withIndex("by_userId_key", (q) => q.eq("userId", identity.subject))
+      .collect();
     const settings: Record<string, unknown> = {};
     for (const row of rows) {
       settings[row.key] = row.value;
@@ -16,16 +21,20 @@ export const get = query({
 export const update = mutation({
   args: { updates: v.any() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
     const entries = Object.entries(args.updates as Record<string, unknown>);
     for (const [key, value] of entries) {
       const existing = await ctx.db
         .query("settings")
-        .withIndex("by_key", (q) => q.eq("key", key))
+        .withIndex("by_userId_key", (q) =>
+          q.eq("userId", identity.subject).eq("key", key)
+        )
         .first();
       if (existing) {
         await ctx.db.patch(existing._id, { value });
       } else {
-        await ctx.db.insert("settings", { key, value });
+        await ctx.db.insert("settings", { userId: identity.subject, key, value });
       }
     }
     return args.updates;

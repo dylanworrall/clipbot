@@ -5,7 +5,7 @@ import type { DataModel } from "./_generated/dataModel";
 import { betterAuth } from "better-auth/minimal";
 import authConfig from "./auth.config";
 
-const siteUrl = process.env.SITE_URL!;
+const siteUrl = process.env.SITE_URL ?? "http://localhost:3000";
 
 export const authComponent = createClient<DataModel>(components.betterAuth);
 
@@ -17,7 +17,16 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
       enabled: true,
       requireEmailVerification: false,
     },
-    trustedOrigins: ["http://localhost:3000", "http://localhost:3099", "https://*.vercel.app", "https://*.netlify.app"],
+    trustedOrigins: [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002",
+      "http://localhost:3099",
+      "https://*.vercel.app",
+      "https://*.netlify.app",
+      "https://*.soshi.dev",
+      "https://*.fly.dev",
+    ],
     plugins: [convex({ authConfig })],
   });
 };

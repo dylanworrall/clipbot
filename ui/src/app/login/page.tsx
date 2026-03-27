@@ -4,7 +4,7 @@ import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, Mail, Lock, UserPlus, LogIn } from "lucide-react";
+import { Loader2, UserPlus, LogIn } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
 type Mode = "signin" | "signup";
@@ -37,6 +37,12 @@ function LoginForm() {
 
   const handleSubmit = async () => {
     setError("");
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -76,46 +82,42 @@ function LoginForm() {
   };
 
   return (
-    <div className="flex h-full items-center justify-center px-4">
+    <div className="flex h-screen items-center justify-center bg-[#1C1C1E] px-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-light tracking-tight text-foreground/80">
+          <h1 className="text-[28px] font-serif text-white tracking-wide">
             {mode === "signin" ? "Welcome back" : "Create account"}
           </h1>
-          <p className="mt-2 text-sm text-muted">
+          <p className="mt-2 text-[13px] text-white/50 font-medium">
             {mode === "signin"
-              ? "Sign in to your ClipBot account"
+              ? "Sign in to your Socials account"
               : "Start creating viral clips with AI"}
           </p>
         </div>
 
-        {/* Mode selector */}
-        <div className="flex gap-2">
+        {/* Mode selector — Tab Switcher pattern */}
+        <div className="bg-[#2A2A2C] p-1 rounded-lg flex gap-1">
           <button
             onClick={() => { setMode("signin"); setError(""); }}
-            className={`flex-1 rounded-lg border px-4 py-3 text-left text-sm transition-colors ${
+            className={`flex-1 px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
               mode === "signin"
-                ? "border-accent bg-accent/5 text-foreground"
-                : "border-border bg-surface-1 text-muted hover:border-border/80"
+                ? "bg-[#3A3A3C] text-white shadow-sm"
+                : "text-white/50 hover:text-white"
             }`}
           >
-            <div className="flex items-center gap-2 font-medium">
-              <LogIn className="h-4 w-4" />
-              Sign In
-            </div>
+            <LogIn size={14} />
+            Sign In
           </button>
           <button
             onClick={() => { setMode("signup"); setError(""); }}
-            className={`flex-1 rounded-lg border px-4 py-3 text-left text-sm transition-colors ${
+            className={`flex-1 px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
               mode === "signup"
-                ? "border-accent bg-accent/5 text-foreground"
-                : "border-border bg-surface-1 text-muted hover:border-border/80"
+                ? "bg-[#3A3A3C] text-white shadow-sm"
+                : "text-white/50 hover:text-white"
             }`}
           >
-            <div className="flex items-center gap-2 font-medium">
-              <UserPlus className="h-4 w-4" />
-              Sign Up
-            </div>
+            <UserPlus size={14} />
+            Sign Up
           </button>
         </div>
 
@@ -156,7 +158,7 @@ function LoginForm() {
             className="w-full"
           >
             {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 size={16} className="animate-spin" />
             ) : mode === "signin" ? (
               "Sign In"
             ) : (
@@ -166,7 +168,7 @@ function LoginForm() {
         </div>
 
         {error && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400">
+          <div className="rounded-xl bg-[#FF453A]/10 border border-white/5 px-4 py-3 text-[13px] font-medium text-[#FF453A]">
             {error}
           </div>
         )}

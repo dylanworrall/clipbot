@@ -29,11 +29,13 @@ function WeekCell({
   hour,
   posts,
   isToday,
+  onPostClick,
 }: {
   dateStr: string;
   hour: number;
   posts: ScheduledPost[];
   isToday: boolean;
+  onPostClick?: (post: ScheduledPost) => void;
 }) {
   const droppableId = `hour:${dateStr}T${String(hour).padStart(2, "0")}`;
   const { isOver, setNodeRef } = useDroppable({ id: droppableId });
@@ -54,7 +56,7 @@ function WeekCell({
       )}
       <div className="space-y-1">
         {posts.map((p) => (
-          <PostChip key={p.id} post={p} compact />
+          <PostChip key={p.id} post={p} compact onClick={onPostClick} />
         ))}
       </div>
     </div>
@@ -63,9 +65,10 @@ function WeekCell({
 
 interface WeekViewProps {
   posts: ScheduledPost[];
+  onPostClick?: (post: ScheduledPost) => void;
 }
 
-export function WeekView({ posts }: WeekViewProps) {
+export function WeekView({ posts, onPostClick }: WeekViewProps) {
   const today = new Date();
   const todayStr = formatDateStr(today);
   const [weekStart, setWeekStart] = useState(() => getWeekStart(today));
@@ -181,6 +184,7 @@ export function WeekView({ posts }: WeekViewProps) {
                   hour={hour}
                   posts={getPostsForCell(day.dateStr, hour)}
                   isToday={day.isToday}
+                  onPostClick={onPostClick}
                 />
               ))}
             </Fragment>

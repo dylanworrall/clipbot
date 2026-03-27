@@ -4,7 +4,13 @@ import { query, mutation } from "./_generated/server";
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("scheduledPosts").order("desc").collect();
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+    return await ctx.db
+      .query("scheduledPosts")
+      .withIndex("by_userId", (q) => q.eq("userId", identity.subject))
+      .order("desc")
+      .collect();
   },
 });
 
@@ -17,8 +23,11 @@ export const add = mutation({
     scheduledFor: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
     return await ctx.db.insert("scheduledPosts", {
       ...args,
+      userId: identity.subject,
       status: "scheduled",
       createdAt: new Date().toISOString(),
     });

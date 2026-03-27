@@ -11,6 +11,7 @@
 import type * as auth from "../auth.js";
 import type * as creators from "../creators.js";
 import type * as http from "../http.js";
+import type * as migrate from "../migrate.js";
 import type * as notifications from "../notifications.js";
 import type * as runs from "../runs.js";
 import type * as scheduledPosts from "../scheduledPosts.js";
@@ -28,6 +29,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   creators: typeof creators;
   http: typeof http;
+  migrate: typeof migrate;
   notifications: typeof notifications;
   runs: typeof runs;
   scheduledPosts: typeof scheduledPosts;

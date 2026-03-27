@@ -81,7 +81,7 @@ const initialState: SettingsState = {
   defaultMaxClips: 5,
   defaultMinScore: 7,
   defaultMaxDuration: 59,
-  niche: "cannabis",
+  niche: "general",
   subtitles: true,
   padBefore: 1.5,
   padAfter: 0.5,

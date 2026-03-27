@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Brain,
@@ -71,10 +70,10 @@ function formatNumber(n: number): string {
 
 function correlationLabel(r: number): { text: string; color: string } {
   const abs = Math.abs(r);
-  if (abs >= 0.7) return { text: "Strong", color: "text-green-400" };
-  if (abs >= 0.4) return { text: "Moderate", color: "text-amber-400" };
-  if (abs >= 0.2) return { text: "Weak", color: "text-orange-400" };
-  return { text: "None", color: "text-muted" };
+  if (abs >= 0.7) return { text: "Strong", color: "text-[#30D158]" };
+  if (abs >= 0.4) return { text: "Moderate", color: "text-[#FF9F0A]" };
+  if (abs >= 0.2) return { text: "Weak", color: "text-[#FF9F0A]" };
+  return { text: "None", color: "text-white/40" };
 }
 
 export function AutoScoreTab() {
@@ -155,8 +154,8 @@ export function AutoScoreTab() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-muted py-12 justify-center">
-        <Loader2 className="h-4 w-4 animate-spin" />
+      <div className="flex items-center gap-2 text-[13px] font-medium text-white/40 py-12 justify-center">
+        <Loader2 size={16} className="animate-spin" />
         Loading AutoScore...
       </div>
     );
@@ -169,34 +168,35 @@ export function AutoScoreTab() {
   return (
     <div className="space-y-6">
       {/* Header Card — Enable + Config */}
-      <Card className="px-6 space-y-5">
+      <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-violet-500/15 flex items-center justify-center">
-              <Brain className="h-4.5 w-4.5 text-violet-400" />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#BF5AF2]/10">
+              <Brain size={18} className="text-[#BF5AF2]" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold flex items-center gap-2">
+              <h2 className="text-[14px] font-semibold text-white/90 flex items-center gap-2">
                 AutoScore
-                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-violet-500/15 text-violet-400 uppercase tracking-wider">
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-[#BF5AF2]/10 text-[#BF5AF2] uppercase tracking-wider">
                   Beta
                 </span>
               </h2>
-              <p className="text-xs text-muted mt-0.5">
+              <p className="text-[11px] text-white/35 mt-0.5">
                 Learns from real post analytics to improve scoring predictions over time
               </p>
             </div>
           </div>
 
+          {/* Toggle — Soshi pattern */}
           <button
             onClick={toggleEnabled}
-            className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer ${
-              report.config.enabled ? "bg-violet-500" : "bg-surface-3"
+            className={`w-10 h-6 rounded-full transition-colors relative cursor-pointer ${
+              report.config.enabled ? "bg-[#BF5AF2]" : "bg-white/10"
             }`}
           >
-            <span
-              className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform shadow-sm ${
-                report.config.enabled ? "translate-x-5" : ""
+            <div
+              className={`w-[18px] h-[18px] rounded-full bg-white shadow-sm absolute top-[3px] transition-transform ${
+                report.config.enabled ? "translate-x-[19px]" : "translate-x-[3px]"
               }`}
             />
           </button>
@@ -204,13 +204,13 @@ export function AutoScoreTab() {
 
         {report.config.enabled && (
           <>
-            <div className="h-px bg-border/50" />
+            <div className="border-t border-white/5" />
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-sm text-muted">
+                <label className="text-[12px] font-medium text-white/40">
                   Learning Rate:{" "}
-                  <span className="text-foreground font-medium">
+                  <span className="text-white/90">
                     {report.config.learningRate}
                   </span>
                 </label>
@@ -223,17 +223,17 @@ export function AutoScoreTab() {
                   onChange={(e) =>
                     updateConfig({ learningRate: Number(e.target.value) })
                   }
-                  className="w-full accent-violet-500"
+                  className="w-full accent-[#BF5AF2]"
                 />
-                <p className="text-[10px] text-muted">
+                <p className="text-[10px] text-white/25">
                   How aggressively weights adjust. Lower = stable, higher = faster adaptation.
                 </p>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm text-muted">
+                <label className="text-[12px] font-medium text-white/40">
                   Min Samples:{" "}
-                  <span className="text-foreground font-medium">
+                  <span className="text-white/90">
                     {report.config.minSamples}
                   </span>
                 </label>
@@ -246,64 +246,64 @@ export function AutoScoreTab() {
                   onChange={(e) =>
                     updateConfig({ minSamples: Number(e.target.value) })
                   }
-                  className="w-full accent-violet-500"
+                  className="w-full accent-[#BF5AF2]"
                 />
-                <p className="text-[10px] text-muted">
+                <p className="text-[10px] text-white/25">
                   Minimum published clips with analytics before learning starts.
                 </p>
               </div>
             </div>
           </>
         )}
-      </Card>
+      </div>
 
       {/* Stats Overview */}
       {report.config.enabled && (
-        <div className="grid grid-cols-3 gap-3">
-          <div className="rounded-xl bg-surface-1 border border-border/50 p-4">
-            <div className="flex items-center gap-2 text-muted text-xs mb-2">
-              <BarChart3 className="h-3.5 w-3.5" />
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm text-center">
+            <div className="flex items-center justify-center gap-2 text-white/40 text-[11px] mb-2">
+              <BarChart3 size={12} />
               Samples
             </div>
-            <div className="text-2xl font-semibold">{report.totalFeedback}</div>
-            <div className="text-[10px] text-muted mt-1">published clips tracked</div>
+            <p className="text-[24px] font-bold tracking-tight text-[#0A84FF] tabular-nums">{report.totalFeedback}</p>
+            <p className="text-[10px] text-white/25 mt-1">published clips tracked</p>
           </div>
 
-          <div className="rounded-xl bg-surface-1 border border-border/50 p-4">
-            <div className="flex items-center gap-2 text-muted text-xs mb-2">
-              <TrendingUp className="h-3.5 w-3.5" />
+          <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm text-center">
+            <div className="flex items-center justify-center gap-2 text-white/40 text-[11px] mb-2">
+              <TrendingUp size={12} />
               Correlation
             </div>
-            <div className={`text-2xl font-semibold ${corr.color}`}>
+            <p className={`text-[24px] font-bold tracking-tight tabular-nums ${corr.color}`}>
               {report.totalFeedback >= 2 ? report.correlation.toFixed(2) : "—"}
-            </div>
-            <div className="text-[10px] text-muted mt-1">
+            </p>
+            <p className="text-[10px] text-white/25 mt-1">
               {report.totalFeedback >= 2
                 ? `${corr.text} predicted → actual`
                 : "Need 2+ samples"}
-            </div>
+            </p>
           </div>
 
-          <div className="rounded-xl bg-surface-1 border border-border/50 p-4">
-            <div className="flex items-center gap-2 text-muted text-xs mb-2">
-              <FlaskConical className="h-3.5 w-3.5" />
+          <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm text-center">
+            <div className="flex items-center justify-center gap-2 text-white/40 text-[11px] mb-2">
+              <FlaskConical size={12} />
               Cycles
             </div>
-            <div className="text-2xl font-semibold">{report.updates.length}</div>
-            <div className="text-[10px] text-muted mt-1">
+            <p className="text-[24px] font-bold tracking-tight text-[#BF5AF2] tabular-nums">{report.updates.length}</p>
+            <p className="text-[10px] text-white/25 mt-1">
               {report.updates.filter((u) => u.accepted).length} accepted
-            </div>
+            </p>
           </div>
         </div>
       )}
 
       {/* Run Learning Cycle */}
       {report.config.enabled && (
-        <Card className="px-6 space-y-4">
+        <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-semibold">Run Learning Cycle</h3>
-              <p className="text-xs text-muted mt-0.5">
+              <h3 className="text-[14px] font-semibold text-white/90">Run Learning Cycle</h3>
+              <p className="text-[11px] text-white/35 mt-0.5">
                 Collect analytics from published clips, then adjust weights
               </p>
             </div>
@@ -314,9 +314,9 @@ export function AutoScoreTab() {
               disabled={running}
             >
               {running ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <Loader2 size={14} className="animate-spin" />
               ) : (
-                <Zap className="h-3.5 w-3.5" />
+                <Zap size={14} />
               )}
               {running ? "Running..." : "Collect & Learn"}
             </Button>
@@ -324,22 +324,22 @@ export function AutoScoreTab() {
 
           {lastResult && (
             <div
-              className={`text-xs px-3 py-2 rounded-lg ${
+              className={`text-[12px] font-medium px-3 py-2 rounded-lg ${
                 lastResult.startsWith("Error")
-                  ? "bg-red-500/10 text-red-400"
-                  : "bg-violet-500/10 text-violet-300"
+                  ? "bg-[#FF453A]/10 text-[#FF453A]"
+                  : "bg-[#BF5AF2]/10 text-[#BF5AF2]"
               }`}
             >
               {lastResult}
             </div>
           )}
-        </Card>
+        </div>
       )}
 
       {/* Category Breakdown */}
       {report.config.enabled && report.categoryBreakdown.length > 0 && (
-        <Card className="px-6 space-y-4">
-          <h3 className="text-xs font-semibold text-muted uppercase tracking-wider">
+        <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-4">
+          <h3 className="text-xs font-semibold text-white/40 tracking-wider uppercase mb-4">
             Category Performance
           </h3>
           <div className="space-y-2">
@@ -349,83 +349,83 @@ export function AutoScoreTab() {
                 diff > 0.5 ? TrendingUp : diff < -0.5 ? TrendingDown : Minus;
               const diffColor =
                 diff > 0.5
-                  ? "text-green-400"
+                  ? "text-[#30D158]"
                   : diff < -0.5
-                    ? "text-red-400"
-                    : "text-muted";
+                    ? "text-[#FF453A]"
+                    : "text-white/40";
 
               return (
                 <div
                   key={cat.category}
-                  className="flex items-center gap-3 py-2 px-3 rounded-lg bg-surface-2/50"
+                  className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-[#3A3A3C] transition-colors"
                 >
-                  <span className="text-xs font-medium capitalize w-24 truncate">
+                  <span className="text-[12px] font-medium text-white/70 capitalize w-24 truncate">
                     {cat.category}
                   </span>
-                  <span className="text-[10px] text-muted w-12">
+                  <span className="text-[10px] text-white/30 w-12">
                     {cat.count} clips
                   </span>
-                  <div className="flex-1 flex items-center gap-3 text-xs">
-                    <span className="text-muted">
+                  <div className="flex-1 flex items-center gap-3 text-[11px]">
+                    <span className="text-white/35">
                       Predicted:{" "}
-                      <span className="text-foreground">{cat.avgPredicted}</span>
+                      <span className="text-white/70">{cat.avgPredicted}</span>
                     </span>
-                    <span className="text-muted">
+                    <span className="text-white/35">
                       Actual:{" "}
-                      <span className="text-foreground">{cat.avgActual}</span>
+                      <span className="text-white/70">{cat.avgActual}</span>
                     </span>
-                    <span className="text-muted">
+                    <span className="text-white/35">
                       Eng:{" "}
-                      <span className="text-foreground">
+                      <span className="text-white/70">
                         {cat.avgEngagement.toFixed(1)}%
                       </span>
                     </span>
                   </div>
-                  <DiffIcon className={`h-3.5 w-3.5 ${diffColor}`} />
+                  <DiffIcon size={14} className={diffColor} />
                 </div>
               );
             })}
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Weight Update History */}
       {report.config.enabled && report.updates.length > 0 && (
-        <Card className="px-6 space-y-4">
-          <h3 className="text-xs font-semibold text-muted uppercase tracking-wider">
+        <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-4">
+          <h3 className="text-xs font-semibold text-white/40 tracking-wider uppercase mb-4">
             Weight Update History
           </h3>
           <div className="space-y-2">
             {report.updates.map((update) => (
               <div
                 key={update.id}
-                className="flex items-start gap-3 py-2.5 px-3 rounded-lg bg-surface-2/50"
+                className="flex items-start gap-3 py-2.5 px-3 rounded-xl hover:bg-[#3A3A3C] transition-colors"
               >
                 <div
-                  className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                  className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
                     update.accepted
-                      ? "bg-green-500/15 text-green-400"
-                      : "bg-red-500/15 text-red-400"
+                      ? "bg-[#30D158]/10 text-[#30D158]"
+                      : "bg-[#FF453A]/10 text-[#FF453A]"
                   }`}
                 >
                   {update.accepted ? (
-                    <Check className="h-3 w-3" />
+                    <Check size={12} strokeWidth={3} />
                   ) : (
-                    <X className="h-3 w-3" />
+                    <X size={12} />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="font-medium">
+                  <div className="flex items-center gap-2 text-[12px] font-medium">
+                    <span className="text-white/90">
                       {update.accepted ? "Accepted" : "Rejected"}
                     </span>
-                    <span className="text-muted">
+                    <span className="text-white/35">
                       r={update.correlation.toFixed(2)}
                     </span>
-                    <span className="text-muted">
+                    <span className="text-white/35">
                       n={update.sampleSize}
                     </span>
-                    <span className="text-muted ml-auto text-[10px]">
+                    <span className="text-white/25 ml-auto text-[10px]">
                       {new Date(update.timestamp).toLocaleDateString()}
                     </span>
                   </div>
@@ -436,10 +436,10 @@ export function AutoScoreTab() {
                         .map(([key, val]) => (
                           <span
                             key={key}
-                            className={`text-[10px] px-1.5 py-0.5 rounded ${
+                            className={`text-[10px] font-medium px-1.5 py-0.5 rounded-md ${
                               val > 0
-                                ? "bg-green-500/10 text-green-400"
-                                : "bg-red-500/10 text-red-400"
+                                ? "bg-[#30D158]/10 text-[#30D158]"
+                                : "bg-[#FF453A]/10 text-[#FF453A]"
                             }`}
                           >
                             {key} {val > 0 ? "+" : ""}
@@ -452,58 +452,58 @@ export function AutoScoreTab() {
               </div>
             ))}
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Recent Feedback */}
       {report.config.enabled && report.recentFeedback.length > 0 && (
-        <Card className="px-6 space-y-4">
-          <h3 className="text-xs font-semibold text-muted uppercase tracking-wider">
+        <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-4">
+          <h3 className="text-xs font-semibold text-white/40 tracking-wider uppercase mb-4">
             Recent Feedback
           </h3>
           <div className="space-y-1.5">
             {report.recentFeedback.slice(0, 10).map((f) => (
               <div
                 key={f.id}
-                className="flex items-center gap-3 py-2 px-3 rounded-lg bg-surface-2/50 text-xs"
+                className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-[#3A3A3C] transition-colors text-[12px]"
               >
-                <span className="truncate flex-1 font-medium">{f.title}</span>
-                <span className="text-muted capitalize w-20 truncate">
+                <span className="truncate flex-1 font-medium text-white/70">{f.title}</span>
+                <span className="text-white/35 capitalize w-20 truncate">
                   {f.category}
                 </span>
-                <span className="text-muted w-16 text-right">
+                <span className="text-white/35 w-16 text-right tabular-nums">
                   {formatNumber(f.actualMetrics.views)} views
                 </span>
-                <div className="flex items-center gap-1.5 w-28">
-                  <span className="text-amber-400">{f.predictedScore}</span>
-                  <span className="text-muted">→</span>
+                <div className="flex items-center gap-1.5 w-28 tabular-nums">
+                  <span className="text-[#FF9F0A]">{f.predictedScore}</span>
+                  <span className="text-white/25">→</span>
                   <span
                     className={
                       f.actualScore > f.predictedScore
-                        ? "text-green-400"
+                        ? "text-[#30D158]"
                         : f.actualScore < f.predictedScore
-                          ? "text-red-400"
-                          : "text-foreground"
+                          ? "text-[#FF453A]"
+                          : "text-white/70"
                     }
                   >
                     {f.actualScore}
                   </span>
-                  <span className="text-muted text-[10px]">
+                  <span className="text-white/25 text-[10px]">
                     ({f.engagementRate.toFixed(1)}%)
                   </span>
                 </div>
               </div>
             ))}
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Empty state */}
       {report.config.enabled && report.totalFeedback === 0 && (
         <div className="text-center py-8">
-          <RefreshCw className="h-8 w-8 text-muted mx-auto mb-3" />
-          <p className="text-sm text-muted">No feedback collected yet</p>
-          <p className="text-xs text-muted mt-1">
+          <RefreshCw size={24} className="text-white/20 mx-auto mb-3" />
+          <p className="text-[14px] font-medium text-white/50">No feedback collected yet</p>
+          <p className="text-[12px] text-white/30 mt-1">
             Publish clips and wait for analytics, then run a learning cycle
           </p>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Loader2, Send, Bot, Slash } from "lucide-react";
+import { useState, useMemo, useRef, useCallback } from "react";
+import { Loader2, Send, Bot, Slash, Paperclip, Film, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SpaceSelector } from "@/components/spaces/SpaceSelector";
 import { useSpace } from "@/contexts/SpaceContext";
@@ -12,26 +12,16 @@ function isVideoUrl(input: string): boolean {
   try {
     const url = new URL(trimmed.startsWith("http") ? trimmed : `https://${trimmed}`);
     const host = url.hostname.replace(/^www\./, "");
-    // YouTube
     if ((host === "youtube.com" || host === "m.youtube.com") && (url.searchParams.has("v") || /^\/(shorts|embed|v)\//.test(url.pathname))) return true;
     if (host === "youtu.be" && url.pathname.length > 1) return true;
-    // Twitch — VODs, clips, and channel videos
     if ((host === "twitch.tv" || host === "clips.twitch.tv") && url.pathname.length > 1) return true;
-    // Kick — clips and videos
     if (host === "kick.com" && url.pathname.length > 1) return true;
-    // Twitter/X — video tweets
     if ((host === "twitter.com" || host === "x.com") && /\/status\/\d+/.test(url.pathname)) return true;
-    // Facebook — video posts
     if ((host === "facebook.com" || host === "fb.watch") && url.pathname.length > 1) return true;
-    // TikTok
     if ((host === "tiktok.com" || host.endsWith(".tiktok.com")) && url.pathname.length > 1) return true;
-    // Instagram — reels and posts
     if (host === "instagram.com" && /^\/(reel|p)\//.test(url.pathname)) return true;
-    // Reddit — video posts
     if ((host === "reddit.com" || host.endsWith(".reddit.com")) && /\/comments\//.test(url.pathname)) return true;
-    // Dailymotion
     if ((host === "dailymotion.com" || host === "dai.ly") && url.pathname.length > 1) return true;
-    // Vimeo
     if (host === "vimeo.com" && /^\/\d+/.test(url.pathname)) return true;
   } catch {
     return false;
@@ -52,27 +42,66 @@ const SLASH_COMMANDS = [
 interface PromptInputProps {
   onSubmit: (runId: string, sourceUrl: string) => void;
   onChat?: (message: string) => void;
-  /** When set externally (e.g. from space detail page), selector is read-only */
   spaceId?: string;
-  /** Remove max-width constraint so input stretches to fill parent */
   fullWidth?: boolean;
-  /** Disable the input (e.g. while AI is responding) */
   disabled?: boolean;
 }
+
+const VIDEO_EXTENSIONS = [".mov", ".mp4", ".mkv", ".avi", ".webm", ".m4v", ".flv", ".wmv"];
 
 export function PromptInput({ onSubmit, onChat, spaceId: externalSpaceId, fullWidth, disabled }: PromptInputProps) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const { activeSpaceId, setActiveSpace } = useSpace();
 
-  // Effective spaceId: external prop takes priority, then context
   const spaceId = externalSpaceId ?? activeSpaceId ?? undefined;
-
   const inputIsVideoUrl = isVideoUrl(input);
   const inputIsSlashCommand = input.trim().startsWith("/");
 
-  // Filter slash commands based on what the user is typing
+  const handleFilePick = useCallback((file: File) => {
+    const ext = "." + file.name.split(".").pop()?.toLowerCase();
+    if (!VIDEO_EXTENSIONS.includes(ext)) {
+      setError(`Unsupported format "${ext}". Supported: ${VIDEO_EXTENSIONS.join(", ")}`);
+      return;
+    }
+    setPendingFile(file);
+    setError("");
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFilePick(file);
+  }, [handleFilePick]);
+
+  const uploadFile = async (file: File) => {
+    setLoading(true);
+    setError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      if (spaceId) formData.append("spaceId", spaceId);
+
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      setPendingFile(null);
+      onSubmit(data.runId, `file://${file.name}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    }
+    setLoading(false);
+  };
+
   const matchingCommands = useMemo(() => {
     if (!inputIsSlashCommand || !onChat) return [];
     const typed = input.trim().toLowerCase();
@@ -91,26 +120,20 @@ export function PromptInput({ onSubmit, onChat, spaceId: externalSpaceId, fullWi
     e.preventDefault();
     if (!input.trim() || loading || disabled) return;
 
-    // Chat mode (text or slash command) — send to AI
     if (!inputIsVideoUrl && onChat) {
       let message = input.trim();
-
-      // Expand slash commands to natural language for the AI
       if (inputIsSlashCommand) {
         const match = SLASH_COMMANDS.find((c) => message.toLowerCase().startsWith(c.command));
         if (match) {
-          // Include any extra text the user typed after the command
           const extra = message.slice(match.command.length).trim();
           message = extra ? `${match.hint} ${extra}` : match.hint;
         }
       }
-
       setInput("");
       onChat(message);
       return;
     }
 
-    // URL mode — existing pipeline flow
     setError("");
     setLoading(true);
 
@@ -170,11 +193,11 @@ export function PromptInput({ onSubmit, onChat, spaceId: externalSpaceId, fullWi
   };
 
   return (
-    <div className={cn(fullWidth ? "" : "bg-surface-0 px-4 py-3")}>
-      {/* Slash command autocomplete dropdown */}
+    <div className={cn(fullWidth ? "" : "bg-[#1C1C1E] px-4 py-3")}>
+      {/* Slash command autocomplete */}
       {matchingCommands.length > 0 && (
         <div className={cn(
-          "bg-surface-1 border border-border rounded-xl mb-2 overflow-hidden shadow-elevation-2",
+          "bg-[#1C1C1E]/95 backdrop-blur-2xl border border-white/10 ring-1 ring-white/5 rounded-2xl mb-2 overflow-hidden shadow-2xl",
           !fullWidth && "max-w-2xl mx-auto"
         )}>
           {matchingCommands.map((cmd) => (
@@ -182,44 +205,73 @@ export function PromptInput({ onSubmit, onChat, spaceId: externalSpaceId, fullWi
               key={cmd.command}
               type="button"
               onClick={() => handleSlashSelect(cmd)}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-2/50 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-[#3A3A3C] transition-colors"
             >
-              <span className="flex items-center justify-center h-6 w-6 rounded-md bg-accent/10 text-accent flex-shrink-0">
-                <Slash className="h-3 w-3" />
+              <span className="flex items-center justify-center h-6 w-6 rounded-md bg-[#0A84FF]/10 text-[#0A84FF] flex-shrink-0">
+                <Slash size={12} />
               </span>
               <div className="min-w-0">
-                <span className="text-sm font-medium text-foreground">{cmd.command}</span>
-                <span className="text-xs text-muted ml-2">{cmd.description}</span>
+                <span className="text-[13px] font-medium text-white/90">{cmd.command}</span>
+                <span className="text-[11px] text-white/40 ml-2">{cmd.description}</span>
               </div>
             </button>
           ))}
         </div>
       )}
 
+      {/* Hidden file input */}
+      <input
+        ref={fileRef}
+        type="file"
+        accept={VIDEO_EXTENSIONS.join(",")}
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFilePick(f); if (fileRef.current) fileRef.current.value = ""; }}
+        className="hidden"
+      />
+
       <form
-        onSubmit={handleSubmit}
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (pendingFile) { uploadFile(pendingFile); return; }
+          handleSubmit(e);
+        }}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
         className={cn(
-          "bg-surface-1 border border-border rounded-2xl overflow-hidden shadow-elevation-1 transition-all duration-200 focus-within:border-accent/30 focus-within:shadow-elevation-2",
+          "bg-[#2A2A2C] border rounded-2xl overflow-hidden shadow-xl transition-colors",
+          dragOver ? "border-[#0A84FF]/40 bg-[#0A84FF]/5" : "border-white/5",
           !fullWidth && "max-w-2xl mx-auto"
         )}
       >
-        {/* Body — input */}
+        {/* Pending file preview */}
+        {pendingFile && (
+          <div className="flex items-center gap-3 px-4 pt-3 pb-1">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#BF5AF2]/10 border border-white/5">
+              <Film size={14} className="text-[#BF5AF2]" />
+              <span className="text-[12px] font-medium text-white/70 truncate max-w-[200px]">{pendingFile.name}</span>
+              <span className="text-[10px] text-white/30">{(pendingFile.size / 1024 / 1024).toFixed(0)}MB</span>
+              <button type="button" onClick={() => setPendingFile(null)} className="text-white/30 hover:text-white transition-colors">
+                <X size={12} />
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="px-4 pt-3 pb-2">
           <input
             type="text"
-            placeholder={onChat ? "Paste a video URL, type / for commands, or ask anything..." : "Paste a YouTube URL..."}
+            placeholder={pendingFile ? "Press Enter to start clipping..." : onChat ? "Paste a URL, drop a video file, or ask anything..." : "Paste a URL or drop a video file..."}
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
               setError("");
             }}
             disabled={disabled}
-            className="w-full bg-transparent text-sm text-foreground placeholder:text-muted/50 outline-none disabled:opacity-50"
+            className="w-full bg-transparent text-[15px] font-medium text-white placeholder:text-white/20 outline-none disabled:opacity-40"
           />
         </div>
 
-        {/* Footer — space selector (left) + mode badge + submit (right) */}
-        <div className="flex items-center justify-between px-3 py-2 border-t border-border/40">
+        <div className="flex items-center justify-between px-3 py-2 border-t border-white/5">
           <div className="flex items-center gap-1">
             <SpaceSelector
               value={externalSpaceId ?? activeSpaceId}
@@ -228,31 +280,47 @@ export function PromptInput({ onSubmit, onChat, spaceId: externalSpaceId, fullWi
               }}
               readOnly={!!externalSpaceId}
             />
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={loading || disabled}
+              className="flex items-center justify-center h-7 w-7 rounded-lg text-white/30 hover:text-white hover:bg-white/10 transition-colors"
+              title="Upload video file (.mov, .mp4, etc.)"
+            >
+              <Paperclip size={14} />
+            </button>
           </div>
 
           <div className="flex items-center gap-2">
-            {mode === "chat" && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-accent/10 text-accent text-[10px] font-medium">
-                {inputIsSlashCommand ? <Slash className="h-3 w-3" /> : <Bot className="h-3 w-3" />}
+            {pendingFile && (
+              <span className="px-2 py-0.5 rounded-md bg-[#BF5AF2]/10 text-[#BF5AF2] text-[10px] font-medium flex items-center gap-1">
+                <Film size={10} /> File
+              </span>
+            )}
+            {!pendingFile && mode === "chat" && (
+              <span className="px-2 py-0.5 rounded-md bg-[#0A84FF]/10 text-[#0A84FF] text-[10px] font-medium flex items-center gap-1">
+                {inputIsSlashCommand ? <Slash size={10} /> : <Bot size={10} />}
                 {inputIsSlashCommand ? "Command" : "AI"}
               </span>
             )}
             <button
               type="submit"
-              disabled={loading || disabled || !input.trim()}
+              disabled={loading || disabled || (!input.trim() && !pendingFile)}
               className={cn(
-                "flex items-center justify-center h-8 w-8 rounded-lg transition-all duration-200 cursor-pointer",
-                input.trim() && !loading && !disabled
-                  ? "bg-accent text-white hover:bg-accent/90"
-                  : "bg-surface-2 text-muted cursor-not-allowed"
+                "flex items-center justify-center h-8 w-8 rounded-lg transition-colors cursor-pointer",
+                (input.trim() || pendingFile) && !loading && !disabled
+                  ? "bg-[#0A84FF] text-white hover:bg-blue-500"
+                  : "bg-[#3A3A3C] text-white/20 cursor-not-allowed"
               )}
             >
               {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 size={16} className="animate-spin" />
+              ) : pendingFile ? (
+                <Send size={16} />
               ) : mode === "chat" ? (
-                <Bot className="h-4 w-4" />
+                <Bot size={16} />
               ) : (
-                <Send className="h-4 w-4" />
+                <Send size={16} />
               )}
             </button>
           </div>
@@ -260,7 +328,7 @@ export function PromptInput({ onSubmit, onChat, spaceId: externalSpaceId, fullWi
       </form>
 
       {error && (
-        <p className={cn("text-xs text-red-400 mt-1.5 px-4", !fullWidth && "max-w-2xl mx-auto")}>{error}</p>
+        <p className={cn("text-[12px] font-medium text-[#FF453A] mt-1.5 px-4", !fullWidth && "max-w-2xl mx-auto")}>{error}</p>
       )}
     </div>
   );

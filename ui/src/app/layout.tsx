@@ -22,7 +22,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ClipBot",
+  title: "Socials",
   description: "Automated viral clip pipeline",
 };
 
@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-surface-0 text-foreground`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#1C1C1E] text-white`}
       >
         <ConvexProvider>
         <ThemeProvider>

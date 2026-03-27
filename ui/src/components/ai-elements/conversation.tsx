@@ -57,11 +57,11 @@ export const ConversationEmptyState = ({
   >
     {children ?? (
       <>
-        {icon && <div className="text-muted-foreground">{icon}</div>}
+        {icon && <div className="text-white/20">{icon}</div>}
         <div className="space-y-1">
-          <h3 className="font-medium text-sm">{title}</h3>
+          <h3 className="font-semibold text-[14px] text-white/90">{title}</h3>
           {description && (
-            <p className="text-muted-foreground text-sm">{description}</p>
+            <p className="text-white/40 text-[13px] font-medium">{description}</p>
           )}
         </div>
       </>

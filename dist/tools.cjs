@@ -30,7 +30,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/lib/paths.ts
+// ui/src/lib/paths.ts
 function getClipbotHome() {
   return process.env.CLIPBOT_HOME || import_node_path.default.join((0, import_node_os.homedir)(), ".clipbot");
 }
@@ -48,7 +48,7 @@ function getOutputDir() {
 }
 var import_node_path, import_node_os, import_node_fs, isProduction, DATA_DIR, RUNS_FILE, CHAT_FILE, CREATORS_FILE, NOTIFICATIONS_FILE, SETTINGS_FILE, SCHEDULE_FILE, SPACES_FILE, AUTOSCORE_FILE, CONFIG_PATH, ENV_PATH;
 var init_paths = __esm({
-  "src/lib/paths.ts"() {
+  "ui/src/lib/paths.ts"() {
     "use strict";
     import_node_path = __toESM(require("node:path"));
     import_node_os = require("node:os");
@@ -68,7 +68,7 @@ var init_paths = __esm({
   }
 });
 
-// src/lib/run-store.ts
+// ui/src/lib/run-store.ts
 var run_store_exports = {};
 __export(run_store_exports, {
   createRun: () => createRun,
@@ -183,7 +183,7 @@ async function syncRunsFromOutput() {
 }
 var import_promises3, import_node_path2, lastSyncTime, lastStaleCheckTime;
 var init_run_store = __esm({
-  "src/lib/run-store.ts"() {
+  "ui/src/lib/run-store.ts"() {
     "use strict";
     import_promises3 = require("node:fs/promises");
     import_node_path2 = __toESM(require("node:path"));
@@ -193,23 +193,23 @@ var init_run_store = __esm({
   }
 });
 
-// src/lib/ai/tools/index.ts
+// ui/src/lib/ai/tools/index.ts
 var index_exports = {};
 __export(index_exports, {
   tools: () => tools
 });
 module.exports = __toCommonJS(index_exports);
 
-// src/lib/ai/tools/workspace.ts
+// ui/src/lib/ai/tools/workspace.ts
 var import_zod = require("zod");
 
-// src/lib/space-store.ts
+// ui/src/lib/space-store.ts
 var import_promises2 = require("node:fs/promises");
 
-// src/lib/settings-store.ts
+// ui/src/lib/settings-store.ts
 var import_promises = require("node:fs/promises");
 
-// src/lib/types.ts
+// ui/src/lib/types.ts
 var DEFAULT_CAPTION_STYLE = {
   fontFamily: "Arial",
   fontSize: 72,
@@ -236,7 +236,7 @@ var DEFAULT_SCORING_WEIGHTS = {
   nicheBonus: 1
 };
 
-// src/lib/settings-store.ts
+// ui/src/lib/settings-store.ts
 init_paths();
 async function getSettings() {
   try {
@@ -321,7 +321,7 @@ async function getEffectiveConfig() {
   }
 }
 
-// src/lib/space-store.ts
+// ui/src/lib/space-store.ts
 init_paths();
 async function getSpaces() {
   try {
@@ -337,7 +337,7 @@ async function createSpace(space) {
   await (0, import_promises2.writeFile)(SPACES_FILE, JSON.stringify(spaces, null, 2), "utf-8");
 }
 
-// src/lib/ai/tools/workspace.ts
+// ui/src/lib/ai/tools/workspace.ts
 var listSpaces = {
   name: "content_list_spaces",
   description: "List all spaces (workspaces). Returns each space's id, name, icon, description, and account/creator counts.",
@@ -400,7 +400,7 @@ var getSettings2 = {
   }
 };
 
-// src/lib/ai/tools/pipeline.ts
+// ui/src/lib/ai/tools/pipeline.ts
 var import_zod2 = require("zod");
 init_run_store();
 var processVideo = {
@@ -536,10 +536,10 @@ var cancelRun = {
   }
 };
 
-// src/lib/ai/tools/publishing.ts
+// ui/src/lib/ai/tools/publishing.ts
 var import_zod3 = require("zod");
 
-// src/lib/schedule-store.ts
+// ui/src/lib/schedule-store.ts
 var import_promises4 = require("node:fs/promises");
 init_paths();
 async function getScheduledPosts() {
@@ -567,7 +567,7 @@ async function updateScheduledPost(id, updates) {
   return posts[idx];
 }
 
-// src/lib/late-client.ts
+// ui/src/lib/late-client.ts
 var LATE_BASE = "https://getlate.dev/api/v1";
 async function lateApiFetch(path3, options) {
   const config = await getEffectiveConfig();
@@ -624,7 +624,7 @@ async function listLateAccounts() {
   }));
 }
 
-// src/lib/ai/tools/publishing.ts
+// ui/src/lib/ai/tools/publishing.ts
 var publishClip = {
   name: "content_publish_clip",
   description: "Publish a clip to social platforms via getLate.dev. Supports scheduling for later.",
@@ -744,10 +744,10 @@ var listAccountsTool = {
   }
 };
 
-// src/lib/ai/tools/creators.ts
+// ui/src/lib/ai/tools/creators.ts
 var import_zod4 = require("zod");
 
-// src/lib/creator-store.ts
+// ui/src/lib/creator-store.ts
 var import_promises5 = require("node:fs/promises");
 init_paths();
 async function getCreators() {
@@ -774,7 +774,7 @@ async function removeCreator(id) {
   return true;
 }
 
-// src/lib/notification-store.ts
+// ui/src/lib/notification-store.ts
 var import_promises6 = require("node:fs/promises");
 init_paths();
 async function getNotifications() {
@@ -786,7 +786,7 @@ async function getNotifications() {
   }
 }
 
-// src/lib/youtube-rss.ts
+// ui/src/lib/youtube-rss.ts
 async function fetchChannelFeedWithMeta(channelId) {
   const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
   const res = await fetch(feedUrl);
@@ -816,7 +816,7 @@ function extractTag(xml, tag) {
   return match?.[1] ?? null;
 }
 
-// src/lib/ai/tools/creators.ts
+// ui/src/lib/ai/tools/creators.ts
 var listCreators = {
   name: "content_list_creators",
   description: "List all tracked YouTube creators with channel name, URL, and auto-process setting.",
@@ -882,10 +882,10 @@ var getNotificationsTool = {
   }
 };
 
-// src/lib/ai/tools/autoscore.ts
+// ui/src/lib/ai/tools/autoscore.ts
 var import_zod5 = require("zod");
 
-// src/lib/autoscore-store.ts
+// ui/src/lib/autoscore-store.ts
 var import_promises7 = require("node:fs/promises");
 init_paths();
 init_run_store();
@@ -1147,7 +1147,7 @@ function pearsonCorrelation(x, y) {
   return denom === 0 ? 0 : num / denom;
 }
 
-// src/lib/ai/tools/autoscore.ts
+// ui/src/lib/ai/tools/autoscore.ts
 var autoscoreStatus = {
   name: "content_autoscore_status",
   description: "View AutoScore learning status: prediction accuracy, correlation, category breakdown, and recent weight adjustments.",
@@ -1188,7 +1188,7 @@ var autoscoreLearn = {
   }
 };
 
-// src/lib/ai/tools/index.ts
+// ui/src/lib/ai/tools/index.ts
 var tools = [
   // Workspace & Config
   listSpaces,

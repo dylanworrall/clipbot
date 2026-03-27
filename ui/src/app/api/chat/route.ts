@@ -10,6 +10,7 @@ import { getChatMessages, saveChatMessage } from "@/lib/chat-store";
 import { loadEnv } from "@/lib/env";
 import { getConvexClient, isConvexMode } from "@/lib/convex-server";
 import { api } from "@/lib/convex-api";
+import { getBrandProfile } from "@/lib/brand-store";
 
 // Usage is tracked per tier in Convex
 
@@ -66,15 +67,33 @@ export async function POST(req: Request) {
     }
   }
 
-  // Build system prompt with space context
+  // Build system prompt with space + brand context
   let spaceName: string | null = null;
   if (spaceId) {
     const space = await getSpace(spaceId);
     spaceName = space?.name ?? null;
   }
+  let brandProfile = null;
+  try {
+    const bp = await getBrandProfile();
+    if (bp?.name) {
+      brandProfile = {
+        name: bp.name,
+        tagline: bp.tagline,
+        tone: bp.tone,
+        audience: bp.audience,
+        topics: bp.topics,
+        contentPillars: bp.contentPillars,
+        voiceExamples: bp.voiceExamples,
+      };
+    }
+  } catch {
+    /* brand not set yet */
+  }
   const systemPrompt = buildSystemPrompt({
     activeSpaceId: spaceId,
     spaceName,
+    brandProfile,
   });
 
   // Pick model: Gemini by default, Anthropic as fallback

@@ -22,6 +22,7 @@ import {
   updatePost,
   deletePost,
   listLateAccounts,
+  createPost,
 } from "@/lib/late-client";
 import type { Space } from "@/lib/types";
 
@@ -741,6 +742,335 @@ export const allTools = {
           : null,
         learnError,
       };
+    },
+  }),
+
+  // ── Content Drafting ────────────────────────────────────────────
+
+  create_draft: tool({
+    description:
+      "Create a text-only draft post for social media. No video needed. Creates the draft on Zernio and adds it to the calendar. Use this after generate_posts or when the user asks to write tweets, LinkedIn posts, captions, etc.",
+    inputSchema: z.object({
+      content: z
+        .string()
+        .describe("The post text (tweet, caption, LinkedIn post, etc.)"),
+      platforms: z
+        .array(z.string())
+        .describe("Target platforms (e.g. ['twitter', 'instagram'])"),
+      scheduledFor: z
+        .string()
+        .optional()
+        .describe(
+          "ISO 8601 date-time to schedule for (optional, defaults to draft status)"
+        ),
+      title: z
+        .string()
+        .optional()
+        .describe(
+          "Short title for calendar display (optional, auto-generated from content if omitted)"
+        ),
+    }),
+    execute: async ({ content, platforms, scheduledFor, title }) => {
+      const accounts = await listLateAccounts();
+      const platformTargets = platforms
+        .map((p) => {
+          const match = accounts.find((a) => a.platform === p);
+          return match ? { platform: p, accountId: match._id } : null;
+        })
+        .filter(Boolean) as Array<{ platform: string; accountId: string }>;
+
+      let postId: string | undefined;
+      if (platformTargets.length > 0) {
+        try {
+          const post = await createPost({
+            content,
+            platforms: platformTargets,
+            scheduledFor,
+          });
+          postId = post._id;
+        } catch {
+          // Zernio may fail — still save locally
+        }
+      }
+
+      const displayTitle =
+        title || content.slice(0, 50) + (content.length > 50 ? "..." : "");
+      const calendarPost = {
+        id: crypto.randomUUID(),
+        type: "draft" as const,
+        clipTitle: displayTitle,
+        content,
+        platforms,
+        scheduledFor:
+          scheduledFor || new Date(Date.now() + 86400000).toISOString(),
+        status: (scheduledFor ? "scheduled" : "draft") as
+          | "scheduled"
+          | "draft",
+        createdAt: new Date().toISOString(),
+        postId,
+      };
+      await addScheduledPost(calendarPost);
+
+      return {
+        success: true,
+        id: calendarPost.id,
+        postId: postId ?? null,
+        title: displayTitle,
+        platforms,
+        scheduledFor: calendarPost.scheduledFor,
+        status: calendarPost.status,
+      };
+    },
+  }),
+
+  generate_posts: tool({
+    description:
+      "Gather context for generating social media post drafts. Fetches your niche, recent top-performing post analytics, and trending creator topics. Returns structured data you should use to write creative posts, then call create_draft for each one.",
+    inputSchema: z.object({
+      topic: z
+        .string()
+        .optional()
+        .describe("Topic focus (defaults to settings niche)"),
+      count: z
+        .number()
+        .optional()
+        .describe("Number of posts to generate (default 3)"),
+      style: z
+        .enum(["tweet", "linkedin", "caption", "thread"])
+        .optional()
+        .describe("Post style/format"),
+    }),
+    execute: async ({ topic, count, style }) => {
+      const config = await getEffectiveConfig();
+      const niche = topic || config.niche || "general";
+
+      // Get recent published posts with analytics
+      let topPosts: Array<{ content: string; analytics: unknown }> = [];
+      try {
+        const recentPosts = await listPosts({ status: "published", limit: 5 });
+        for (const p of recentPosts.slice(0, 3)) {
+          const full = await getPost(p._id);
+          topPosts.push({ content: full.content, analytics: full.analytics });
+        }
+      } catch {
+        /* no posts yet */
+      }
+
+      // Get trending topics from tracked creators
+      const creators = await getCreators();
+      const trendingTopics: string[] = [];
+      for (const c of creators.slice(0, 3)) {
+        if (!c.channelId) continue;
+        try {
+          const feed = await fetchChannelFeedWithMeta(c.channelId);
+          trendingTopics.push(
+            ...feed.videos.slice(0, 3).map((v) => v.title)
+          );
+        } catch {
+          /* skip */
+        }
+      }
+
+      return {
+        niche,
+        requestedCount: count || 3,
+        style: style || "tweet",
+        recentTopPosts: topPosts,
+        trendingCreatorTopics: trendingTopics.slice(0, 10),
+        instruction: `Generate ${count || 3} ${style || "tweet"}-style post drafts about "${niche}". Use the analytics and trending topics to inform what content performs well. After writing each post, call create_draft for each one with the appropriate platforms.`,
+      };
+    },
+  }),
+
+  // ── Swipe Queue ────────────────────────────────────────────────
+
+  generate_queue: tool({
+    description:
+      "Generate content items for the swipe queue. Gathers brand profile and trending context, then returns data you should use to write content. After writing each piece, call add_to_queue for each one.",
+    inputSchema: z.object({
+      count: z
+        .number()
+        .optional()
+        .describe("Number of items to generate (default 5)"),
+      formats: z
+        .array(
+          z.enum(["tweet", "thread", "linkedin", "caption", "script", "meme"])
+        )
+        .optional()
+        .describe(
+          "Content formats to generate (defaults to a mix of tweet, thread, linkedin)"
+        ),
+      topic: z.string().optional().describe("Topic focus override"),
+    }),
+    execute: async ({ count, formats, topic }) => {
+      const config = await getEffectiveConfig();
+      const niche = topic || config.niche || "general";
+
+      // Load brand profile for context
+      let brand = null;
+      try {
+        const { getBrandProfile } = await import("@/lib/brand-store");
+        brand = await getBrandProfile();
+      } catch {
+        /* no brand yet */
+      }
+
+      // Get trending topics from tracked creators
+      const creators = await getCreators();
+      const trendingTopics: string[] = [];
+      for (const c of creators.slice(0, 3)) {
+        if (!c.channelId) continue;
+        try {
+          const feed = await fetchChannelFeedWithMeta(c.channelId);
+          trendingTopics.push(
+            ...feed.videos.slice(0, 3).map((v) => v.title)
+          );
+        } catch {
+          /* skip */
+        }
+      }
+
+      // Get recent posts for performance reference
+      let topPosts: Array<{ content: string; analytics: unknown }> = [];
+      try {
+        const recentPosts = await listPosts({ status: "published", limit: 5 });
+        for (const p of recentPosts.slice(0, 3)) {
+          const full = await getPost(p._id);
+          topPosts.push({ content: full.content, analytics: full.analytics });
+        }
+      } catch {
+        /* no posts yet */
+      }
+
+      const requestedFormats = formats || ["tweet", "thread", "linkedin"];
+
+      return {
+        niche,
+        requestedCount: count || 5,
+        formats: requestedFormats,
+        brand: brand
+          ? {
+              name: brand.name,
+              tone: brand.tone,
+              audience: brand.audience,
+              topics: brand.topics,
+              contentPillars: brand.contentPillars,
+              voiceExamples: brand.voiceExamples?.slice(0, 3),
+            }
+          : null,
+        recentTopPosts: topPosts,
+        trendingCreatorTopics: trendingTopics.slice(0, 10),
+        instruction: `Generate ${count || 5} content items for the swipe queue. Use a mix of these formats: ${requestedFormats.join(", ")}. Topic: "${niche}". ${brand ? `Write in ${brand.name}'s brand voice (${brand.tone}).` : ""} After writing each piece, call add_to_queue for each one with the appropriate format, platforms, title, hashtags, and an estimated virality score (1-10).`,
+      };
+    },
+  }),
+
+  add_to_queue: tool({
+    description:
+      "Add a content item to the swipe queue for approval. Call this after generating content with generate_queue.",
+    inputSchema: z.object({
+      content: z.string().describe("The full post content text"),
+      format: z
+        .enum(["tweet", "thread", "linkedin", "caption", "script", "meme"])
+        .describe("Content format"),
+      platforms: z
+        .array(z.string())
+        .describe("Target platforms (e.g. ['twitter', 'instagram'])"),
+      title: z
+        .string()
+        .optional()
+        .describe("Short title for display (auto-generated from content if omitted)"),
+      hashtags: z
+        .array(z.string())
+        .optional()
+        .describe("Hashtags without # prefix"),
+      estimatedScore: z
+        .number()
+        .optional()
+        .describe("Estimated virality score 1-10 (default 7)"),
+      topic: z.string().optional().describe("Topic/theme of this content"),
+    }),
+    execute: async ({
+      content,
+      format,
+      platforms,
+      title,
+      hashtags,
+      estimatedScore,
+      topic,
+    }) => {
+      const { addQueueItem } = await import("@/lib/queue-store");
+      const item = {
+        id: crypto.randomUUID(),
+        content,
+        title: title || content.slice(0, 50) + (content.length > 50 ? "..." : ""),
+        format,
+        platforms,
+        estimatedScore: estimatedScore || 7,
+        status: "pending" as const,
+        createdAt: new Date().toISOString(),
+        hashtags,
+        topic,
+      };
+      await addQueueItem(item);
+      return { success: true, id: item.id, title: item.title, format };
+    },
+  }),
+
+  // ── Brand Profile ──────────────────────────────────────────────
+
+  update_brand: tool({
+    description:
+      "Update the brand profile. Use after analyzing a website or when the user describes their brand. Accepts partial updates.",
+    inputSchema: z.object({
+      url: z.string().optional().describe("Brand website URL"),
+      name: z.string().optional().describe("Brand name"),
+      tagline: z.string().optional().describe("Brand tagline"),
+      tone: z.string().optional().describe("Tone of voice (e.g. casual and bold, professional)"),
+      audience: z.string().optional().describe("Target audience description"),
+      topics: z.array(z.string()).optional().describe("Key topics/themes"),
+      keywords: z.array(z.string()).optional().describe("Brand keywords"),
+      competitors: z.array(z.string()).optional().describe("Competitor names"),
+      contentPillars: z.array(z.string()).optional().describe("Recurring content themes"),
+      voiceExamples: z.array(z.string()).optional().describe("Example sentences in brand voice"),
+    }),
+    execute: async (updates) => {
+      const { updateBrandProfile } = await import("@/lib/brand-store");
+      // Filter out undefined values
+      const clean = Object.fromEntries(
+        Object.entries(updates).filter(([, v]) => v !== undefined)
+      );
+      const merged = await updateBrandProfile(clean);
+      return { success: true, brand: merged };
+    },
+  }),
+
+  // ── Content Autopilot ───────────────────────────────────────────
+
+  run_autopilot: tool({
+    description:
+      "Run the daily content autopilot: fetches trending topics from tracked creators, analyzes recent post performance, and generates context for creating draft posts. Returns research data — use it to write posts and call create_draft for each.",
+    inputSchema: z.object({
+      count: z
+        .number()
+        .optional()
+        .describe("Number of posts to generate (default 3)"),
+      topic: z
+        .string()
+        .optional()
+        .describe("Optional topic override"),
+    }),
+    execute: async ({ count, topic }) => {
+      const baseUrl =
+        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+      const res = await fetch(`${baseUrl}/api/autopilot`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ count, topic }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { error: data.error };
+      return data;
     },
   }),
 };

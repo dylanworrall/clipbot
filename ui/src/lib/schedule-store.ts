@@ -3,12 +3,14 @@ import { SCHEDULE_FILE } from "./paths";
 
 export interface ScheduledPost {
   id: string;
-  runId: string;
-  clipIndex: number;
+  type?: "clip" | "draft" | "text";
+  runId?: string;
+  clipIndex?: number;
   clipTitle: string;
+  content?: string;
   platforms: string[];
   scheduledFor: string; // ISO date string
-  status: "scheduled" | "published" | "cancelled";
+  status: "scheduled" | "published" | "cancelled" | "draft";
   createdAt: string;
   postId?: string;
 }
@@ -16,7 +18,8 @@ export interface ScheduledPost {
 export async function getScheduledPosts(): Promise<ScheduledPost[]> {
   try {
     const raw = await readFile(SCHEDULE_FILE, "utf-8");
-    return JSON.parse(raw) as ScheduledPost[];
+    const posts = JSON.parse(raw) as ScheduledPost[];
+    return posts.map((p) => ({ ...p, type: p.type || "clip" }));
   } catch {
     return [];
   }

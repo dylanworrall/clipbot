@@ -58,6 +58,15 @@ export type BackgroundFillStyle = "center-crop" | "blurred-zoom" | "mirror-refle
 
 export type CaptionMode = "overlay" | "burn-in";
 
+export interface AutopilotConfig {
+  enabled: boolean;
+  postsPerDay: number;
+  preferredTime: string;
+  platforms: string[];
+  lastRunAt?: string;
+  lastRunStatus?: string;
+}
+
 export interface AppSettings {
   claudeApiKey?: string;
   lateApiKey?: string;
@@ -77,6 +86,8 @@ export interface AppSettings {
   captionMode?: CaptionMode;
   captionStyle?: CaptionStyle;
   scoringWeights?: ScoringWeights;
+  autopilot?: AutopilotConfig;
+  [key: string]: unknown;
 }
 
 export interface SpaceSettings {

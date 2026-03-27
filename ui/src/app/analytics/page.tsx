@@ -6,216 +6,189 @@ import {
   BarChart3,
   Eye,
   Heart,
+  MessageCircle,
+  Share2,
   TrendingUp,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
   Loader2,
-  Sparkles,
+  RefreshCw,
+  Calendar,
+  Bookmark,
+  MousePointer,
+  ExternalLink,
 } from "lucide-react";
-import { PageTransition } from "@/components/ui/page-transition";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-/* ---------- types ---------- */
+/* ---------- types (matching Zernio response schema) ---------- */
 
-interface PublishedClip {
-  id: string;
-  title: string;
-  platform: string;
-  publishedAt: string;
-  views?: number;
-  likes?: number;
-  comments?: number;
-  thumbnailUrl?: string;
-}
-
-interface PostMetrics {
-  id: string;
-  title: string;
-  platform: string;
-  publishedAt: string;
-  views: number;
+interface ZernioPostAnalytics {
+  impressions: number;
+  reach: number;
   likes: number;
   comments: number;
-  engagement: number;
+  shares: number;
+  saves: number;
+  clicks: number;
+  views: number;
+  engagementRate: number;
+  lastUpdated?: string;
 }
 
-type SortKey = "views" | "likes" | "comments" | "engagement" | "publishedAt";
+interface ZernioPlatformAnalytics {
+  platform: string;
+  status: string;
+  accountUsername?: string;
+  analytics: ZernioPostAnalytics;
+  platformPostUrl?: string;
+}
+
+interface ZernioPost {
+  postId: string;
+  latePostId?: string;
+  status: string;
+  content: string;
+  publishedAt?: string;
+  scheduledFor?: string;
+  analytics: ZernioPostAnalytics;
+  platformAnalytics?: ZernioPlatformAnalytics[];
+  platform?: string;
+  platformPostUrl?: string;
+  thumbnailUrl?: string;
+  mediaType?: string;
+  syncStatus?: string;
+}
+
+interface ZernioOverview {
+  totalPosts: number;
+  publishedPosts: number;
+  scheduledPosts: number;
+}
+
+type SortKey = "views" | "likes" | "comments" | "engagement" | "date";
 type SortDir = "asc" | "desc";
 
 /* ---------- helpers ---------- */
 
-const PLATFORMS = ["All", "YouTube", "TikTok", "Instagram", "Twitter", "LinkedIn"] as const;
-
-const DATE_RANGES = [
-  { label: "Last 7 days", days: 7 },
-  { label: "Last 30 days", days: 30 },
-  { label: "Last 90 days", days: 90 },
-  { label: "All time", days: 0 },
-] as const;
-
 const PLATFORM_COLORS: Record<string, string> = {
-  YouTube: "bg-red-500",
-  TikTok: "bg-fuchsia-500",
-  Instagram: "bg-amber-500",
-  Twitter: "bg-sky-500",
-  LinkedIn: "bg-blue-600",
+  youtube: "#FF453A", tiktok: "#BF5AF2", instagram: "#FF9F0A",
+  twitter: "#0A84FF", linkedin: "#0A84FF", facebook: "#0A84FF",
+  bluesky: "#0A84FF", threads: "#BF5AF2", pinterest: "#FF453A",
+  reddit: "#FF9F0A", snapchat: "#FF9F0A", whatsapp: "#30D158",
 };
 
-const PLATFORM_DOT: Record<string, string> = {
-  YouTube: "bg-red-500",
-  TikTok: "bg-fuchsia-500",
-  Instagram: "bg-amber-500",
-  Twitter: "bg-sky-500",
-  LinkedIn: "bg-blue-600",
+const PLATFORM_BADGE: Record<string, "red" | "blue" | "gold" | "green" | "default"> = {
+  youtube: "red", tiktok: "default", instagram: "gold",
+  twitter: "blue", linkedin: "blue", facebook: "blue", bluesky: "blue",
 };
 
-const PLATFORM_BADGE_VARIANT: Record<string, "red" | "blue" | "gold" | "green" | "default"> = {
-  YouTube: "red",
-  TikTok: "default",
-  Instagram: "gold",
-  Twitter: "blue",
-  LinkedIn: "blue",
-};
-
-function randomBetween(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function enrichWithMetrics(clips: PublishedClip[]): PostMetrics[] {
-  return clips.map((clip) => {
-    const views = clip.views ?? randomBetween(800, 50000);
-    const likes = clip.likes ?? randomBetween(Math.floor(views * 0.02), Math.floor(views * 0.12));
-    const comments = clip.comments ?? randomBetween(Math.floor(views * 0.002), Math.floor(views * 0.02));
-    const engagement = views > 0 ? ((likes + comments) / views) * 100 : 0;
-    return {
-      id: clip.id,
-      title: clip.title,
-      platform: clip.platform,
-      publishedAt: clip.publishedAt,
-      views,
-      likes,
-      comments,
-      engagement: Math.round(engagement * 100) / 100,
-    };
-  });
-}
-
-function generatePlaceholderData(): PostMetrics[] {
-  const titles = [
-    "How AI Is Changing Content Creation",
-    "5 Tips for Better Short-Form Video",
-    "Behind the Scenes: Our Workflow",
-    "Breaking Down the Algorithm",
-    "Quick Tutorial: Color Grading",
-    "Audience Growth Strategy 2026",
-    "Best Hooks for TikTok Videos",
-    "YouTube Shorts vs. Reels: Which Wins?",
-    "How to Repurpose Long-Form Content",
-    "The Perfect Posting Schedule",
-    "Engagement Secrets Nobody Talks About",
-    "How We Went Viral (Accidentally)",
-  ];
-  const platforms = ["YouTube", "TikTok", "Instagram", "Twitter", "LinkedIn"];
-  const now = Date.now();
-
-  return titles.map((title, i) => {
-    const platform = platforms[i % platforms.length];
-    const daysAgo = randomBetween(1, 60);
-    const views = randomBetween(1200, 85000);
-    const likes = randomBetween(Math.floor(views * 0.03), Math.floor(views * 0.15));
-    const comments = randomBetween(Math.floor(views * 0.003), Math.floor(views * 0.025));
-    const engagement = views > 0 ? ((likes + comments) / views) * 100 : 0;
-    return {
-      id: `placeholder-${i}`,
-      title,
-      platform,
-      publishedAt: new Date(now - daysAgo * 86400000).toISOString(),
-      views,
-      likes,
-      comments,
-      engagement: Math.round(engagement * 100) / 100,
-    };
-  });
-}
-
-function formatNumber(n: number): string {
+function fmt(n: number): string {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
   return n.toLocaleString();
 }
 
+function title(content: string): string {
+  if (!content) return "Untitled";
+  const first = content.split("\n")[0].trim();
+  return first.length > 60 ? first.slice(0, 57) + "..." : first;
+}
+
+function getPlatform(post: ZernioPost): string {
+  if (post.platform) return post.platform;
+  if (post.platformAnalytics?.[0]?.platform) return post.platformAnalytics[0].platform;
+  return "unknown";
+}
+
 /* ---------- component ---------- */
 
 export default function AnalyticsPage() {
-  const [posts, setPosts] = useState<PostMetrics[]>([]);
+  const [posts, setPosts] = useState<ZernioPost[]>([]);
+  const [overview, setOverview] = useState<ZernioOverview | null>(null);
   const [loading, setLoading] = useState(true);
-  const [platformFilter, setPlatformFilter] = useState("All");
-  const [dateRange, setDateRange] = useState(30);
-  const [sortKey, setSortKey] = useState<SortKey>("views");
+  const [error, setError] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState(90);
+  const [platformFilter, setPlatformFilter] = useState("all");
+  const [sortBy, setSortBy] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
-  const fetchPosts = useCallback(async () => {
+  const fromDate = useMemo(() => {
+    if (dateRange === 0) return "2020-01-01";
+    return new Date(Date.now() - dateRange * 86400000).toISOString().split("T")[0];
+  }, [dateRange]);
+  const toDate = new Date().toISOString().split("T")[0];
+
+  const fetchAnalytics = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
-      const res = await fetch("/api/clips/published");
-      if (res.ok) {
-        const data: PublishedClip[] = await res.json();
-        setPosts(data.length > 0 ? enrichWithMetrics(data) : generatePlaceholderData());
+      const zernioSort = sortBy === "engagement" ? "engagement" : sortBy === "date" ? "date" : sortBy;
+      const params = new URLSearchParams({
+        fromDate,
+        toDate,
+        sortBy: zernioSort,
+        order: sortDir,
+        limit: "100",
+      });
+      if (platformFilter !== "all") params.set("platform", platformFilter);
+
+      const res = await fetch(`/api/analytics?${params}`);
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+
+      // Zernio returns: { overview, posts[], pagination, accounts[] }
+      const rawPosts = data.posts ?? [];
+      setPosts(rawPosts);
+      setOverview(data.overview ?? null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load analytics");
+      setPosts([]);
+    }
+    setLoading(false);
+  }, [fromDate, toDate, platformFilter, sortBy, sortDir]);
+
+  useEffect(() => { fetchAnalytics(); }, [fetchAnalytics]);
+
+  // Client-side sort (Zernio already sorts, but for toggling)
+  const sorted = useMemo(() => {
+    const result = [...posts];
+    result.sort((a, b) => {
+      let diff = 0;
+      if (sortBy === "date") {
+        diff = new Date(a.publishedAt ?? "").getTime() - new Date(b.publishedAt ?? "").getTime();
+      } else if (sortBy === "engagement") {
+        diff = (a.analytics?.engagementRate ?? 0) - (b.analytics?.engagementRate ?? 0);
       } else {
-        setPosts(generatePlaceholderData());
+        diff = (a.analytics?.[sortBy] ?? 0) - (b.analytics?.[sortBy] ?? 0);
       }
-    } catch {
-      setPosts(generatePlaceholderData());
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchPosts();
-  }, [fetchPosts]);
-
-  const filtered = useMemo(() => {
-    let result = posts;
-    if (dateRange > 0) {
-      const cutoff = Date.now() - dateRange * 86400000;
-      result = result.filter((p) => new Date(p.publishedAt).getTime() >= cutoff);
-    }
-    if (platformFilter !== "All") {
-      result = result.filter((p) => p.platform === platformFilter);
-    }
-    result = [...result].sort((a, b) => {
-      const diff = sortKey === "publishedAt"
-        ? new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime()
-        : a[sortKey] - b[sortKey];
       return sortDir === "asc" ? diff : -diff;
     });
     return result;
-  }, [posts, platformFilter, dateRange, sortKey, sortDir]);
+  }, [posts, sortBy, sortDir]);
 
-  const totalViews = filtered.reduce((s, p) => s + p.views, 0);
-  const totalLikes = filtered.reduce((s, p) => s + p.likes, 0);
-  const totalComments = filtered.reduce((s, p) => s + p.comments, 0);
-  const avgEngagement =
-    filtered.length > 0
-      ? Math.round((filtered.reduce((s, p) => s + p.engagement, 0) / filtered.length) * 100) / 100
-      : 0;
+  // Aggregates
+  const totalViews = sorted.reduce((s, p) => s + (p.analytics?.views ?? 0), 0);
+  const totalLikes = sorted.reduce((s, p) => s + (p.analytics?.likes ?? 0), 0);
+  const totalComments = sorted.reduce((s, p) => s + (p.analytics?.comments ?? 0), 0);
+  const totalShares = sorted.reduce((s, p) => s + (p.analytics?.shares ?? 0), 0);
+  const totalSaves = sorted.reduce((s, p) => s + (p.analytics?.saves ?? 0), 0);
+  const avgEngagement = sorted.length > 0
+    ? Math.round((sorted.reduce((s, p) => s + (p.analytics?.engagementRate ?? 0), 0) / sorted.length) * 100) / 100
+    : 0;
 
+  // Platform breakdown
   const platformBreakdown = useMemo(() => {
-    const map: Record<string, { count: number; views: number }> = {};
-    for (const p of filtered) {
-      if (!map[p.platform]) map[p.platform] = { count: 0, views: 0 };
-      map[p.platform].count += 1;
-      map[p.platform].views += p.views;
+    const map: Record<string, { count: number; views: number; engagement: number }> = {};
+    for (const p of sorted) {
+      const plat = getPlatform(p);
+      if (!map[plat]) map[plat] = { count: 0, views: 0, engagement: 0 };
+      map[plat].count += 1;
+      map[plat].views += p.analytics?.views ?? 0;
+      map[plat].engagement += p.analytics?.engagementRate ?? 0;
     }
     const entries = Object.entries(map).sort((a, b) => b[1].views - a[1].views);
     const maxViews = entries[0]?.[1].views ?? 1;
@@ -223,237 +196,302 @@ export default function AnalyticsPage() {
       platform,
       count: data.count,
       views: data.views,
-      pct: Math.round((data.views / maxViews) * 100),
+      avgEngagement: data.count > 0 ? Math.round((data.engagement / data.count) * 100) / 100 : 0,
+      pct: Math.round((data.views / Math.max(maxViews, 1)) * 100),
     }));
-  }, [filtered]);
+  }, [sorted]);
+
+  // Unique platforms for filter
+  const availablePlatforms = useMemo(() => {
+    const set = new Set(posts.map(getPlatform));
+    return ["all", ...Array.from(set)];
+  }, [posts]);
 
   const handleSort = (key: SortKey) => {
-    if (sortKey === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(key);
-      setSortDir("desc");
-    }
+    if (sortBy === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortBy(key); setSortDir("desc"); }
   };
 
   const SortIcon = ({ col }: { col: SortKey }) => {
-    if (sortKey !== col) return <ArrowUpDown className="h-3 w-3 text-muted" />;
-    return sortDir === "asc" ? (
-      <ArrowUp className="h-3 w-3 text-accent" />
-    ) : (
-      <ArrowDown className="h-3 w-3 text-accent" />
-    );
+    if (sortBy !== col) return <ArrowUpDown size={10} className="text-white/20" />;
+    return sortDir === "asc"
+      ? <ArrowUp size={10} className="text-[#0A84FF]" />
+      : <ArrowDown size={10} className="text-[#0A84FF]" />;
   };
 
-  const stats = [
-    { label: "Posts", value: filtered.length.toString(), icon: BarChart3, color: "text-accent" },
-    { label: "Views", value: formatNumber(totalViews), icon: Eye, color: "text-blue-500" },
-    { label: "Likes", value: formatNumber(totalLikes), icon: Heart, color: "text-pink-500" },
-    { label: "Engagement", value: avgEngagement + "%", icon: TrendingUp, color: "text-green-500" },
-  ];
-
   return (
-    <PageTransition>
-      <div className="h-screen overflow-y-auto">
-        <div className="max-w-2xl mx-auto px-6 pt-8 pb-16 space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-lg font-semibold">Analytics</h1>
-              <p className="text-sm text-muted mt-0.5">
-                {filtered.length} post{filtered.length !== 1 ? "s" : ""} &middot; {formatNumber(totalViews)} views
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Select value={String(dateRange)} onValueChange={(v) => setDateRange(Number(v))}>
-                <SelectTrigger size="sm" className="bg-surface-1 border-border text-xs h-8">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DATE_RANGES.map((r) => (
-                    <SelectItem key={r.days} value={String(r.days)}>{r.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={platformFilter} onValueChange={setPlatformFilter}>
-                <SelectTrigger size="sm" className="bg-surface-1 border-border text-xs h-8">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PLATFORMS.map((p) => (
-                    <SelectItem key={p} value={p}>{p}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+    <div className="flex-1 overflow-y-auto scrollbar-hide p-6 text-white">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold text-white/90 mb-1">Analytics</h1>
+            <p className="text-white/50 text-[13px] font-medium">
+              {overview
+                ? `${overview.publishedPosts} published · ${overview.scheduledPosts} scheduled`
+                : `${sorted.length} post${sorted.length !== 1 ? "s" : ""}`}
+              {totalViews > 0 && ` · ${fmt(totalViews)} total views`}
+            </p>
           </div>
-
-          {loading ? (
-            <div className="flex items-center justify-center py-32">
-              <Loader2 className="h-5 w-5 animate-spin text-muted" />
+          <div className="flex items-center gap-2">
+            <div className="bg-[#2A2A2C] p-1 rounded-lg flex gap-1">
+              {[
+                { label: "7d", days: 7 },
+                { label: "30d", days: 30 },
+                { label: "90d", days: 90 },
+                { label: "All", days: 0 },
+              ].map((r) => (
+                <button
+                  key={r.days}
+                  onClick={() => setDateRange(r.days)}
+                  className={`px-3 py-1 rounded-md text-[11px] font-medium transition-colors ${
+                    dateRange === r.days
+                      ? "bg-[#3A3A3C] text-white shadow-sm"
+                      : "text-white/50 hover:text-white"
+                  }`}
+                >
+                  {r.label}
+                </button>
+              ))}
             </div>
-          ) : (
-            <>
-              {/* Compact stat pills */}
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="flex items-center gap-3 flex-wrap"
+            <Button variant="ghost" size="icon-sm" onClick={fetchAnalytics}>
+              <RefreshCw size={14} />
+            </Button>
+          </div>
+        </div>
+
+        {/* Platform filter pills */}
+        {availablePlatforms.length > 2 && (
+          <div className="flex gap-1.5 flex-wrap">
+            {availablePlatforms.map((p) => (
+              <button
+                key={p}
+                onClick={() => setPlatformFilter(p)}
+                className={`px-3 py-1 rounded-full text-[11px] font-medium transition-colors capitalize ${
+                  platformFilter === p
+                    ? "bg-[#0A84FF]/10 text-[#0A84FF] border border-[#0A84FF]/30"
+                    : "bg-[#2A2A2C] text-white/50 hover:text-white border border-white/5"
+                }`}
               >
-                {stats.map((s) => (
-                  <div
-                    key={s.label}
-                    className="flex items-center gap-2 rounded-lg bg-surface-1 border border-border/60 px-3.5 py-2"
-                  >
-                    <s.icon className={cn("h-3.5 w-3.5", s.color)} />
-                    <span className="text-sm font-semibold">{s.value}</span>
-                    <span className="text-xs text-muted">{s.label}</span>
+                {p}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="flex items-center justify-center py-24">
+            <Loader2 size={20} className="animate-spin text-white/40" />
+          </div>
+        ) : error ? (
+          <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm text-center py-12">
+            <BarChart3 size={32} className="text-white/20 mx-auto mb-3" />
+            <p className="text-[15px] font-medium text-white/50">Could not load analytics</p>
+            <p className="text-[12px] text-white/30 mt-1 max-w-md mx-auto">{error}</p>
+            <Button variant="secondary" size="sm" onClick={fetchAnalytics} className="mt-4">
+              <RefreshCw size={14} /> Try Again
+            </Button>
+          </div>
+        ) : (
+          <>
+            {/* Stats grid */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className="grid grid-cols-3 md:grid-cols-6 gap-3"
+            >
+              {[
+                { label: "Views", value: totalViews, icon: Eye, color: "#0A84FF" },
+                { label: "Likes", value: totalLikes, icon: Heart, color: "#FF375F" },
+                { label: "Comments", value: totalComments, icon: MessageCircle, color: "#FF9F0A" },
+                { label: "Shares", value: totalShares, icon: Share2, color: "#BF5AF2" },
+                { label: "Saves", value: totalSaves, icon: Bookmark, color: "#30D158" },
+                { label: "Avg Eng.", value: avgEngagement, icon: TrendingUp, color: "#30D158", isPercent: true },
+              ].map((s) => (
+                <div key={s.label} className="bg-[#2A2A2C] rounded-2xl p-4 border border-white/5 shadow-sm text-center">
+                  <s.icon size={14} className="mx-auto mb-2" style={{ color: s.color }} />
+                  <p className="text-[20px] font-bold tracking-tight tabular-nums" style={{ color: s.color }}>
+                    {s.isPercent ? `${s.value}%` : fmt(s.value as number)}
+                  </p>
+                  <p className="text-[10px] text-white/35 font-medium uppercase tracking-wider mt-1">{s.label}</p>
+                </div>
+              ))}
+            </motion.div>
+
+            {/* Platform breakdown */}
+            {platformBreakdown.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05, duration: 0.2 }}
+                className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-3"
+              >
+                <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase mb-4">
+                  Platform Performance
+                </h2>
+                {platformBreakdown.map((entry) => (
+                  <div key={entry.platform} className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 w-24 shrink-0">
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ background: PLATFORM_COLORS[entry.platform] ?? "#0A84FF" }}
+                      />
+                      <span className="text-[12px] font-medium text-white/70 capitalize">{entry.platform}</span>
+                    </div>
+                    <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full rounded-full"
+                        style={{ background: PLATFORM_COLORS[entry.platform] ?? "#0A84FF" }}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${entry.pct}%` }}
+                        transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+                      />
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="text-[11px] text-white/40 tabular-nums w-12 text-right">{entry.count} posts</span>
+                      <span className="text-[12px] text-white/70 font-medium tabular-nums w-14 text-right">{fmt(entry.views)}</span>
+                      <span className="text-[11px] tabular-nums w-12 text-right" style={{ color: entry.avgEngagement >= 4 ? "#30D158" : "#FF9F0A" }}>
+                        {entry.avgEngagement}%
+                      </span>
+                    </div>
                   </div>
                 ))}
               </motion.div>
+            )}
 
-              {/* Platform breakdown */}
-              {platformBreakdown.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1, duration: 0.3 }}
-                  className="rounded-xl border border-border/60 bg-surface-1 p-4 space-y-2.5"
-                >
-                  <h2 className="text-xs font-medium text-muted uppercase tracking-wider">
-                    Views by Platform
-                  </h2>
-                  {platformBreakdown.map((entry) => (
-                    <div key={entry.platform} className="flex items-center gap-3">
-                      <div className="flex items-center gap-2 w-20 shrink-0">
-                        <span className={cn("h-2 w-2 rounded-full", PLATFORM_DOT[entry.platform] ?? "bg-accent")} />
-                        <span className="text-xs font-medium">{entry.platform}</span>
-                      </div>
-                      <div className="flex-1 h-1.5 bg-surface-2 rounded-full overflow-hidden">
-                        <motion.div
-                          className={cn("h-full rounded-full", PLATFORM_COLORS[entry.platform] ?? "bg-accent")}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${entry.pct}%` }}
-                          transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
-                        />
-                      </div>
-                      <span className="text-xs text-muted tabular-nums w-16 text-right">
-                        {formatNumber(entry.views)}
-                      </span>
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-
-              {/* Sort bar */}
-              <div className="flex items-center justify-between">
-                <h2 className="text-xs font-medium text-muted uppercase tracking-wider">
-                  Post Performance
-                </h2>
-                <div className="flex items-center gap-1">
-                  {(["views", "likes", "engagement"] as SortKey[]).map((col) => (
-                    <button
-                      key={col}
-                      onClick={() => handleSort(col)}
-                      className={cn(
-                        "flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer",
-                        sortKey === col
-                          ? "bg-accent/10 text-accent"
-                          : "text-muted hover:text-foreground hover:bg-surface-1"
-                      )}
-                    >
-                      {col.charAt(0).toUpperCase() + col.slice(1)}
-                      <SortIcon col={col} />
-                    </button>
-                  ))}
-                </div>
+            {/* Sort bar */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
+                Post Performance
+              </h2>
+              <div className="flex items-center gap-1">
+                {(["date", "views", "likes", "comments", "engagement"] as SortKey[]).map((col) => (
+                  <button
+                    key={col}
+                    onClick={() => handleSort(col)}
+                    className={cn(
+                      "flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer",
+                      sortBy === col
+                        ? "bg-[#0A84FF]/10 text-[#0A84FF]"
+                        : "text-white/40 hover:text-white hover:bg-white/10"
+                    )}
+                  >
+                    {col === "engagement" ? "Eng." : col.charAt(0).toUpperCase() + col.slice(1)}
+                    <SortIcon col={col} />
+                  </button>
+                ))}
               </div>
+            </div>
 
-              {/* Post list */}
-              {filtered.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16">
-                  <div className="rounded-full bg-surface-2 p-4 mb-4">
-                    <BarChart3 className="h-8 w-8 text-muted" />
-                  </div>
-                  <p className="text-sm font-medium">No posts found</p>
-                  <p className="text-xs text-muted mt-1">Try adjusting your filters</p>
-                </div>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15, duration: 0.3 }}
-                >
-                  {filtered.map((post, i) => (
+            {/* Post list */}
+            {sorted.length === 0 ? (
+              <div className="text-center py-16">
+                <BarChart3 size={32} className="text-white/20 mx-auto mb-3" />
+                <p className="text-[15px] font-medium text-white/50">No published posts found</p>
+                <p className="text-[12px] text-white/30 mt-1">
+                  Publish clips or drafts to see analytics here
+                </p>
+              </div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.2 }}
+                className="space-y-1"
+              >
+                {sorted.map((post, idx) => {
+                  const plat = getPlatform(post);
+                  const eng = post.analytics?.engagementRate ?? 0;
+                  const url = post.platformPostUrl ?? post.platformAnalytics?.[0]?.platformPostUrl;
+                  const key = post.postId || post.latePostId || `post-${idx}`;
+                  return (
                     <div
-                      key={`${post.id}-${i}`}
-                      className="flex items-center gap-3.5 py-3.5 border-b border-border/40 last:border-0 hover:bg-surface-1/50 transition-colors -mx-1 px-1 rounded-lg group"
+                      key={key}
+                      className="group flex items-center gap-4 p-4 rounded-xl hover:bg-[#2A2A2C] transition-colors border border-transparent hover:border-white/5"
                     >
-                      {/* Platform dot + title */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className={cn(
-                            "h-2 w-2 rounded-full shrink-0",
-                            PLATFORM_DOT[post.platform] ?? "bg-accent"
-                          )} />
-                          <h3 className="text-[13px] font-medium truncate">{post.title}</h3>
+                      {/* Thumbnail */}
+                      {post.thumbnailUrl && (
+                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#3A3A3C] shrink-0">
+                          <img src={post.thumbnailUrl} alt="" className="w-full h-full object-cover" />
                         </div>
-                        <div className="flex items-center gap-2 mt-1 pl-4">
-                          <Badge variant={PLATFORM_BADGE_VARIANT[post.platform] ?? "default"} className="text-[10px] px-1.5 py-0">
-                            {post.platform}
+                      )}
+
+                      {/* Platform + title */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span
+                            className="h-2 w-2 rounded-full shrink-0"
+                            style={{ background: PLATFORM_COLORS[plat] ?? "#0A84FF" }}
+                          />
+                          <h3 className="text-[14px] font-medium text-white/90 truncate">
+                            {title(post.content)}
+                          </h3>
+                          {url && (
+                            <a href={url} target="_blank" rel="noopener noreferrer" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                              <ExternalLink size={12} className="text-white/30 hover:text-[#0A84FF]" />
+                            </a>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 pl-4">
+                          <Badge variant={PLATFORM_BADGE[plat] ?? "default"} className="text-[10px] capitalize">
+                            {plat}
                           </Badge>
-                          <span className="text-[11px] text-muted">
-                            {new Date(post.publishedAt).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                            })}
-                          </span>
+                          {post.publishedAt && (
+                            <span className="text-[11px] text-white/30 flex items-center gap-1">
+                              <Calendar size={10} />
+                              {new Date(post.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                            </span>
+                          )}
+                          {post.syncStatus && post.syncStatus !== "synced" && (
+                            <span className="text-[10px] text-[#FF9F0A]">{post.syncStatus}</span>
+                          )}
                         </div>
                       </div>
 
                       {/* Stats */}
-                      <div className="flex items-center gap-4 shrink-0">
+                      <div className="flex items-center gap-5 shrink-0">
                         <div className="text-right">
-                          <p className="text-xs font-semibold tabular-nums">{formatNumber(post.views)}</p>
-                          <p className="text-[10px] text-muted">views</p>
+                          <p className="text-[12px] font-medium tabular-nums text-white/90">{fmt(post.analytics?.views ?? 0)}</p>
+                          <p className="text-[10px] text-white/25">views</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs font-semibold tabular-nums">{formatNumber(post.likes)}</p>
-                          <p className="text-[10px] text-muted">likes</p>
+                          <p className="text-[12px] font-medium tabular-nums text-white/90">{fmt(post.analytics?.likes ?? 0)}</p>
+                          <p className="text-[10px] text-white/25">likes</p>
                         </div>
-                        <div className="text-right w-12">
+                        <div className="text-right">
+                          <p className="text-[12px] font-medium tabular-nums text-white/90">{fmt(post.analytics?.comments ?? 0)}</p>
+                          <p className="text-[10px] text-white/25">comments</p>
+                        </div>
+                        <div className="text-right w-14">
                           <p className={cn(
-                            "text-xs font-semibold tabular-nums",
-                            post.engagement >= 8
-                              ? "text-green-500"
-                              : post.engagement >= 4
-                                ? "text-amber-500"
-                                : "text-muted"
+                            "text-[12px] font-medium tabular-nums",
+                            eng >= 8 ? "text-[#30D158]" : eng >= 4 ? "text-[#FF9F0A]" : "text-white/50"
                           )}>
-                            {post.engagement}%
+                            {eng.toFixed(1)}%
                           </p>
-                          <p className="text-[10px] text-muted">eng.</p>
+                          <p className="text-[10px] text-white/25">eng.</p>
                         </div>
                       </div>
                     </div>
-                  ))}
-                </motion.div>
-              )}
+                  );
+                })}
+              </motion.div>
+            )}
 
-              {/* Footer summary */}
-              {filtered.length > 0 && (
-                <div className="flex items-center gap-4 text-xs text-muted pt-2">
-                  <span>{filtered.length} posts</span>
-                  <span>{formatNumber(totalViews)} views</span>
-                  <span>{formatNumber(totalLikes)} likes</span>
-                  <span>{formatNumber(totalComments)} comments</span>
-                </div>
-              )}
-            </>
-          )}
-        </div>
+            {/* Footer */}
+            {sorted.length > 0 && (
+              <div className="flex items-center gap-4 text-[11px] text-white/25 pt-2">
+                <span>{sorted.length} posts</span>
+                <span>{fmt(totalViews)} views</span>
+                <span>{fmt(totalLikes)} likes</span>
+                <span>{fmt(totalComments)} comments</span>
+                <span>{fmt(totalShares)} shares</span>
+              </div>
+            )}
+          </>
+        )}
       </div>
-    </PageTransition>
+    </div>
   );
 }

@@ -10,6 +10,7 @@ import {
 } from "@dnd-kit/core";
 import { WeekView } from "@/components/calendar/WeekView";
 import { PostChip, type ScheduledPost } from "@/components/calendar/PostChip";
+import { DraftEditModal } from "@/components/calendar/DraftEditModal";
 import { PageTransition } from "@/components/ui/page-transition";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarDays } from "lucide-react";
@@ -59,6 +60,7 @@ function CalendarSkeleton() {
 export default function CalendarPage() {
   const [posts, setPosts] = useState<ScheduledPost[]>([]);
   const [activePost, setActivePost] = useState<ScheduledPost | null>(null);
+  const [editingPost, setEditingPost] = useState<ScheduledPost | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchPosts = useCallback(() => {
@@ -152,7 +154,7 @@ export default function CalendarPage() {
                   Nothing scheduled
                 </h2>
                 <p className="text-sm text-muted max-w-xs text-center">
-                  Schedule clips from the chat to see them here
+                  Schedule clips or create drafts from the chat to see them here
                 </p>
               </div>
             )}
@@ -162,12 +164,23 @@ export default function CalendarPage() {
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
             >
-              <WeekView posts={posts} />
+              <WeekView posts={posts} onPostClick={setEditingPost} />
               <DragOverlay dropAnimation={null}>
                 {activePost && <PostChip post={activePost} compact overlay />}
               </DragOverlay>
             </DndContext>
           </>
+        )}
+
+        {editingPost && (
+          <DraftEditModal
+            post={editingPost}
+            onClose={() => setEditingPost(null)}
+            onSaved={() => {
+              setEditingPost(null);
+              fetchPosts();
+            }}
+          />
         )}
       </div>
     </PageTransition>

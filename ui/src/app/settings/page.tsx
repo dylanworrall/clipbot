@@ -10,6 +10,8 @@ import { ScoringTab } from "@/components/settings/ScoringTab";
 import { ConnectorsTab } from "@/components/settings/ConnectorsTab";
 import { BillingTab } from "@/components/settings/BillingTab";
 import { AutoScoreTab } from "@/components/settings/AutoScoreTab";
+import { AutopilotTab } from "@/components/settings/AutopilotTab";
+import { BrandTab } from "@/components/settings/BrandTab";
 import { useSettings } from "@/hooks/useSettings";
 import { useToast } from "@/contexts/ToastContext";
 import { Save, Loader2 } from "lucide-react";
@@ -20,9 +22,11 @@ const isCloudMode = !!process.env.NEXT_PUBLIC_CONVEX_URL;
 
 const ALL_TABS = [
   { key: "general", label: "General" },
+  { key: "brand", label: "Brand" },
   { key: "style", label: "Style" },
   { key: "scoring", label: "Scoring" },
   { key: "autoscore", label: "AutoScore" },
+  { key: "autopilot", label: "Autopilot" },
   { key: "connectors", label: "Connectors" },
   { key: "billing", label: "Billing" },
 ] as const;
@@ -80,30 +84,31 @@ function SettingsInner() {
       <div className="h-screen overflow-y-auto">
         <div className="max-w-3xl mx-auto px-6 pt-8 pb-16 space-y-6">
           {/* Header */}
-          <h1 className="text-xl font-semibold">Settings</h1>
+          <h1 className="text-2xl font-bold text-white/90 mb-1">Settings</h1>
 
-          {/* Tab bar */}
-          <nav className="flex gap-1 border-b border-border">
+          {/* Tab bar — Soshi tab switcher */}
+          <div className="bg-[#2A2A2C] p-1 rounded-lg flex gap-1">
             {TABS.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setTab(tab.key)}
-                className={`px-4 py-2.5 text-sm font-medium transition-colors duration-200 border-b-2 -mb-px ${
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
                   activeTab === tab.key
-                    ? "border-accent text-accent"
-                    : "border-transparent text-muted hover:text-foreground"
+                    ? "bg-[#3A3A3C] text-white shadow-sm"
+                    : "text-white/50 hover:text-white"
                 }`}
               >
                 {tab.label}
               </button>
             ))}
-          </nav>
+          </div>
 
           {/* Active tab content */}
           <div className="min-h-[400px]">
             {activeTab === "general" && (
               <GeneralTab state={state} updateField={updateField} />
             )}
+            {activeTab === "brand" && <BrandTab />}
             {activeTab === "style" && (
               <StyleTab state={state} updateField={updateField} />
             )}
@@ -115,6 +120,7 @@ function SettingsInner() {
               />
             )}
             {activeTab === "autoscore" && <AutoScoreTab />}
+            {activeTab === "autopilot" && <AutopilotTab />}
             {activeTab === "connectors" && (
               <ConnectorsTab
                 state={state}
@@ -126,7 +132,7 @@ function SettingsInner() {
           </div>
 
           {/* Persistent save bar */}
-          <div className="flex items-center gap-4 pt-4 border-t border-border">
+          <div className="flex items-center gap-4 pt-4 border-t border-white/5">
             <Button variant="primary" onClick={handleSave} disabled={state.saving}>
               {state.saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

@@ -5,11 +5,11 @@ export async function GET() {
   const config = await getEffectiveConfig();
 
   if (!config.lateApiKey) {
-    return NextResponse.json({ accounts: [], error: "No Late API key configured" });
+    return NextResponse.json({ accounts: [], error: "No Zernio API key configured" });
   }
 
   try {
-    const res = await fetch("https://getlate.dev/api/v1/accounts", {
+    const res = await fetch("https://zernio.com/api/v1/accounts", {
       headers: {
         Authorization: `Bearer ${config.lateApiKey}`,
         "Content-Type": "application/json",
@@ -17,7 +17,7 @@ export async function GET() {
     });
 
     if (!res.ok) {
-      return NextResponse.json({ accounts: [], error: `Late API ${res.status}` });
+      return NextResponse.json({ accounts: [], error: `Zernio API ${res.status}` });
     }
 
     const data = await res.json() as {

@@ -87,7 +87,7 @@ export async function getEffectiveConfig(): Promise<AppSettings> {
       defaultMinScore: 7,
       defaultMaxDuration: 59,
       defaultPlatforms: ["tiktok", "youtube", "instagram"],
-      niche: "cannabis",
+      niche: "general",
       subtitles: true,
       padBefore: 1.5,
       padAfter: 0.5,

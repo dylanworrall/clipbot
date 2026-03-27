@@ -117,39 +117,39 @@ export default function ChatPage() {
     return (
       <div className="flex flex-col h-screen overflow-hidden items-center justify-center px-4">
         <div className="w-full max-w-md space-y-6 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/20">
-            <AlertTriangle className="h-7 w-7 text-amber-400" />
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FF9F0A]/10">
+            <AlertTriangle size={24} className="text-[#FF9F0A]" />
           </div>
           <div>
-            <h2 className="text-xl font-light tracking-tight text-foreground/80 mb-2">
+            <h2 className="text-xl font-bold text-white/90 mb-1">
               API Key Required
             </h2>
-            <p className="text-sm text-muted/70 leading-relaxed">
-              No Anthropic API key is configured. Set one up to start using ClipBot.
+            <p className="text-[13px] text-white/50 leading-relaxed">
+              No Anthropic API key is configured. Set one up to start using Socials.
             </p>
           </div>
           <div className="space-y-3">
             <a
               href="/settings"
-              className="flex items-center justify-center gap-2 w-full rounded-lg border border-accent/30 bg-accent/5 px-4 py-3 text-sm font-medium text-foreground hover:bg-accent/10 transition-colors"
+              className="flex items-center justify-center gap-2 w-full rounded-lg bg-[#0A84FF] px-4 py-3 text-sm font-medium text-white hover:bg-blue-500 transition-colors shadow-sm"
             >
-              <Settings className="h-4 w-4" />
+              <Settings size={16} />
               Configure in Settings
             </a>
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border/40" />
+                <div className="w-full border-t border-white/5" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-surface-0 px-3 text-muted/50">or via terminal</span>
+                <span className="bg-[#1C1C1E] px-3 text-white/30">or via terminal</span>
               </div>
             </div>
-            <div className="rounded-lg border border-border/60 bg-surface-1/50 px-4 py-3">
-              <div className="flex items-center gap-2 text-xs text-muted/70 mb-1.5">
-                <Terminal className="h-3 w-3" />
+            <div className="rounded-xl bg-[#2A2A2C] border border-white/5 px-4 py-3 shadow-sm">
+              <div className="flex items-center gap-2 text-[11px] text-white/40 mb-1.5">
+                <Terminal size={12} />
                 Set environment variable
               </div>
-              <code className="text-xs text-foreground/70 font-mono">
+              <code className="text-[12px] text-white/70 font-mono">
                 ANTHROPIC_API_KEY=sk-ant-...
               </code>
             </div>
@@ -177,8 +177,8 @@ export default function ChatPage() {
               transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="text-center mb-8"
             >
-              <h1 className="text-4xl font-light tracking-tight text-foreground/80 mb-3">
-                ClipBot
+              <h1 className="text-[40px] font-bold tracking-tight text-[#0A84FF] mb-3">
+                Socials
               </h1>
               <div className="h-14 relative overflow-hidden">
                 <AnimatePresence mode="wait">
@@ -188,7 +188,7 @@ export default function ChatPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="text-lg text-muted/70 absolute inset-x-0 line-clamp-2"
+                    className="text-[15px] text-white/50 absolute inset-x-0 line-clamp-2 font-medium"
                   >
                     {TAGLINES[taglineIndex]}
                   </motion.p>
@@ -227,7 +227,7 @@ export default function ChatPage() {
                     key={chip.label}
                     type="button"
                     onClick={() => handleChipClick(chip.label)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border/60 bg-surface-1/50 text-xs text-muted/80 hover:text-foreground/90 hover:border-accent/30 hover:bg-surface-1 transition-all duration-200 cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/5 bg-[#2A2A2C] text-[12px] font-medium text-white/50 hover:text-white hover:border-[#0A84FF]/30 hover:bg-[#3A3A3C] transition-colors cursor-pointer shadow-sm"
                   >
                     <Icon className="h-3 w-3" />
                     {chip.label}

@@ -52,18 +52,21 @@ export const getSubscription = query({
       .first();
     if (!user) return { tier: "free", messageCount: 0, limit: TIER_LIMITS.free, periodStart: new Date().toISOString() };
 
-    const limit = TIER_LIMITS[user.tier] ?? TIER_LIMITS.free;
+    const tier = user.tier ?? "free";
+    const limit = TIER_LIMITS[tier] ?? TIER_LIMITS.free;
+    const msgCount = user.messageCount ?? 0;
+    const pStart = user.periodStart ?? new Date().toISOString();
 
     // Check if period needs reset (30 days)
-    const periodStart = new Date(user.periodStart);
+    const periodStart = new Date(pStart);
     const now = new Date();
     const daysSincePeriodStart = (now.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24);
 
     return {
-      tier: user.tier,
-      messageCount: daysSincePeriodStart >= 30 ? 0 : user.messageCount,
+      tier,
+      messageCount: daysSincePeriodStart >= 30 ? 0 : msgCount,
       limit,
-      periodStart: user.periodStart,
+      periodStart: pStart,
     };
   },
 });
@@ -79,14 +82,16 @@ export const useMessage = mutation({
 
     if (!user) return { allowed: false, remaining: 0 };
 
-    const limit = TIER_LIMITS[user.tier] ?? TIER_LIMITS.free;
+    const tier = user.tier ?? "free";
+    const limit = TIER_LIMITS[tier] ?? TIER_LIMITS.free;
+    const pStart = user.periodStart ?? new Date().toISOString();
 
     // Reset period if 30+ days have passed
-    const periodStart = new Date(user.periodStart);
+    const periodStart = new Date(pStart);
     const now = new Date();
     const daysSincePeriodStart = (now.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24);
 
-    let currentCount = user.messageCount;
+    let currentCount = user.messageCount ?? 0;
     if (daysSincePeriodStart >= 30) {
       currentCount = 0;
       await ctx.db.patch(user._id, {
@@ -142,11 +147,13 @@ export const getCredits = query({
       .withIndex("by_email", (q) => q.eq("email", email))
       .first();
     if (!user) return 0;
-    const limit = TIER_LIMITS[user.tier] ?? TIER_LIMITS.free;
-    const periodStart = new Date(user.periodStart);
+    const tier = user.tier ?? "free";
+    const limit = TIER_LIMITS[tier] ?? TIER_LIMITS.free;
+    const pStart = user.periodStart ?? new Date().toISOString();
+    const periodStart = new Date(pStart);
     const now = new Date();
     const daysSincePeriodStart = (now.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24);
-    const currentCount = daysSincePeriodStart >= 30 ? 0 : user.messageCount;
+    const currentCount = daysSincePeriodStart >= 30 ? 0 : (user.messageCount ?? 0);
     return limit - currentCount;
   },
 });
