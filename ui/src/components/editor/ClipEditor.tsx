@@ -515,25 +515,35 @@ export function ClipEditor({
 
         {/* Center — player */}
         <div className="flex-1 flex items-center justify-center bg-black/40 p-4 min-w-0">
-          <EditorErrorBoundary>
-            <Suspense
-              fallback={
-                <div className="flex items-center gap-2 text-sm text-muted">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Loading editor...
-                </div>
-              }
-            >
-              <RemotionPreview
-                tracks={tracks}
-                durationInFrames={durationInFrames}
-                fps={fps}
-                onFrameChange={setCurrentFrame}
-                onPlayingChange={setIsPlaying}
-                playerRef={playerRef}
-              />
-            </Suspense>
-          </EditorErrorBoundary>
+          {videoSrc ? (
+            <EditorErrorBoundary>
+              <Suspense
+                fallback={
+                  <div className="flex items-center gap-2 text-sm text-white/40">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading editor...
+                  </div>
+                }
+              >
+                <RemotionPreview
+                  tracks={tracks}
+                  durationInFrames={durationInFrames}
+                  fps={fps}
+                  onFrameChange={setCurrentFrame}
+                  onPlayingChange={setIsPlaying}
+                  playerRef={playerRef}
+                />
+              </Suspense>
+            </EditorErrorBoundary>
+          ) : (
+            <div className="flex flex-col items-center justify-center text-center" id="editor-empty-slot">
+              <div className="w-16 h-16 rounded-2xl bg-[#0A84FF]/10 flex items-center justify-center mb-4">
+                <VideoIcon className="h-7 w-7 text-[#0A84FF]" />
+              </div>
+              <p className="text-[15px] font-medium text-white/50 mb-1">No media loaded</p>
+              <p className="text-[12px] text-white/25 mb-5">Choose a clip to start editing</p>
+            </div>
+          )}
         </div>
 
         {/* Right — properties panel */}

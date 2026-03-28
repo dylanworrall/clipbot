@@ -171,41 +171,38 @@ export default function EditorPage() {
         </div>
       )}
 
-      {/* Editor or empty state */}
+      {/* Editor — always rendered, shows empty state in player area when no clip */}
       <div className="h-full">
-        {activeClip ? (
-          <Suspense fallback={
-            <div className="h-full flex items-center justify-center">
-              <div className="flex items-center gap-2 text-white/40">
-                <Film size={18} />
-                <span className="text-[13px] font-medium">Loading editor...</span>
-              </div>
+        <Suspense fallback={
+          <div className="h-full flex items-center justify-center">
+            <div className="flex items-center gap-2 text-white/40">
+              <Film size={18} />
+              <span className="text-[13px] font-medium">Loading editor...</span>
             </div>
-          }>
-            <ClipEditor
-              runId={activeClip.runId}
-              clipIndex={activeClip.clipIndex}
-              clipTitle={activeClip.clipTitle}
-              videoSrc={activeClip.videoSrc}
-              durationSec={activeClip.durationSec}
-              words={activeClip.words}
-              hookText={activeClip.hookText}
-              hookDurationSeconds={activeClip.hookDurationSeconds}
-              captionMode={captionMode}
-              onClose={() => setActiveClip(null)}
-            />
-          </Suspense>
-        ) : (
-          <div className="h-full bg-[#2A2A2C] rounded-2xl border border-white/5 shadow-sm flex flex-col items-center justify-center">
-            <div className="w-16 h-16 rounded-2xl bg-[#0A84FF]/10 flex items-center justify-center mb-4">
-              <Film size={28} className="text-[#0A84FF]" />
+          </div>
+        }>
+          <ClipEditor
+            runId={activeClip?.runId ?? ""}
+            clipIndex={activeClip?.clipIndex ?? 0}
+            clipTitle={activeClip?.clipTitle ?? "Untitled"}
+            videoSrc={activeClip?.videoSrc ?? ""}
+            durationSec={activeClip?.durationSec ?? 30}
+            words={activeClip?.words ?? []}
+            hookText={activeClip?.hookText}
+            hookDurationSeconds={activeClip?.hookDurationSeconds}
+            captionMode={captionMode}
+            onClose={() => setActiveClip(null)}
+          />
+        </Suspense>
+        {/* Inject Choose Media button into the editor's empty slot */}
+        {!activeClip && mounted && (
+          <div className="fixed inset-0 pointer-events-none z-30 flex items-center justify-center">
+            <div className="pointer-events-auto mt-16">
+              <Button onClick={openPicker}>
+                <FolderOpen size={16} />
+                Choose Media
+              </Button>
             </div>
-            <p className="text-[16px] font-semibold text-white/60 mb-1">No media loaded</p>
-            <p className="text-[13px] text-white/30 mb-6">Select a clip to start editing</p>
-            <Button onClick={openPicker}>
-              <FolderOpen size={16} />
-              Choose Media
-            </Button>
           </div>
         )}
       </div>
