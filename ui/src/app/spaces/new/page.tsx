@@ -6,10 +6,17 @@ import { motion } from "motion/react";
 import { SpacePanel } from "@/components/spaces/SpacePanel";
 import { PromptInput } from "@/components/chat/PromptInput";
 import { useSpace } from "@/contexts/SpaceContext";
-import { Clock, FileText } from "lucide-react";
+import { Clock, FileText, FolderPlus, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import type { SpaceSettings } from "@/lib/types";
 import type { AppSettings } from "@/lib/types";
+
+interface ZernioProfile {
+  _id: string;
+  name: string;
+  color?: string;
+}
 
 export default function NewSpacePage() {
   const router = useRouter();
@@ -22,11 +29,21 @@ export default function NewSpacePage() {
   const [settings, setSettings] = useState<SpaceSettings>({});
   const [globalSettings, setGlobalSettings] = useState<AppSettings>({});
   const [saving, setSaving] = useState(false);
+  const [profiles, setProfiles] = useState<ZernioProfile[]>([]);
+  const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/settings")
       .then((r) => r.json())
       .then((data) => setGlobalSettings(data))
+      .catch(() => {});
+    fetch("/api/profiles")
+      .then((r) => r.json())
+      .then((data) => {
+        const p = data.profiles ?? [];
+        setProfiles(p);
+        if (p.length > 0) setSelectedProfile(p[0]._id);
+      })
       .catch(() => {});
   }, []);
 
@@ -142,8 +159,40 @@ export default function NewSpacePage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Description of what this Space is for and how to use it"
-                className="w-full text-base bg-transparent outline-none placeholder:text-muted/50 text-muted"
+                className="w-full text-base bg-transparent outline-none placeholder:text-white/30 text-white/50"
               />
+
+              {/* Profile selector */}
+              {profiles.length > 0 && (
+                <div className="mt-6">
+                  <label className="text-[12px] font-medium text-white/40 block mb-2">
+                    <FolderPlus size={12} className="inline mr-1" />
+                    Connect to Zernio Profile
+                  </label>
+                  <div className="flex gap-2 flex-wrap">
+                    {profiles.map((p) => (
+                      <button
+                        key={p._id}
+                        onClick={() => setSelectedProfile(p._id)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[13px] font-medium transition-colors ${
+                          selectedProfile === p._id
+                            ? "bg-[#0A84FF]/10 text-[#0A84FF] border border-[#0A84FF]/30"
+                            : "bg-[#2A2A2C] text-white/50 border border-white/5 hover:text-white hover:border-white/10"
+                        }`}
+                      >
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ background: p.color || "#0A84FF" }} />
+                        {p.name}
+                      </button>
+                    ))}
+                    <a
+                      href="/settings?tab=connectors"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium text-white/30 border border-dashed border-white/10 hover:text-white/50 hover:border-white/20 transition-colors"
+                    >
+                      <Plus size={12} /> New Profile
+                    </a>
+                  </div>
+                </div>
+              )}
             </motion.div>
 
             {/* PromptInput */}
