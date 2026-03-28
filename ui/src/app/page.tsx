@@ -12,6 +12,8 @@ import { useThread } from "@/contexts/ThreadContext";
 import { useSpace } from "@/contexts/SpaceContext";
 import { useAiChat } from "@/hooks/useAiChat";
 import { normalizeUrl } from "@/lib/utils";
+import { useSession } from "@/lib/auth-client";
+import { PaywallModal } from "@/components/billing/PaywallModal";
 
 const TAGLINES = [
   "Drop a link, make it viral.",
@@ -41,10 +43,31 @@ export default function ChatPage() {
   const { sendMessage, aiMessages, isThinking } = useAiChat(chatThreadId);
 
   const [taglineIndex, setTaglineIndex] = useState(0);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const session = useSession();
+  const userEmail = session.data?.user?.email;
   const [apiKeyStatus, setApiKeyStatus] = useState<{ connected: boolean; checked: boolean }>({
-    connected: true, // optimistic default to avoid flash
+    connected: true,
     checked: false,
   });
+
+  const checkAndIncrement = useCallback(async (): Promise<boolean> => {
+    if (!userEmail) return true; // no auth = local mode, no limits
+    try {
+      const res = await fetch("/api/usage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: userEmail }),
+      });
+      if (res.status === 402) {
+        setShowPaywall(true);
+        return false;
+      }
+      return true;
+    } catch {
+      return true; // fail open
+    }
+  }, [userEmail]);
 
   // Check if an API key is configured (local mode only — cloud uses middleware auth)
   useEffect(() => {
@@ -79,23 +102,22 @@ export default function ChatPage() {
   }, [activeThreadId, threads]);
 
   const handleSubmit = useCallback(
-    (runId: string, sourceUrl: string) => {
-      addRun({
-        runId,
-        sourceUrl,
-        status: "downloading",
-        startedAt: new Date().toISOString(),
-      });
+    async (runId: string, sourceUrl: string) => {
+      const allowed = await checkAndIncrement();
+      if (!allowed) return;
+      addRun({ runId, sourceUrl, status: "downloading", startedAt: new Date().toISOString() });
       setActiveThread(normalizeUrl(sourceUrl));
     },
-    [addRun, setActiveThread]
+    [addRun, setActiveThread, checkAndIncrement]
   );
 
   const handleChat = useCallback(
-    (message: string) => {
+    async (message: string) => {
+      const allowed = await checkAndIncrement();
+      if (!allowed) return;
       sendMessage(message, activeSpaceId);
     },
-    [sendMessage, activeSpaceId]
+    [sendMessage, activeSpaceId, checkAndIncrement]
   );
 
   const handleRetry = useCallback(() => {
@@ -260,6 +282,7 @@ export default function ChatPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      {showPaywall && <PaywallModal onClose={() => setShowPaywall(false)} />}
     </div>
   );
 }
