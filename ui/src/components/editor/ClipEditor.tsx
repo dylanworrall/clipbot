@@ -470,7 +470,7 @@ export function ClipEditor({
   /* ---- Render ---- */
 
   return (
-    <div className="bg-surface-0 border border-border/50 rounded-2xl shadow-elevation-3 overflow-hidden flex flex-col h-[90vh]">
+    <div className="bg-[#1C1C1E] overflow-hidden flex flex-col h-screen">
       {/* ═══════ Header ═══════ */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-border/50 bg-surface-1 flex-shrink-0">
         <div className="flex items-center gap-3">
