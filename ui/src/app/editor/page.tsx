@@ -28,10 +28,10 @@ export default function EditorPage() {
   }
 
   return (
-    <div className="flex-1 overflow-hidden p-6 text-white">
-      <div className="h-full max-w-6xl mx-auto">
+    <div className="h-screen overflow-hidden p-4 text-white">
+      <div className="h-full">
         <Suspense fallback={
-          <div className="h-full flex items-center justify-center bg-[#2A2A2C] rounded-2xl border border-white/5">
+          <div className="h-full flex items-center justify-center">
             <div className="flex items-center gap-2 text-white/40">
               <Film size={18} />
               <span className="text-[13px] font-medium">Loading editor...</span>
