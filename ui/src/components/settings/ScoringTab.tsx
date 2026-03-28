@@ -42,9 +42,9 @@ export function ScoringTab({ state, updateField, resetScoring }: ScoringTabProps
     <div className="grid grid-cols-2 gap-4">
       {items.map((item) => (
         <div key={item.label} className="space-y-1.5">
-          <label className="text-[12px] font-medium text-white/40">
+          <label className="text-[12px] font-medium text-muted-foreground">
             {item.label}:{" "}
-            <span className="text-white/90">{item.value}x</span>
+            <span className="text-foreground">{item.value}x</span>
           </label>
           <input
             type="range"
@@ -60,7 +60,7 @@ export function ScoringTab({ state, updateField, resetScoring }: ScoringTabProps
             }
             className="w-full accent-[#0A84FF]"
           />
-          <p className="text-[10px] text-white/25">{item.desc}</p>
+          <p className="text-[10px] text-muted-foreground/60">{item.desc}</p>
         </div>
       ))}
     </div>
@@ -68,13 +68,13 @@ export function ScoringTab({ state, updateField, resetScoring }: ScoringTabProps
 
   return (
     <div className="space-y-6">
-      <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-5">
+      <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-5">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
+            <h2 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
               AI Scoring Weights
             </h2>
-            <p className="text-[11px] text-white/35 font-medium mt-1">
+            <p className="text-[11px] text-muted-foreground/80 font-medium mt-1">
               Control how the AI prioritizes different viral criteria. Higher weights
               mean that criterion matters more in the final score.
             </p>
@@ -85,31 +85,31 @@ export function ScoringTab({ state, updateField, resetScoring }: ScoringTabProps
           </Button>
         </div>
 
-        <h3 className="text-xs font-semibold text-white/40 tracking-wider uppercase mb-4">
+        <h3 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase mb-4">
           Primary Criteria
         </h3>
         {renderSliderGrid(primaryWeights)}
 
-        <div className="border-t border-white/5" />
+        <div className="border-t border-border" />
 
-        <h3 className="text-xs font-semibold text-white/40 tracking-wider uppercase mb-4">
+        <h3 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase mb-4">
           Secondary Criteria
         </h3>
         {renderSliderGrid(secondaryWeights)}
 
-        <div className="border-t border-white/5" />
+        <div className="border-t border-border" />
 
-        <h3 className="text-xs font-semibold text-white/40 tracking-wider uppercase mb-4">
+        <h3 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase mb-4">
           Tertiary Criteria
         </h3>
         {renderSliderGrid(tertiaryWeights)}
 
-        <div className="border-t border-white/5" />
+        <div className="border-t border-border" />
 
         <div className="space-y-1.5">
-          <label className="text-[12px] font-medium text-white/40">
+          <label className="text-[12px] font-medium text-muted-foreground">
             Niche Bonus:{" "}
-            <span className="text-white/90">
+            <span className="text-foreground">
               +{state.weightNicheBonus}
             </span>
           </label>
@@ -122,7 +122,7 @@ export function ScoringTab({ state, updateField, resetScoring }: ScoringTabProps
             onChange={(e) => updateField("weightNicheBonus", Number(e.target.value))}
             className="w-full accent-[#FF9F0A]"
           />
-          <p className="text-[10px] text-white/25">
+          <p className="text-[10px] text-muted-foreground/60">
             Bonus points added to the final score when a moment hits niche-specific criteria
           </p>
         </div>

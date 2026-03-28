@@ -46,7 +46,7 @@ function WeekCell({
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-[52px] border-b border-r border-white/5 p-1.5 transition-all duration-200 relative ${
+      className={`min-h-[52px] border-b border-r border-border p-1.5 transition-all duration-200 relative ${
         isToday ? "bg-[#0A84FF]/[0.02]" : ""
       } ${isOver ? "!bg-[#0A84FF]/10 ring-1 ring-inset ring-[#0A84FF]/30" : ""}`}
     >
@@ -138,7 +138,7 @@ export function WeekView({ posts, onPostClick }: WeekViewProps) {
 
       <div
         ref={scrollRef}
-        className="rounded-xl bg-[#2A2A2C] border border-white/5 shadow-sm overflow-auto"
+        className="rounded-xl bg-surface-1 border border-border shadow-sm overflow-auto"
         style={{ maxHeight: "calc(100vh - 200px)" }}
       >
         <div
@@ -146,15 +146,15 @@ export function WeekView({ posts, onPostClick }: WeekViewProps) {
           style={{ gridTemplateColumns: "56px repeat(7, minmax(0, 1fr))" }}
         >
           {/* Sticky day headers */}
-          <div className="sticky top-0 z-20 bg-[#2A2A2C] border-b border-r border-white/5" />
+          <div className="sticky top-0 z-20 bg-surface-1 border-b border-r border-border" />
           {weekDays.map((day) => (
             <div
               key={day.dateStr}
-              className={`sticky top-0 z-20 bg-[#2A2A2C] border-b border-r border-white/5 py-3 text-center ${
+              className={`sticky top-0 z-20 bg-surface-1 border-b border-r border-border py-3 text-center ${
                 day.isToday ? "bg-[#0A84FF]/5" : ""
               }`}
             >
-              <div className="text-[11px] text-white/40 uppercase tracking-wider font-medium">
+              <div className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">
                 {day.dayName}
               </div>
               <div
@@ -172,8 +172,8 @@ export function WeekView({ posts, onPostClick }: WeekViewProps) {
           {/* Hour rows */}
           {Array.from({ length: 24 }, (_, hour) => (
             <Fragment key={hour}>
-              <div className="sticky left-0 z-10 bg-[#2A2A2C] border-b border-r border-white/5 flex items-start justify-end pr-2 pt-1">
-                <span className="text-[10px] text-white/40 leading-none whitespace-nowrap font-medium">
+              <div className="sticky left-0 z-10 bg-surface-1 border-b border-r border-border flex items-start justify-end pr-2 pt-1">
+                <span className="text-[10px] text-muted-foreground leading-none whitespace-nowrap font-medium">
                   {formatHour(hour)}
                 </span>
               </div>

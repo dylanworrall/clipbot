@@ -50,7 +50,7 @@ function SwipeCard({ item, onApprove, onReject, isTop }: { item: QueueItem; onAp
   const rejectGlow = useTransform(x, [-200, -80, 0], [0.8, 0.3, 0]);
 
   const format = FORMAT_STYLES[item.format] || FORMAT_STYLES.tweet;
-  const scoreColor = item.estimatedScore >= 8 ? "text-[#30D158]" : item.estimatedScore >= 6 ? "text-[#FF9F0A]" : "text-white/40";
+  const scoreColor = item.estimatedScore >= 8 ? "text-[#30D158]" : item.estimatedScore >= 6 ? "text-[#FF9F0A]" : "text-muted-foreground";
 
   return (
     <motion.div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: isTop ? 10 : 1 }}>
@@ -72,19 +72,19 @@ function SwipeCard({ item, onApprove, onReject, isTop }: { item: QueueItem; onAp
         initial={{ scale: isTop ? 1 : 0.95, opacity: isTop ? 1 : 0.5 }}
         animate={{ scale: isTop ? 1 : 0.95, opacity: isTop ? 1 : 0.5 }}
         exit={{ x: 300, opacity: 0, rotate: 15, transition: { duration: 0.3 } }}
-        className="w-full max-w-lg bg-[#2A2A2C] rounded-2xl border border-white/5 shadow-2xl cursor-grab active:cursor-grabbing select-none"
+        className="w-full max-w-lg bg-surface-1 rounded-2xl border border-border shadow-2xl cursor-grab active:cursor-grabbing select-none"
       >
         <div className="flex items-center justify-between p-6 pb-0">
           <div className="flex items-center gap-2">
             <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg ${format.bg} ${format.color} text-[12px] font-semibold`}>{format.label}</span>
             {item.platforms.map((p) => (
-              <span key={p} className="px-2 py-0.5 rounded-md bg-white/5 text-white/40 text-[10px] font-medium capitalize">{p}</span>
+              <span key={p} className="px-2 py-0.5 rounded-md bg-white/5 text-muted-foreground text-[10px] font-medium capitalize">{p}</span>
             ))}
           </div>
           <span className={`text-[13px] font-bold tabular-nums ${scoreColor}`}>{item.estimatedScore.toFixed(1)}</span>
         </div>
         <div className="p-6 pt-4">
-          <p className="text-[18px] leading-relaxed text-white/90 whitespace-pre-wrap">{item.content}</p>
+          <p className="text-[18px] leading-relaxed text-foreground whitespace-pre-wrap">{item.content}</p>
         </div>
         {item.hashtags && item.hashtags.length > 0 && (
           <div className="px-6 pb-4 flex flex-wrap gap-1.5">
@@ -94,9 +94,9 @@ function SwipeCard({ item, onApprove, onReject, isTop }: { item: QueueItem; onAp
           </div>
         )}
         {isTop && (
-          <div className="flex items-center justify-between px-6 pb-4 pt-2 border-t border-white/5">
-            <div className="flex items-center gap-1.5 text-[11px] text-white/20"><ArrowLeft size={10} /> Reject</div>
-            <div className="flex items-center gap-1.5 text-[11px] text-white/20">Approve <ArrowRight size={10} /></div>
+          <div className="flex items-center justify-between px-6 pb-4 pt-2 border-t border-border">
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/50"><ArrowLeft size={10} /> Reject</div>
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/50">Approve <ArrowRight size={10} /></div>
           </div>
         )}
       </motion.div>
@@ -199,19 +199,19 @@ export default function DraftsPage() {
         {/* Header */}
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-white/90 mb-1">Drafts</h1>
-            <p className="text-white/50 text-[13px] font-medium">
+            <h1 className="text-2xl font-bold text-foreground mb-1">Drafts</h1>
+            <p className="text-muted-foreground text-[13px] font-medium">
               {drafts.length} draft{drafts.length !== 1 ? "s" : ""}
               {queueItems.length > 0 && ` · ${queueItems.length} in queue`}
             </p>
           </div>
           <div className="flex items-center gap-2">
             {/* View mode toggle */}
-            <div className="bg-[#2A2A2C] p-1 rounded-lg flex gap-1">
+            <div className="bg-surface-1 p-1 rounded-lg flex gap-1">
               <button
                 onClick={() => setViewMode("list")}
                 className={`px-3 py-1 rounded-md text-[11px] font-medium transition-colors flex items-center gap-1.5 ${
-                  viewMode === "list" ? "bg-[#3A3A3C] text-white shadow-sm" : "text-white/50 hover:text-white"
+                  viewMode === "list" ? "bg-surface-2 text-white shadow-sm" : "text-muted-foreground hover:text-white"
                 }`}
               >
                 <List size={12} /> List
@@ -219,7 +219,7 @@ export default function DraftsPage() {
               <button
                 onClick={() => setViewMode("swipe")}
                 className={`px-3 py-1 rounded-md text-[11px] font-medium transition-colors flex items-center gap-1.5 ${
-                  viewMode === "swipe" ? "bg-[#3A3A3C] text-white shadow-sm" : "text-white/50 hover:text-white"
+                  viewMode === "swipe" ? "bg-surface-2 text-white shadow-sm" : "text-muted-foreground hover:text-white"
                 }`}
               >
                 <Layers3 size={12} /> Swipe
@@ -236,7 +236,7 @@ export default function DraftsPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-16">
-            <Loader2 size={20} className="animate-spin text-white/40" />
+            <Loader2 size={20} className="animate-spin text-muted-foreground" />
           </div>
         )}
 
@@ -245,9 +245,9 @@ export default function DraftsPage() {
           <>
             {drafts.length === 0 && (
               <div className="text-center py-16">
-                <FileText size={32} className="text-white/20 mx-auto mb-3" />
-                <p className="text-[15px] font-medium text-white/50">No drafts yet</p>
-                <p className="text-[13px] text-white/30 mt-1">
+                <FileText size={32} className="text-muted-foreground/50 mx-auto mb-3" />
+                <p className="text-[15px] font-medium text-muted-foreground">No drafts yet</p>
+                <p className="text-[13px] text-muted-foreground/70 mt-1">
                   Ask Socials to generate content or switch to Swipe mode to review queue items
                 </p>
               </div>
@@ -261,7 +261,7 @@ export default function DraftsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="bg-[#2A2A2C] rounded-2xl border border-white/5 shadow-sm overflow-hidden"
+                    className="bg-surface-1 rounded-2xl border border-border shadow-sm overflow-hidden"
                   >
                     <div className="p-5">
                       <div className="flex items-start justify-between gap-3 mb-3">
@@ -270,10 +270,10 @@ export default function DraftsPage() {
                             <FileText size={14} className="text-[#0A84FF]" />
                           </div>
                           <div>
-                            <h3 className="text-[14px] font-semibold text-white/90">{draft.clipTitle}</h3>
+                            <h3 className="text-[14px] font-semibold text-foreground">{draft.clipTitle}</h3>
                             <div className="flex items-center gap-2 mt-0.5">
                               <Badge variant={statusColor(draft.status)}>{draft.status}</Badge>
-                              <span className="text-[10px] text-white/25">{new Date(draft.createdAt).toLocaleDateString()}</span>
+                              <span className="text-[10px] text-muted-foreground/60">{new Date(draft.createdAt).toLocaleDateString()}</span>
                             </div>
                           </div>
                         </div>
@@ -293,7 +293,7 @@ export default function DraftsPage() {
                           <textarea
                             value={editContent}
                             onChange={(e) => setEditContent(e.target.value)}
-                            className="w-full bg-[#1C1C1E] rounded-lg px-3 py-2.5 text-[14px] text-white border border-white/5 focus:outline-none focus:border-[#0A84FF]/50 transition-colors resize-none min-h-[100px]"
+                            className="w-full bg-surface-0 rounded-lg px-3 py-2.5 text-[14px] text-white border border-border focus:outline-none focus:border-[#0A84FF]/50 transition-colors resize-none min-h-[100px]"
                           />
                           <div className="flex gap-2">
                             <Button size="xs" onClick={() => handleSave(draft.id)}>Save</Button>
@@ -301,18 +301,18 @@ export default function DraftsPage() {
                           </div>
                         </div>
                       ) : (
-                        <p className="text-[14px] text-white/70 leading-relaxed cursor-pointer hover:text-white/90 transition-colors" onClick={() => { setEditing(draft.id); setEditContent(draft.content || ""); }}>
+                        <p className="text-[14px] text-foreground/70 leading-relaxed cursor-pointer hover:text-foreground transition-colors" onClick={() => { setEditing(draft.id); setEditContent(draft.content || ""); }}>
                           {draft.content || draft.clipTitle}
                         </p>
                       )}
-                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
                         <div className="flex flex-wrap gap-1.5">
                           {draft.platforms.map((p) => (
                             <span key={p} className="px-2 py-0.5 rounded-md bg-[#BF5AF2]/10 text-[#BF5AF2] text-[10px] font-medium capitalize">{p}</span>
                           ))}
                         </div>
                         {draft.scheduledFor && (
-                          <div className="flex items-center gap-1 text-[10px] text-white/25">
+                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground/60">
                             <Clock size={10} />
                             {new Date(draft.scheduledFor).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                           </div>
@@ -350,8 +350,8 @@ export default function DraftsPage() {
                 <div className="w-16 h-16 rounded-2xl bg-[#BF5AF2]/10 flex items-center justify-center mx-auto mb-4">
                   <Layers3 size={28} className="text-[#BF5AF2]" />
                 </div>
-                <p className="text-[16px] font-semibold text-white/60 mb-1">Queue is empty</p>
-                <p className="text-[13px] text-white/30 max-w-sm mx-auto mb-6">
+                <p className="text-[16px] font-semibold text-foreground/60 mb-1">Queue is empty</p>
+                <p className="text-[13px] text-muted-foreground/70 max-w-sm mx-auto mb-6">
                   Ask Socials to &quot;generate 5 tweets for the queue&quot; or run the autopilot
                 </p>
                 <Button variant="outline" size="sm" onClick={() => (window.location.href = "/")}>

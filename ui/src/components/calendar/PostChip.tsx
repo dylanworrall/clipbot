@@ -92,17 +92,17 @@ export function PostChip({ post, compact, overlay, onClick }: PostChipProps) {
         {post.clipTitle}
       </div>
     ) : (
-      <div className="rounded-xl bg-[#2A2A2C] border border-white/5 p-3 shadow-xl min-w-[200px]">
+      <div className="rounded-xl bg-surface-1 border border-border p-3 shadow-xl min-w-[200px]">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5">
             <TypeIcon className="h-3 w-3 shrink-0" />
-            <span className="text-sm font-medium text-white/90 truncate">
+            <span className="text-sm font-medium text-foreground truncate">
               {post.clipTitle}
             </span>
           </div>
           <Badge variant={getStatusBadge(post.status)}>{post.status}</Badge>
         </div>
-        <div className="flex items-center gap-1 text-xs text-white/40 mt-1">
+        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
           <Clock className="h-3 w-3" />
           {new Date(post.scheduledFor).toLocaleTimeString([], {
             hour: "2-digit",
@@ -144,29 +144,29 @@ export function PostChip({ post, compact, overlay, onClick }: PostChipProps) {
       ref={setNodeRef}
       style={style}
       onClick={handleClick}
-      className={`rounded-xl bg-[#2A2A2C] border border-white/5 p-2.5 shadow-sm group transition-opacity ${
+      className={`rounded-xl bg-surface-1 border border-border p-2.5 shadow-sm group transition-opacity ${
         isDragging ? "opacity-30" : ""
-      } ${onClick ? "cursor-pointer hover:border-white/10" : ""}`}
+      } ${onClick ? "cursor-pointer hover:border-border" : ""}`}
     >
       <div className="flex items-start gap-2">
         <button
           {...listeners}
           {...attributes}
-          className="mt-0.5 cursor-grab active:cursor-grabbing text-white/25 hover:text-white/50 shrink-0 transition-colors"
+          className="mt-0.5 cursor-grab active:cursor-grabbing text-muted-foreground/60 hover:text-muted-foreground shrink-0 transition-colors"
         >
           <GripVertical className="h-4 w-4" />
         </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 min-w-0">
-              <TypeIcon className="h-3.5 w-3.5 shrink-0 text-white/40" />
-              <span className="text-sm font-medium text-white/90 truncate">
+              <TypeIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground truncate">
                 {post.clipTitle}
               </span>
             </div>
             <Badge variant={getStatusBadge(post.status)}>{post.status}</Badge>
           </div>
-          <div className="flex items-center gap-1 text-xs text-white/40 mt-1">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
             <Clock className="h-3 w-3" />
             {new Date(post.scheduledFor).toLocaleTimeString([], {
               hour: "2-digit",

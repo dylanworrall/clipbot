@@ -10,10 +10,10 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default: "bg-[#0A84FF] text-white",
-        secondary: "bg-[#2A2A2C] text-white/70 border-white/5",
+        secondary: "bg-surface-1 text-foreground/70 border-border",
         destructive: "bg-[#FF453A]/10 text-[#FF453A]",
-        outline: "border-white/5 text-white/70",
-        ghost: "text-white/50 hover:text-white",
+        outline: "border-border text-foreground/70",
+        ghost: "text-muted-foreground hover:text-white",
         link: "text-[#0A84FF] underline-offset-4 [a&]:hover:underline",
         blue: "bg-[#0A84FF]/10 text-[#0A84FF]",
         gold: "bg-[#FF9F0A]/10 text-[#FF9F0A]",

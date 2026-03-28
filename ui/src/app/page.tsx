@@ -121,10 +121,10 @@ export default function ChatPage() {
             <AlertTriangle size={24} className="text-[#FF9F0A]" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white/90 mb-1">
+            <h2 className="text-xl font-bold text-foreground mb-1">
               API Key Required
             </h2>
-            <p className="text-[13px] text-white/50 leading-relaxed">
+            <p className="text-[13px] text-muted-foreground leading-relaxed">
               No Anthropic API key is configured. Set one up to start using Socials.
             </p>
           </div>
@@ -138,18 +138,18 @@ export default function ChatPage() {
             </a>
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/5" />
+                <div className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-[#1C1C1E] px-3 text-white/30">or via terminal</span>
+                <span className="bg-background px-3 text-muted-foreground/70">or via terminal</span>
               </div>
             </div>
-            <div className="rounded-xl bg-[#2A2A2C] border border-white/5 px-4 py-3 shadow-sm">
-              <div className="flex items-center gap-2 text-[11px] text-white/40 mb-1.5">
+            <div className="rounded-xl bg-surface-1 border border-border px-4 py-3 shadow-sm">
+              <div className="flex items-center gap-2 text-[11px] text-muted-foreground mb-1.5">
                 <Terminal size={12} />
                 Set environment variable
               </div>
-              <code className="text-[12px] text-white/70 font-mono">
+              <code className="text-[12px] text-foreground/70 font-mono">
                 ANTHROPIC_API_KEY=sk-ant-...
               </code>
             </div>
@@ -188,7 +188,7 @@ export default function ChatPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="text-[15px] text-white/50 absolute inset-x-0 line-clamp-2 font-medium"
+                    className="text-[15px] text-muted-foreground absolute inset-x-0 line-clamp-2 font-medium"
                   >
                     {TAGLINES[taglineIndex]}
                   </motion.p>
@@ -227,7 +227,7 @@ export default function ChatPage() {
                     key={chip.label}
                     type="button"
                     onClick={() => handleChipClick(chip.label)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/5 bg-[#2A2A2C] text-[12px] font-medium text-white/50 hover:text-white hover:border-[#0A84FF]/30 hover:bg-[#3A3A3C] transition-colors cursor-pointer shadow-sm"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-surface-1 text-[12px] font-medium text-muted-foreground hover:text-white hover:border-[#0A84FF]/30 hover:bg-surface-2 transition-colors cursor-pointer shadow-sm"
                   >
                     <Icon className="h-3 w-3" />
                     {chip.label}

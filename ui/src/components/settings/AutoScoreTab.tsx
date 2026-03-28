@@ -73,7 +73,7 @@ function correlationLabel(r: number): { text: string; color: string } {
   if (abs >= 0.7) return { text: "Strong", color: "text-[#30D158]" };
   if (abs >= 0.4) return { text: "Moderate", color: "text-[#FF9F0A]" };
   if (abs >= 0.2) return { text: "Weak", color: "text-[#FF9F0A]" };
-  return { text: "None", color: "text-white/40" };
+  return { text: "None", color: "text-muted-foreground" };
 }
 
 export function AutoScoreTab() {
@@ -154,7 +154,7 @@ export function AutoScoreTab() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-[13px] font-medium text-white/40 py-12 justify-center">
+      <div className="flex items-center gap-2 text-[13px] font-medium text-muted-foreground py-12 justify-center">
         <Loader2 size={16} className="animate-spin" />
         Loading AutoScore...
       </div>
@@ -168,20 +168,20 @@ export function AutoScoreTab() {
   return (
     <div className="space-y-6">
       {/* Header Card — Enable + Config */}
-      <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-5">
+      <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#BF5AF2]/10">
               <Brain size={18} className="text-[#BF5AF2]" />
             </div>
             <div>
-              <h2 className="text-[14px] font-semibold text-white/90 flex items-center gap-2">
+              <h2 className="text-[14px] font-semibold text-foreground flex items-center gap-2">
                 AutoScore
                 <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-[#BF5AF2]/10 text-[#BF5AF2] uppercase tracking-wider">
                   Beta
                 </span>
               </h2>
-              <p className="text-[11px] text-white/35 mt-0.5">
+              <p className="text-[11px] text-muted-foreground/80 mt-0.5">
                 Learns from real post analytics to improve scoring predictions over time
               </p>
             </div>
@@ -204,13 +204,13 @@ export function AutoScoreTab() {
 
         {report.config.enabled && (
           <>
-            <div className="border-t border-white/5" />
+            <div className="border-t border-border" />
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-white/40">
+                <label className="text-[12px] font-medium text-muted-foreground">
                   Learning Rate:{" "}
-                  <span className="text-white/90">
+                  <span className="text-foreground">
                     {report.config.learningRate}
                   </span>
                 </label>
@@ -225,15 +225,15 @@ export function AutoScoreTab() {
                   }
                   className="w-full accent-[#BF5AF2]"
                 />
-                <p className="text-[10px] text-white/25">
+                <p className="text-[10px] text-muted-foreground/60">
                   How aggressively weights adjust. Lower = stable, higher = faster adaptation.
                 </p>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-white/40">
+                <label className="text-[12px] font-medium text-muted-foreground">
                   Min Samples:{" "}
-                  <span className="text-white/90">
+                  <span className="text-foreground">
                     {report.config.minSamples}
                   </span>
                 </label>
@@ -248,7 +248,7 @@ export function AutoScoreTab() {
                   }
                   className="w-full accent-[#BF5AF2]"
                 />
-                <p className="text-[10px] text-white/25">
+                <p className="text-[10px] text-muted-foreground/60">
                   Minimum published clips with analytics before learning starts.
                 </p>
               </div>
@@ -260,37 +260,37 @@ export function AutoScoreTab() {
       {/* Stats Overview */}
       {report.config.enabled && (
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm text-center">
-            <div className="flex items-center justify-center gap-2 text-white/40 text-[11px] mb-2">
+          <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm text-center">
+            <div className="flex items-center justify-center gap-2 text-muted-foreground text-[11px] mb-2">
               <BarChart3 size={12} />
               Samples
             </div>
             <p className="text-[24px] font-bold tracking-tight text-[#0A84FF] tabular-nums">{report.totalFeedback}</p>
-            <p className="text-[10px] text-white/25 mt-1">published clips tracked</p>
+            <p className="text-[10px] text-muted-foreground/60 mt-1">published clips tracked</p>
           </div>
 
-          <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm text-center">
-            <div className="flex items-center justify-center gap-2 text-white/40 text-[11px] mb-2">
+          <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm text-center">
+            <div className="flex items-center justify-center gap-2 text-muted-foreground text-[11px] mb-2">
               <TrendingUp size={12} />
               Correlation
             </div>
             <p className={`text-[24px] font-bold tracking-tight tabular-nums ${corr.color}`}>
               {report.totalFeedback >= 2 ? report.correlation.toFixed(2) : "—"}
             </p>
-            <p className="text-[10px] text-white/25 mt-1">
+            <p className="text-[10px] text-muted-foreground/60 mt-1">
               {report.totalFeedback >= 2
                 ? `${corr.text} predicted → actual`
                 : "Need 2+ samples"}
             </p>
           </div>
 
-          <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm text-center">
-            <div className="flex items-center justify-center gap-2 text-white/40 text-[11px] mb-2">
+          <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm text-center">
+            <div className="flex items-center justify-center gap-2 text-muted-foreground text-[11px] mb-2">
               <FlaskConical size={12} />
               Cycles
             </div>
             <p className="text-[24px] font-bold tracking-tight text-[#BF5AF2] tabular-nums">{report.updates.length}</p>
-            <p className="text-[10px] text-white/25 mt-1">
+            <p className="text-[10px] text-muted-foreground/60 mt-1">
               {report.updates.filter((u) => u.accepted).length} accepted
             </p>
           </div>
@@ -299,11 +299,11 @@ export function AutoScoreTab() {
 
       {/* Run Learning Cycle */}
       {report.config.enabled && (
-        <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-4">
+        <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-[14px] font-semibold text-white/90">Run Learning Cycle</h3>
-              <p className="text-[11px] text-white/35 mt-0.5">
+              <h3 className="text-[14px] font-semibold text-foreground">Run Learning Cycle</h3>
+              <p className="text-[11px] text-muted-foreground/80 mt-0.5">
                 Collect analytics from published clips, then adjust weights
               </p>
             </div>
@@ -338,8 +338,8 @@ export function AutoScoreTab() {
 
       {/* Category Breakdown */}
       {report.config.enabled && report.categoryBreakdown.length > 0 && (
-        <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-4">
-          <h3 className="text-xs font-semibold text-white/40 tracking-wider uppercase mb-4">
+        <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-4">
+          <h3 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase mb-4">
             Category Performance
           </h3>
           <div className="space-y-2">
@@ -352,31 +352,31 @@ export function AutoScoreTab() {
                   ? "text-[#30D158]"
                   : diff < -0.5
                     ? "text-[#FF453A]"
-                    : "text-white/40";
+                    : "text-muted-foreground";
 
               return (
                 <div
                   key={cat.category}
-                  className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-[#3A3A3C] transition-colors"
+                  className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-surface-3 transition-colors"
                 >
-                  <span className="text-[12px] font-medium text-white/70 capitalize w-24 truncate">
+                  <span className="text-[12px] font-medium text-foreground/70 capitalize w-24 truncate">
                     {cat.category}
                   </span>
-                  <span className="text-[10px] text-white/30 w-12">
+                  <span className="text-[10px] text-muted-foreground/70 w-12">
                     {cat.count} clips
                   </span>
                   <div className="flex-1 flex items-center gap-3 text-[11px]">
-                    <span className="text-white/35">
+                    <span className="text-muted-foreground/80">
                       Predicted:{" "}
-                      <span className="text-white/70">{cat.avgPredicted}</span>
+                      <span className="text-foreground/70">{cat.avgPredicted}</span>
                     </span>
-                    <span className="text-white/35">
+                    <span className="text-muted-foreground/80">
                       Actual:{" "}
-                      <span className="text-white/70">{cat.avgActual}</span>
+                      <span className="text-foreground/70">{cat.avgActual}</span>
                     </span>
-                    <span className="text-white/35">
+                    <span className="text-muted-foreground/80">
                       Eng:{" "}
-                      <span className="text-white/70">
+                      <span className="text-foreground/70">
                         {cat.avgEngagement.toFixed(1)}%
                       </span>
                     </span>
@@ -391,15 +391,15 @@ export function AutoScoreTab() {
 
       {/* Weight Update History */}
       {report.config.enabled && report.updates.length > 0 && (
-        <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-4">
-          <h3 className="text-xs font-semibold text-white/40 tracking-wider uppercase mb-4">
+        <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-4">
+          <h3 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase mb-4">
             Weight Update History
           </h3>
           <div className="space-y-2">
             {report.updates.map((update) => (
               <div
                 key={update.id}
-                className="flex items-start gap-3 py-2.5 px-3 rounded-xl hover:bg-[#3A3A3C] transition-colors"
+                className="flex items-start gap-3 py-2.5 px-3 rounded-xl hover:bg-surface-3 transition-colors"
               >
                 <div
                   className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
@@ -416,16 +416,16 @@ export function AutoScoreTab() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 text-[12px] font-medium">
-                    <span className="text-white/90">
+                    <span className="text-foreground">
                       {update.accepted ? "Accepted" : "Rejected"}
                     </span>
-                    <span className="text-white/35">
+                    <span className="text-muted-foreground/80">
                       r={update.correlation.toFixed(2)}
                     </span>
-                    <span className="text-white/35">
+                    <span className="text-muted-foreground/80">
                       n={update.sampleSize}
                     </span>
-                    <span className="text-white/25 ml-auto text-[10px]">
+                    <span className="text-muted-foreground/60 ml-auto text-[10px]">
                       {new Date(update.timestamp).toLocaleDateString()}
                     </span>
                   </div>
@@ -457,38 +457,38 @@ export function AutoScoreTab() {
 
       {/* Recent Feedback */}
       {report.config.enabled && report.recentFeedback.length > 0 && (
-        <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-4">
-          <h3 className="text-xs font-semibold text-white/40 tracking-wider uppercase mb-4">
+        <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-4">
+          <h3 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase mb-4">
             Recent Feedback
           </h3>
           <div className="space-y-1.5">
             {report.recentFeedback.slice(0, 10).map((f) => (
               <div
                 key={f.id}
-                className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-[#3A3A3C] transition-colors text-[12px]"
+                className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-surface-3 transition-colors text-[12px]"
               >
-                <span className="truncate flex-1 font-medium text-white/70">{f.title}</span>
-                <span className="text-white/35 capitalize w-20 truncate">
+                <span className="truncate flex-1 font-medium text-foreground/70">{f.title}</span>
+                <span className="text-muted-foreground/80 capitalize w-20 truncate">
                   {f.category}
                 </span>
-                <span className="text-white/35 w-16 text-right tabular-nums">
+                <span className="text-muted-foreground/80 w-16 text-right tabular-nums">
                   {formatNumber(f.actualMetrics.views)} views
                 </span>
                 <div className="flex items-center gap-1.5 w-28 tabular-nums">
                   <span className="text-[#FF9F0A]">{f.predictedScore}</span>
-                  <span className="text-white/25">→</span>
+                  <span className="text-muted-foreground/60">→</span>
                   <span
                     className={
                       f.actualScore > f.predictedScore
                         ? "text-[#30D158]"
                         : f.actualScore < f.predictedScore
                           ? "text-[#FF453A]"
-                          : "text-white/70"
+                          : "text-foreground/70"
                     }
                   >
                     {f.actualScore}
                   </span>
-                  <span className="text-white/25 text-[10px]">
+                  <span className="text-muted-foreground/60 text-[10px]">
                     ({f.engagementRate.toFixed(1)}%)
                   </span>
                 </div>
@@ -501,9 +501,9 @@ export function AutoScoreTab() {
       {/* Empty state */}
       {report.config.enabled && report.totalFeedback === 0 && (
         <div className="text-center py-8">
-          <RefreshCw size={24} className="text-white/20 mx-auto mb-3" />
-          <p className="text-[14px] font-medium text-white/50">No feedback collected yet</p>
-          <p className="text-[12px] text-white/30 mt-1">
+          <RefreshCw size={24} className="text-muted-foreground/50 mx-auto mb-3" />
+          <p className="text-[14px] font-medium text-muted-foreground">No feedback collected yet</p>
+          <p className="text-[12px] text-muted-foreground/70 mt-1">
             Publish clips and wait for analytics, then run a learning cycle
           </p>
         </div>

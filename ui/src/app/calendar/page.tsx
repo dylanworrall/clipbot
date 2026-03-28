@@ -137,7 +137,7 @@ export default function CalendarPage() {
     <PageTransition>
       <div className="flex-1 overflow-y-auto scrollbar-hide p-6 text-white">
         <div className="max-w-5xl mx-auto space-y-6">
-        <h1 className="text-2xl font-bold text-white/90 mb-1">Calendar</h1>
+        <h1 className="text-2xl font-bold text-foreground mb-1">Calendar</h1>
 
         {loading ? (
           <CalendarSkeleton />
@@ -145,9 +145,9 @@ export default function CalendarPage() {
           <>
             {/* Summary stats bar */}
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 rounded-lg bg-[#2A2A2C] border border-white/5 px-4 py-2 shadow-sm">
+              <div className="flex items-center gap-2 rounded-lg bg-surface-1 border border-border px-4 py-2 shadow-sm">
                 <CalendarDays size={14} className="text-[#0A84FF]" />
-                <span className="text-[13px] font-medium text-white/70">
+                <span className="text-[13px] font-medium text-foreground/70">
                   {weekPostCount} {weekPostCount === 1 ? "post" : "posts"} this week
                 </span>
               </div>

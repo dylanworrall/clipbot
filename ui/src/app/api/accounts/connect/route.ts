@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "API key not configured" }, { status: 400 });
   }
 
-  const { platform } = await req.json() as { platform: string };
+  const { platform, profileId: requestedProfileId } = await req.json() as { platform: string; profileId?: string };
 
   if (!platform || !SUPPORTED_PLATFORMS.includes(platform)) {
     return NextResponse.json(
@@ -112,8 +112,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // 1. Find or create a profile that doesn't already have this platform
-    const profileId = await getAvailableProfile(config.lateApiKey, platform);
+    // Use the requested profile, or find/create one automatically
+    const profileId = requestedProfileId || await getAvailableProfile(config.lateApiKey, platform);
 
     // 2. Build redirect URL back to our settings page
     const baseUrl = req.headers.get("origin") || req.headers.get("referer")?.replace(/\/api\/.*$/, "") || "http://localhost:3000";

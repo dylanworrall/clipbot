@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import {
@@ -11,7 +11,14 @@ import {
   AlertCircle,
   Youtube,
   Globe,
+  FileText,
+  Send,
+  Trash2,
+  Clock,
+  Loader2,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ThreadCard } from "@/components/runs/ThreadCard";
 import { ThreadSearch } from "@/components/runs/ThreadSearch";
 import { PublishedGrid } from "@/components/runs/PublishedGrid";
@@ -23,11 +30,21 @@ import { cn } from "@/lib/utils";
 
 const TABS = [
   { key: "threads", label: "Threads" },
-  { key: "published", label: "Published" },
-  { key: "failed", label: "Failed" },
+  { key: "drafts", label: "Drafts" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
+
+interface Draft {
+  id: string;
+  type?: string;
+  clipTitle: string;
+  content?: string;
+  platforms: string[];
+  scheduledFor: string;
+  status: string;
+  createdAt: string;
+}
 
 type SortKey = "recent" | "oldest" | "most-runs";
 type SourceFilter = "all" | "youtube" | "twitch" | "tiktok" | "twitter" | "other";
@@ -73,15 +90,50 @@ export default function SearchPage() {
   const [spaceFilter, setSpaceFilter] = useState<string>("all");
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [draftsLoading, setDraftsLoading] = useState(false);
+  const [publishing, setPublishing] = useState<string | null>(null);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
+
+  const loadDrafts = useCallback(async () => {
+    setDraftsLoading(true);
+    try {
+      const res = await fetch("/api/calendar");
+      const data = await res.json();
+      const all = (data.posts ?? data ?? []) as Draft[];
+      const filtered = all.filter((p) => p.type === "draft" || p.type === "text" || p.status === "draft");
+      filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setDrafts(filtered);
+    } catch { setDrafts([]); }
+    setDraftsLoading(false);
+  }, []);
+
+  useEffect(() => { if (tab === "drafts") loadDrafts(); }, [tab, loadDrafts]);
+
+  const handlePublish = async (draft: Draft) => {
+    setPublishing(draft.id);
+    try { await fetch(`/api/calendar/${draft.id}/publish`, { method: "POST" }); await loadDrafts(); } catch {}
+    setPublishing(null);
+  };
+
+  const handleDeleteDraft = async (id: string) => {
+    try { await fetch(`/api/calendar/${id}`, { method: "DELETE" }); setDrafts((p) => p.filter((d) => d.id !== id)); } catch {}
+  };
+
+  const handleSaveDraft = async (id: string) => {
+    try {
+      await fetch(`/api/calendar/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content: editContent, clipTitle: editContent.slice(0, 50) + (editContent.length > 50 ? "..." : "") }) });
+      setEditing(null); await loadDrafts();
+    } catch {}
+  };
+
+  const statusColor = (s: string) => s === "published" ? "green" as const : s === "cancelled" ? "red" as const : s === "scheduled" ? "gold" as const : "blue" as const;
 
   const filtered = useMemo(() => {
-    if (tab === "published") return [];
+    if (tab === "drafts") return [];
 
     let list = threads;
-
-    if (tab === "failed") {
-      list = list.filter((t) => t.lastStatus === "failed");
-    }
 
     // Source filter
     if (sourceFilter !== "all") {
@@ -134,20 +186,9 @@ export default function SearchPage() {
     router.push("/");
   };
 
-  const isPublishedTab = tab === "published";
+  const isDraftsTab = tab === "drafts";
 
   const renderEmptyState = () => {
-    if (tab === "failed") {
-      return (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center mb-4">
-            <AlertCircle className="h-6 w-6 text-green-500" />
-          </div>
-          <p className="text-sm font-medium text-foreground mb-1">No failed runs</p>
-          <p className="text-xs text-muted">All your runs completed successfully</p>
-        </div>
-      );
-    }
 
     if (search.trim()) {
       return (
@@ -204,9 +245,60 @@ export default function SearchPage() {
           ))}
         </div>
 
-        {/* Published tab — standalone grid */}
-        {isPublishedTab ? (
-          <PublishedGrid />
+        {/* Drafts tab */}
+        {isDraftsTab ? (
+          <div className="space-y-3">
+            {draftsLoading ? (
+              <div className="flex justify-center py-16"><Loader2 size={20} className="animate-spin text-muted-foreground" /></div>
+            ) : drafts.length === 0 ? (
+              <div className="text-center py-16">
+                <FileText size={24} className="text-muted-foreground mx-auto mb-3" />
+                <p className="text-sm font-medium text-foreground">No drafts yet</p>
+                <p className="text-xs text-muted-foreground mt-1">Ask Socials to generate content or run the autopilot</p>
+              </div>
+            ) : drafts.map((draft) => (
+              <div key={draft.id} className="bg-surface-1 rounded-2xl border border-border p-4">
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex items-center gap-2">
+                    <FileText size={14} className="text-accent" />
+                    <h3 className="text-[13px] font-medium text-foreground">{draft.clipTitle}</h3>
+                    <Badge variant={statusColor(draft.status)}>{draft.status}</Badge>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {draft.status !== "published" && (
+                      <Button variant="ghost" size="icon-xs" onClick={() => handlePublish(draft)} disabled={publishing === draft.id}>
+                        {publishing === draft.id ? <Loader2 size={11} className="animate-spin" /> : <Send size={11} />}
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="icon-xs" onClick={() => handleDeleteDraft(draft.id)}><Trash2 size={11} /></Button>
+                  </div>
+                </div>
+                {editing === draft.id ? (
+                  <div className="space-y-2">
+                    <textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} className="w-full bg-surface-2/40 rounded-xl px-3 py-2 text-[13px] text-white border border-border focus:outline-none focus:border-accent/50 resize-none min-h-[80px]" />
+                    <div className="flex gap-2">
+                      <Button size="xs" onClick={() => handleSaveDraft(draft.id)}>Save</Button>
+                      <Button size="xs" variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[13px] text-foreground/70 leading-relaxed cursor-pointer hover:text-foreground transition-colors" onClick={() => { setEditing(draft.id); setEditContent(draft.content || ""); }}>
+                    {draft.content || draft.clipTitle}
+                  </p>
+                )}
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-border">
+                  <div className="flex gap-1.5">
+                    {draft.platforms.map((p) => (
+                      <span key={p} className="px-2 py-0.5 rounded-md bg-accent/10 text-accent text-[10px] font-medium capitalize">{p}</span>
+                    ))}
+                  </div>
+                  {draft.scheduledFor && (
+                    <span className="text-[10px] text-muted-foreground flex items-center gap-1"><Clock size={9} />{new Date(draft.scheduledFor).toLocaleDateString()}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
           <>
             {/* Search */}

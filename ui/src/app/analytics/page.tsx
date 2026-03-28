@@ -213,7 +213,7 @@ export default function AnalyticsPage() {
   };
 
   const SortIcon = ({ col }: { col: SortKey }) => {
-    if (sortBy !== col) return <ArrowUpDown size={10} className="text-white/20" />;
+    if (sortBy !== col) return <ArrowUpDown size={10} className="text-muted-foreground/50" />;
     return sortDir === "asc"
       ? <ArrowUp size={10} className="text-[#0A84FF]" />
       : <ArrowDown size={10} className="text-[#0A84FF]" />;
@@ -225,8 +225,8 @@ export default function AnalyticsPage() {
         {/* Header */}
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-2xl font-bold text-white/90 mb-1">Analytics</h1>
-            <p className="text-white/50 text-[13px] font-medium">
+            <h1 className="text-2xl font-bold text-foreground mb-1">Analytics</h1>
+            <p className="text-muted-foreground text-[13px] font-medium">
               {overview
                 ? `${overview.publishedPosts} published · ${overview.scheduledPosts} scheduled`
                 : `${sorted.length} post${sorted.length !== 1 ? "s" : ""}`}
@@ -234,7 +234,7 @@ export default function AnalyticsPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="bg-[#2A2A2C] p-1 rounded-lg flex gap-1">
+            <div className="bg-surface-1 p-1 rounded-lg flex gap-1">
               {[
                 { label: "7d", days: 7 },
                 { label: "30d", days: 30 },
@@ -246,8 +246,8 @@ export default function AnalyticsPage() {
                   onClick={() => setDateRange(r.days)}
                   className={`px-3 py-1 rounded-md text-[11px] font-medium transition-colors ${
                     dateRange === r.days
-                      ? "bg-[#3A3A3C] text-white shadow-sm"
-                      : "text-white/50 hover:text-white"
+                      ? "bg-surface-2 text-white shadow-sm"
+                      : "text-muted-foreground hover:text-white"
                   }`}
                 >
                   {r.label}
@@ -270,7 +270,7 @@ export default function AnalyticsPage() {
                 className={`px-3 py-1 rounded-full text-[11px] font-medium transition-colors capitalize ${
                   platformFilter === p
                     ? "bg-[#0A84FF]/10 text-[#0A84FF] border border-[#0A84FF]/30"
-                    : "bg-[#2A2A2C] text-white/50 hover:text-white border border-white/5"
+                    : "bg-surface-1 text-muted-foreground hover:text-white border border-border"
                 }`}
               >
                 {p}
@@ -281,13 +281,13 @@ export default function AnalyticsPage() {
 
         {loading ? (
           <div className="flex items-center justify-center py-24">
-            <Loader2 size={20} className="animate-spin text-white/40" />
+            <Loader2 size={20} className="animate-spin text-muted-foreground" />
           </div>
         ) : error ? (
-          <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm text-center py-12">
-            <BarChart3 size={32} className="text-white/20 mx-auto mb-3" />
-            <p className="text-[15px] font-medium text-white/50">Could not load analytics</p>
-            <p className="text-[12px] text-white/30 mt-1 max-w-md mx-auto">{error}</p>
+          <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm text-center py-12">
+            <BarChart3 size={32} className="text-muted-foreground/50 mx-auto mb-3" />
+            <p className="text-[15px] font-medium text-muted-foreground">Could not load analytics</p>
+            <p className="text-[12px] text-muted-foreground/70 mt-1 max-w-md mx-auto">{error}</p>
             <Button variant="secondary" size="sm" onClick={fetchAnalytics} className="mt-4">
               <RefreshCw size={14} /> Try Again
             </Button>
@@ -309,12 +309,12 @@ export default function AnalyticsPage() {
                 { label: "Saves", value: totalSaves, icon: Bookmark, color: "#30D158" },
                 { label: "Avg Eng.", value: avgEngagement, icon: TrendingUp, color: "#30D158", isPercent: true },
               ].map((s) => (
-                <div key={s.label} className="bg-[#2A2A2C] rounded-2xl p-4 border border-white/5 shadow-sm text-center">
+                <div key={s.label} className="bg-surface-1 rounded-2xl p-4 border border-border shadow-sm text-center">
                   <s.icon size={14} className="mx-auto mb-2" style={{ color: s.color }} />
                   <p className="text-[20px] font-bold tracking-tight tabular-nums" style={{ color: s.color }}>
                     {s.isPercent ? `${s.value}%` : fmt(s.value as number)}
                   </p>
-                  <p className="text-[10px] text-white/35 font-medium uppercase tracking-wider mt-1">{s.label}</p>
+                  <p className="text-[10px] text-muted-foreground/80 font-medium uppercase tracking-wider mt-1">{s.label}</p>
                 </div>
               ))}
             </motion.div>
@@ -325,9 +325,9 @@ export default function AnalyticsPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05, duration: 0.2 }}
-                className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-3"
+                className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-3"
               >
-                <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase mb-4">
+                <h2 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase mb-4">
                   Platform Performance
                 </h2>
                 {platformBreakdown.map((entry) => (
@@ -337,7 +337,7 @@ export default function AnalyticsPage() {
                         className="h-2 w-2 rounded-full"
                         style={{ background: PLATFORM_COLORS[entry.platform] ?? "#0A84FF" }}
                       />
-                      <span className="text-[12px] font-medium text-white/70 capitalize">{entry.platform}</span>
+                      <span className="text-[12px] font-medium text-foreground/70 capitalize">{entry.platform}</span>
                     </div>
                     <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
                       <motion.div
@@ -349,8 +349,8 @@ export default function AnalyticsPage() {
                       />
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-[11px] text-white/40 tabular-nums w-12 text-right">{entry.count} posts</span>
-                      <span className="text-[12px] text-white/70 font-medium tabular-nums w-14 text-right">{fmt(entry.views)}</span>
+                      <span className="text-[11px] text-muted-foreground tabular-nums w-12 text-right">{entry.count} posts</span>
+                      <span className="text-[12px] text-foreground/70 font-medium tabular-nums w-14 text-right">{fmt(entry.views)}</span>
                       <span className="text-[11px] tabular-nums w-12 text-right" style={{ color: entry.avgEngagement >= 4 ? "#30D158" : "#FF9F0A" }}>
                         {entry.avgEngagement}%
                       </span>
@@ -362,7 +362,7 @@ export default function AnalyticsPage() {
 
             {/* Sort bar */}
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
+              <h2 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
                 Post Performance
               </h2>
               <div className="flex items-center gap-1">
@@ -374,7 +374,7 @@ export default function AnalyticsPage() {
                       "flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer",
                       sortBy === col
                         ? "bg-[#0A84FF]/10 text-[#0A84FF]"
-                        : "text-white/40 hover:text-white hover:bg-white/10"
+                        : "text-muted-foreground hover:text-white hover:bg-white/10"
                     )}
                   >
                     {col === "engagement" ? "Eng." : col.charAt(0).toUpperCase() + col.slice(1)}
@@ -387,9 +387,9 @@ export default function AnalyticsPage() {
             {/* Post list */}
             {sorted.length === 0 ? (
               <div className="text-center py-16">
-                <BarChart3 size={32} className="text-white/20 mx-auto mb-3" />
-                <p className="text-[15px] font-medium text-white/50">No published posts found</p>
-                <p className="text-[12px] text-white/30 mt-1">
+                <BarChart3 size={32} className="text-muted-foreground/50 mx-auto mb-3" />
+                <p className="text-[15px] font-medium text-muted-foreground">No published posts found</p>
+                <p className="text-[12px] text-muted-foreground/70 mt-1">
                   Publish clips or drafts to see analytics here
                 </p>
               </div>
@@ -408,11 +408,11 @@ export default function AnalyticsPage() {
                   return (
                     <div
                       key={key}
-                      className="group flex items-center gap-4 p-4 rounded-xl hover:bg-[#2A2A2C] transition-colors border border-transparent hover:border-white/5"
+                      className="group flex items-center gap-4 p-4 rounded-xl hover:bg-surface-1 transition-colors border border-transparent hover:border-border"
                     >
                       {/* Thumbnail */}
                       {post.thumbnailUrl && (
-                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#3A3A3C] shrink-0">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-surface-2 shrink-0">
                           <img src={post.thumbnailUrl} alt="" className="w-full h-full object-cover" />
                         </div>
                       )}
@@ -424,12 +424,12 @@ export default function AnalyticsPage() {
                             className="h-2 w-2 rounded-full shrink-0"
                             style={{ background: PLATFORM_COLORS[plat] ?? "#0A84FF" }}
                           />
-                          <h3 className="text-[14px] font-medium text-white/90 truncate">
+                          <h3 className="text-[14px] font-medium text-foreground truncate">
                             {title(post.content)}
                           </h3>
                           {url && (
                             <a href={url} target="_blank" rel="noopener noreferrer" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                              <ExternalLink size={12} className="text-white/30 hover:text-[#0A84FF]" />
+                              <ExternalLink size={12} className="text-muted-foreground/70 hover:text-[#0A84FF]" />
                             </a>
                           )}
                         </div>
@@ -438,7 +438,7 @@ export default function AnalyticsPage() {
                             {plat}
                           </Badge>
                           {post.publishedAt && (
-                            <span className="text-[11px] text-white/30 flex items-center gap-1">
+                            <span className="text-[11px] text-muted-foreground/70 flex items-center gap-1">
                               <Calendar size={10} />
                               {new Date(post.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                             </span>
@@ -452,25 +452,25 @@ export default function AnalyticsPage() {
                       {/* Stats */}
                       <div className="flex items-center gap-5 shrink-0">
                         <div className="text-right">
-                          <p className="text-[12px] font-medium tabular-nums text-white/90">{fmt(post.analytics?.views ?? 0)}</p>
-                          <p className="text-[10px] text-white/25">views</p>
+                          <p className="text-[12px] font-medium tabular-nums text-foreground">{fmt(post.analytics?.views ?? 0)}</p>
+                          <p className="text-[10px] text-muted-foreground/60">views</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-[12px] font-medium tabular-nums text-white/90">{fmt(post.analytics?.likes ?? 0)}</p>
-                          <p className="text-[10px] text-white/25">likes</p>
+                          <p className="text-[12px] font-medium tabular-nums text-foreground">{fmt(post.analytics?.likes ?? 0)}</p>
+                          <p className="text-[10px] text-muted-foreground/60">likes</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-[12px] font-medium tabular-nums text-white/90">{fmt(post.analytics?.comments ?? 0)}</p>
-                          <p className="text-[10px] text-white/25">comments</p>
+                          <p className="text-[12px] font-medium tabular-nums text-foreground">{fmt(post.analytics?.comments ?? 0)}</p>
+                          <p className="text-[10px] text-muted-foreground/60">comments</p>
                         </div>
                         <div className="text-right w-14">
                           <p className={cn(
                             "text-[12px] font-medium tabular-nums",
-                            eng >= 8 ? "text-[#30D158]" : eng >= 4 ? "text-[#FF9F0A]" : "text-white/50"
+                            eng >= 8 ? "text-[#30D158]" : eng >= 4 ? "text-[#FF9F0A]" : "text-muted-foreground"
                           )}>
                             {eng.toFixed(1)}%
                           </p>
-                          <p className="text-[10px] text-white/25">eng.</p>
+                          <p className="text-[10px] text-muted-foreground/60">eng.</p>
                         </div>
                       </div>
                     </div>
@@ -481,7 +481,7 @@ export default function AnalyticsPage() {
 
             {/* Footer */}
             {sorted.length > 0 && (
-              <div className="flex items-center gap-4 text-[11px] text-white/25 pt-2">
+              <div className="flex items-center gap-4 text-[11px] text-muted-foreground/60 pt-2">
                 <span>{sorted.length} posts</span>
                 <span>{fmt(totalViews)} views</span>
                 <span>{fmt(totalLikes)} likes</span>

@@ -134,14 +134,13 @@ export function ProfileMenu({ compact }: ProfileMenuProps) {
         ref={buttonRef}
         onClick={() => setOpen(!open)}
         className={cn(
-          "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors duration-150 w-full cursor-pointer group",
-          "text-white/40 hover:text-white hover:bg-white/10",
-          compact && "justify-center px-0",
-          open && "bg-white/10 text-white"
+          "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-colors w-full cursor-pointer",
+          open ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground/80 hover:bg-surface-2/50",
+          compact && "justify-center px-0"
         )}
       >
-        <div className="h-5 w-5 rounded-full bg-gradient-to-br from-[#0A84FF] to-[#BF5AF2] flex items-center justify-center flex-shrink-0">
-          <User size={10} className="text-white" />
+        <div className="w-[18px] h-[18px] rounded-full bg-gradient-to-br from-accent to-[#BF5AF2] flex items-center justify-center flex-shrink-0">
+          <User className="size-2.5 text-white" />
         </div>
         {!compact && <span className="truncate">Account</span>}
       </button>
@@ -158,10 +157,10 @@ export function ProfileMenu({ compact }: ProfileMenuProps) {
             }}
           >
             {/* Main menu */}
-            <div className="w-52 bg-[#1C1C1E]/95 backdrop-blur-2xl border border-white/10 ring-1 ring-white/5 rounded-2xl shadow-2xl overflow-hidden py-1.5">
+            <div className="w-52 bg-surface-1 border border-border rounded-2xl shadow-elevation-2 overflow-hidden py-1.5">
               {menuItems.map((item, i) => {
                 if ("type" in item && item.type === "separator") {
-                  return <div key={i} className="h-px bg-white/5 my-1.5 mx-3" />;
+                  return <div key={i} className="h-px bg-border my-1.5 mx-3" />;
                 }
                 const Icon = "icon" in item ? item.icon : Settings;
                 return (
@@ -172,11 +171,11 @@ export function ProfileMenu({ compact }: ProfileMenuProps) {
                     className={cn(
                       "w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-left transition-colors cursor-pointer",
                       "danger" in item && item.danger
-                        ? "text-[#FF453A] hover:bg-[#FF453A]/10"
-                        : "text-white/90 hover:bg-[#3A3A3C]"
+                        ? "text-destructive hover:bg-destructive/10"
+                        : "text-foreground/80 hover:bg-surface-2"
                     )}
                   >
-                    <Icon size={14} className="text-white/40 flex-shrink-0" />
+                    <Icon className="size-3.5 text-muted-foreground flex-shrink-0" />
                     <span className="flex-1">{"label" in item ? item.label : ""}</span>
                     {"chevron" in item && item.chevron && (
                       <ChevronRight className="h-3.5 w-3.5 text-muted" />
@@ -186,14 +185,14 @@ export function ProfileMenu({ compact }: ProfileMenuProps) {
               })}
 
               {/* Version */}
-              <div className="px-3 pt-2 pb-1 text-[11px] text-white/25 border-t border-white/5 mt-1.5">
+              <div className="px-3 pt-2 pb-1 text-[11px] text-muted-foreground/30 border-t border-border mt-1.5">
                 Socials v0.2.0
               </div>
             </div>
 
             {/* Language sub-menu */}
             {langOpen && (
-              <div className="w-40 bg-[#1C1C1E]/95 backdrop-blur-2xl border border-white/10 ring-1 ring-white/5 rounded-2xl shadow-2xl overflow-hidden py-1.5 self-end">
+              <div className="w-40 bg-surface-1 border border-border rounded-2xl shadow-elevation-2 overflow-hidden py-1.5 self-end">
                 {LANGUAGES.map((lang) => (
                   <button
                     key={lang.code}
@@ -203,7 +202,7 @@ export function ProfileMenu({ compact }: ProfileMenuProps) {
                       "w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-left transition-colors cursor-pointer",
                       language === lang.code
                         ? "text-[#0A84FF] bg-[#0A84FF]/10"
-                        : "text-white/90 hover:bg-[#3A3A3C]"
+                        : "text-foreground/80 hover:bg-surface-2"
                     )}
                   >
                     <span className="flex-1">{lang.label}</span>

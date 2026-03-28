@@ -36,7 +36,7 @@ interface ActiveClip {
 }
 
 function scoreColor(s: number) {
-  return s >= 8 ? "text-[#30D158]" : s >= 6 ? "text-[#FF9F0A]" : "text-white/40";
+  return s >= 8 ? "text-[#30D158]" : s >= 6 ? "text-[#FF9F0A]" : "text-muted-foreground";
 }
 
 export default function EditorPage() {
@@ -114,7 +114,7 @@ export default function EditorPage() {
   if (!mounted) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <Loader2 size={20} className="animate-spin text-white/40" />
+        <Loader2 size={20} className="animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -125,39 +125,39 @@ export default function EditorPage() {
       {/* Clip picker modal */}
       {showPicker && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowPicker(false)}>
-          <div className="bg-[#1C1C1E]/95 backdrop-blur-2xl rounded-2xl border border-white/10 ring-1 ring-white/5 shadow-2xl w-full max-w-lg max-h-[70vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/5">
-              <h3 className="text-[14px] font-semibold text-white/90">Choose a clip to edit</h3>
-              <button onClick={() => setShowPicker(false)} className="text-white/30 hover:text-white transition-colors cursor-pointer">
+          <div className="bg-surface-0/95 backdrop-blur-2xl rounded-2xl border border-border ring-1 ring-white/5 shadow-2xl w-full max-w-lg max-h-[70vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-border">
+              <h3 className="text-[14px] font-semibold text-foreground">Choose a clip to edit</h3>
+              <button onClick={() => setShowPicker(false)} className="text-muted-foreground/70 hover:text-white transition-colors cursor-pointer">
                 <X size={16} />
               </button>
             </div>
             <div className="overflow-y-auto max-h-[calc(70vh-60px)] p-3 space-y-1">
               {loadingClips && (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 size={16} className="animate-spin text-white/40" />
+                  <Loader2 size={16} className="animate-spin text-muted-foreground" />
                 </div>
               )}
               {!loadingClips && clips.length === 0 && (
                 <div className="text-center py-8">
-                  <Film size={24} className="text-white/20 mx-auto mb-2" />
-                  <p className="text-[13px] text-white/40">No clips available</p>
-                  <p className="text-[11px] text-white/25 mt-1">Process a video from chat first</p>
+                  <Film size={24} className="text-muted-foreground/50 mx-auto mb-2" />
+                  <p className="text-[13px] text-muted-foreground">No clips available</p>
+                  <p className="text-[11px] text-muted-foreground/60 mt-1">Process a video from chat first</p>
                 </div>
               )}
               {clips.map((clip) => (
                 <button
                   key={`${clip.runId}-${clip.momentIndex}`}
                   onClick={() => selectClip(clip)}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#2A2A2C] transition-colors text-left cursor-pointer group"
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-surface-1 transition-colors text-left cursor-pointer group"
                 >
                   <div className="w-10 h-10 rounded-lg bg-[#0A84FF]/10 flex items-center justify-center shrink-0 group-hover:bg-[#0A84FF]/20 transition-colors">
                     <Play size={14} className="text-[#0A84FF] ml-0.5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-medium text-white/90 truncate">{clip.title}</p>
+                    <p className="text-[13px] font-medium text-foreground truncate">{clip.title}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[10px] text-white/30 flex items-center gap-1"><Clock size={9} />{Math.round(clip.durationSeconds)}s</span>
+                      <span className="text-[10px] text-muted-foreground/70 flex items-center gap-1"><Clock size={9} />{Math.round(clip.durationSeconds)}s</span>
                       <Badge variant="secondary" className="text-[9px]">{clip.category}</Badge>
                     </div>
                   </div>
@@ -175,7 +175,7 @@ export default function EditorPage() {
       <div className="h-full">
         <Suspense fallback={
           <div className="h-full flex items-center justify-center">
-            <div className="flex items-center gap-2 text-white/40">
+            <div className="flex items-center gap-2 text-muted-foreground">
               <Film size={18} />
               <span className="text-[13px] font-medium">Loading editor...</span>
             </div>

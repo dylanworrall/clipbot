@@ -101,7 +101,7 @@ function TagPills({
               if (e.key === "Enter") handleAdd();
               if (e.key === "Escape") { setAdding(false); setNewTag(""); }
             }}
-            className="bg-[#1C1C1E] rounded-lg px-2 py-1 text-[12px] text-white border border-white/10 focus:outline-none focus:border-[#0A84FF]/50 transition-colors w-28"
+            className="bg-surface-2/40 rounded-lg px-2 py-1 text-[12px] text-white border border-border focus:outline-none focus:border-[#0A84FF]/50 transition-colors w-28"
             placeholder="Add..."
           />
           <button onClick={handleAdd} className="text-[#0A84FF] cursor-pointer">
@@ -111,7 +111,7 @@ function TagPills({
       ) : (
         <button
           onClick={() => setAdding(true)}
-          className="px-2 py-1 rounded-lg border border-dashed border-white/10 text-[12px] text-white/30 hover:text-white/60 hover:border-white/20 transition-colors cursor-pointer"
+          className="px-2 py-1 rounded-lg border border-dashed border-border text-[12px] text-muted-foreground/70 hover:text-foreground/60 hover:border-white/20 transition-colors cursor-pointer"
         >
           <Plus size={10} />
         </button>
@@ -146,12 +146,12 @@ function EditableList({
           <span className="text-[#0A84FF]/40 text-[12px] mt-0.5 font-mono">
             {String(i + 1).padStart(2, "0")}
           </span>
-          <p className="text-[14px] text-white/70 flex-1 leading-relaxed">
+          <p className="text-[14px] text-foreground/70 flex-1 leading-relaxed">
             {item}
           </p>
           <button
             onClick={() => onChange(items.filter((_, idx) => idx !== i))}
-            className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-[#FF453A] transition-all cursor-pointer mt-0.5"
+            className="opacity-0 group-hover:opacity-100 text-muted-foreground/70 hover:text-[#FF453A] transition-all cursor-pointer mt-0.5"
           >
             <X size={12} />
           </button>
@@ -171,7 +171,7 @@ function EditableList({
                 if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAdd(); }
                 if (e.key === "Escape") { setAdding(false); setNewItem(""); }
               }}
-              className="w-full bg-[#1C1C1E] rounded-lg px-3 py-2.5 text-[14px] text-white border border-white/5 focus:outline-none focus:border-[#0A84FF]/50 transition-colors resize-none"
+              className="w-full bg-surface-2/40 rounded-lg px-3 py-2.5 text-[14px] text-white border border-border focus:outline-none focus:border-[#0A84FF]/50 transition-colors resize-none"
               placeholder={placeholder}
               rows={2}
             />
@@ -192,7 +192,7 @@ function EditableList({
       ) : (
         <button
           onClick={() => setAdding(true)}
-          className="flex items-center gap-2 text-[12px] text-white/30 hover:text-white/60 transition-colors cursor-pointer"
+          className="flex items-center gap-2 text-[12px] text-muted-foreground/70 hover:text-foreground/60 transition-colors cursor-pointer"
         >
           <Plus size={12} /> Add item
         </button>
@@ -273,15 +273,15 @@ export function BrandTab() {
     <div className="space-y-6">
 
           {/* URL Input */}
-          <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm mb-6">
-            <label className="text-[12px] font-medium text-white/40 block mb-2">
+          <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm mb-6">
+            <label className="text-[12px] font-medium text-muted-foreground block mb-2">
               Website URL
             </label>
             <div className="flex gap-2">
               <div className="flex-1 relative">
                 <Globe
                   size={14}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70"
                 />
                 <input
                   type="url"
@@ -289,7 +289,7 @@ export function BrandTab() {
                   onChange={(e) => setUrl(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
                   placeholder="https://yoursite.com"
-                  className="w-full bg-[#1C1C1E] rounded-lg pl-9 pr-3 py-2.5 text-[14px] text-white border border-white/5 focus:outline-none focus:border-[#0A84FF]/50 transition-colors"
+                  className="w-full bg-surface-2/40 rounded-lg pl-9 pr-3 py-2.5 text-[14px] text-white border border-border focus:outline-none focus:border-[#0A84FF]/50 transition-colors"
                 />
               </div>
               <Button onClick={handleAnalyze} disabled={analyzing || !url.trim()}>
@@ -312,7 +312,7 @@ export function BrandTab() {
           {/* Loading */}
           {loading && (
             <div className="flex items-center justify-center py-16">
-              <Loader2 size={20} className="animate-spin text-white/40" />
+              <Loader2 size={20} className="animate-spin text-muted-foreground" />
             </div>
           )}
 
@@ -322,10 +322,10 @@ export function BrandTab() {
               <div className="w-14 h-14 rounded-2xl bg-[#BF5AF2]/10 flex items-center justify-center mx-auto mb-4">
                 <Sparkles size={24} className="text-[#BF5AF2]" />
               </div>
-              <p className="text-[15px] font-medium text-white/50">
+              <p className="text-[15px] font-medium text-muted-foreground">
                 No brand profile yet
               </p>
-              <p className="text-[13px] text-white/30 mt-1 max-w-sm mx-auto">
+              <p className="text-[13px] text-muted-foreground/70 mt-1 max-w-sm mx-auto">
                 Enter your website URL above to auto-extract your brand
                 identity, or fill in the details manually
               </p>
@@ -358,60 +358,60 @@ export function BrandTab() {
                 className="space-y-6"
               >
                 {/* Identity Card */}
-                <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm">
+                <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
                     <Megaphone size={14} className="text-[#0A84FF]" />
-                    <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
+                    <h2 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
                       Identity
                     </h2>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-[12px] font-medium text-white/40 block mb-1.5">
+                      <label className="text-[12px] font-medium text-muted-foreground block mb-1.5">
                         Brand Name
                       </label>
                       <input
                         value={brand.name}
                         onChange={(e) => update("name", e.target.value)}
-                        className="w-full bg-[#1C1C1E] rounded-lg px-3 py-2.5 text-[14px] text-white border border-white/5 focus:outline-none focus:border-[#0A84FF]/50 transition-colors"
+                        className="w-full bg-surface-2/40 rounded-lg px-3 py-2.5 text-[14px] text-white border border-border focus:outline-none focus:border-[#0A84FF]/50 transition-colors"
                       />
                     </div>
                     <div>
-                      <label className="text-[12px] font-medium text-white/40 block mb-1.5">
+                      <label className="text-[12px] font-medium text-muted-foreground block mb-1.5">
                         Tagline
                       </label>
                       <input
                         value={brand.tagline}
                         onChange={(e) => update("tagline", e.target.value)}
                         placeholder="A short description of what you do"
-                        className="w-full bg-[#1C1C1E] rounded-lg px-3 py-2.5 text-[14px] text-white border border-white/5 focus:outline-none focus:border-[#0A84FF]/50 transition-colors"
+                        className="w-full bg-surface-2/40 rounded-lg px-3 py-2.5 text-[14px] text-white border border-border focus:outline-none focus:border-[#0A84FF]/50 transition-colors"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Voice & Audience Card */}
-                <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm">
+                <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
                     <MessageCircle size={14} className="text-[#BF5AF2]" />
-                    <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
+                    <h2 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
                       Voice & Audience
                     </h2>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-[12px] font-medium text-white/40 block mb-1.5">
+                      <label className="text-[12px] font-medium text-muted-foreground block mb-1.5">
                         Tone of Voice
                       </label>
                       <input
                         value={brand.tone}
                         onChange={(e) => update("tone", e.target.value)}
                         placeholder="e.g. casual and bold, professional, edgy and meme-friendly"
-                        className="w-full bg-[#1C1C1E] rounded-lg px-3 py-2.5 text-[14px] text-white border border-white/5 focus:outline-none focus:border-[#0A84FF]/50 transition-colors"
+                        className="w-full bg-surface-2/40 rounded-lg px-3 py-2.5 text-[14px] text-white border border-border focus:outline-none focus:border-[#0A84FF]/50 transition-colors"
                       />
                     </div>
                     <div>
-                      <label className="text-[12px] font-medium text-white/40 block mb-1.5">
+                      <label className="text-[12px] font-medium text-muted-foreground block mb-1.5">
                         Target Audience
                       </label>
                       <textarea
@@ -419,23 +419,23 @@ export function BrandTab() {
                         onChange={(e) => update("audience", e.target.value)}
                         placeholder="Describe your target audience..."
                         rows={3}
-                        className="w-full bg-[#1C1C1E] rounded-lg px-3 py-2.5 text-[14px] text-white border border-white/5 focus:outline-none focus:border-[#0A84FF]/50 transition-colors resize-none"
+                        className="w-full bg-surface-2/40 rounded-lg px-3 py-2.5 text-[14px] text-white border border-border focus:outline-none focus:border-[#0A84FF]/50 transition-colors resize-none"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Topics & Keywords */}
-                <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm">
+                <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
                     <Tag size={14} className="text-[#30D158]" />
-                    <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
+                    <h2 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
                       Topics & Keywords
                     </h2>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-[12px] font-medium text-white/40 block mb-2">
+                      <label className="text-[12px] font-medium text-muted-foreground block mb-2">
                         Topics
                       </label>
                       <TagPills
@@ -445,7 +445,7 @@ export function BrandTab() {
                       />
                     </div>
                     <div>
-                      <label className="text-[12px] font-medium text-white/40 block mb-2">
+                      <label className="text-[12px] font-medium text-muted-foreground block mb-2">
                         Keywords
                       </label>
                       <TagPills
@@ -455,7 +455,7 @@ export function BrandTab() {
                       />
                     </div>
                     <div>
-                      <label className="text-[12px] font-medium text-white/40 block mb-2">
+                      <label className="text-[12px] font-medium text-muted-foreground block mb-2">
                         Competitors
                       </label>
                       <TagPills
@@ -468,10 +468,10 @@ export function BrandTab() {
                 </div>
 
                 {/* Content Pillars */}
-                <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm">
+                <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
                     <BookOpen size={14} className="text-[#FF9F0A]" />
-                    <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
+                    <h2 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
                       Content Pillars
                     </h2>
                   </div>
@@ -483,14 +483,14 @@ export function BrandTab() {
                 </div>
 
                 {/* Voice Examples */}
-                <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm">
+                <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
                     <Target size={14} className="text-[#FF453A]" />
-                    <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
+                    <h2 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
                       Voice Examples
                     </h2>
                   </div>
-                  <p className="text-[12px] text-white/30 mb-3">
+                  <p className="text-[12px] text-muted-foreground/70 mb-3">
                     Example sentences in your brand voice. These teach the AI
                     your writing style.
                   </p>

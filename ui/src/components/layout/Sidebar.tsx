@@ -26,7 +26,6 @@ const links = [
   { href: "/", label: "New Thread", icon: MessageSquare },
   { href: "/search", label: "Search", icon: Search },
   { href: "/runs", label: "Spaces", icon: Layers },
-  { href: "/drafts", label: "Drafts", icon: FileText },
   { href: "/editor", label: "Editor", icon: Film },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
@@ -64,7 +63,7 @@ export function Sidebar() {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       className={cn(
-        "fixed top-3 left-3 bottom-3 bg-[#1C1C1E]/95 backdrop-blur-2xl border border-white/10 ring-1 ring-white/5 rounded-2xl shadow-2xl flex flex-col z-40 transition-all duration-300 overflow-hidden",
+        "fixed top-3 left-3 bottom-3 bg-surface-1 border border-border rounded-2xl shadow-elevation-2 flex flex-col z-40 transition-all duration-300 overflow-hidden",
         visualExpanded ? "w-56" : "w-16",
         collapsed && hoverExpanded && "z-50"
       )}
@@ -73,18 +72,20 @@ export function Sidebar() {
       <Link
         href="/"
         onClick={() => newChat()}
-        className="flex items-center gap-2.5 px-4 py-4 border-b border-white/5 min-h-[56px]"
+        className="flex items-center gap-3 px-4 h-14 border-b border-border"
       >
-        <Clapperboard size={18} className="text-[#0A84FF] flex-shrink-0" />
+        <div className="w-8 h-8 rounded-xl bg-accent/15 flex items-center justify-center flex-shrink-0">
+          <span className="text-accent font-bold text-sm">S</span>
+        </div>
         {visualExpanded && (
-          <span className="text-[15px] font-semibold tracking-tight whitespace-nowrap text-white/90">
+          <span className="font-semibold text-foreground text-sm tracking-tight truncate">
             Socials
           </span>
         )}
       </Link>
 
       {/* Navigation */}
-      <nav className="flex-1 flex flex-col gap-0.5 p-2.5 mt-1">
+      <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
         {links.map(({ href, label, icon: Icon }) => {
           const active =
             href === "/"
@@ -97,17 +98,14 @@ export function Sidebar() {
               title={!visualExpanded ? label : undefined}
               onClick={href === "/" ? () => newChat() : undefined}
               className={cn(
-                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors relative group",
+                "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-colors relative group",
                 !visualExpanded && "justify-center px-0",
                 active
-                  ? "bg-[#0A84FF]/10 text-[#0A84FF]"
-                  : "text-white/40 hover:text-white hover:bg-white/10"
+                  ? "bg-surface-2 text-foreground"
+                  : "text-muted-foreground hover:text-foreground/80 hover:bg-surface-2/50"
               )}
             >
-              <Icon className={cn(
-                "h-4 w-4 flex-shrink-0 transition-colors",
-                active ? "text-[#0A84FF]" : "text-white/40 group-hover:text-white"
-              )} />
+              <Icon className="size-[18px] flex-shrink-0" />
               {visualExpanded && (
                 <>
                   <span className="whitespace-nowrap">{label}</span>
@@ -129,21 +127,21 @@ export function Sidebar() {
       </nav>
 
       {/* Profile + Collapse */}
-      <div className="border-t border-white/5 p-2.5 space-y-0.5">
+      <div className="border-t border-border p-2.5 space-y-0.5">
         <ProfileMenu compact={!visualExpanded} />
 
         <button
           onClick={toggle}
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           className={cn(
-            "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-white/40 hover:text-white hover:bg-white/10 transition-colors w-full cursor-pointer group",
+            "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium text-muted-foreground hover:text-foreground/70 hover:bg-surface-2/50 transition-colors w-full cursor-pointer group",
             !visualExpanded && "justify-center px-0"
           )}
         >
           {collapsed ? (
-            <PanelLeftOpen size={16} className="flex-shrink-0 text-white/40 group-hover:text-white transition-colors" />
+            <PanelLeftOpen size={16} className="flex-shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
           ) : (
-            <PanelLeftClose size={16} className="flex-shrink-0 text-white/40 group-hover:text-white transition-colors" />
+            <PanelLeftClose size={16} className="flex-shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
           )}
           {visualExpanded && (collapsed ? "Expand" : "Collapse")}
         </button>

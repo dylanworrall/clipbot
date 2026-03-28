@@ -84,22 +84,25 @@ function SettingsInner() {
       <div className="h-screen overflow-y-auto">
         <div className="max-w-3xl mx-auto px-6 pt-8 pb-16 space-y-6">
           {/* Header */}
-          <h1 className="text-2xl font-bold text-white/90 mb-1">Settings</h1>
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-xl font-bold text-foreground">Settings</h1>
+            <Button size="sm" onClick={handleSave} disabled={state.saving}>
+              <Save className="size-3.5" />
+              {state.saving ? "Saving..." : "Save"}
+            </Button>
+          </div>
 
-          {/* Tab bar — Soshi tab switcher */}
-          <div className="bg-[#2A2A2C] p-1 rounded-lg flex gap-1">
+          {/* Tabs */}
+          <div className="flex gap-2 flex-wrap mb-6">
             {TABS.map((tab) => (
-              <button
+              <Button
                 key={tab.key}
+                variant={activeTab === tab.key ? "default" : "outline"}
+                size="sm"
                 onClick={() => setTab(tab.key)}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === tab.key
-                    ? "bg-[#3A3A3C] text-white shadow-sm"
-                    : "text-white/50 hover:text-white"
-                }`}
               >
                 {tab.label}
-              </button>
+              </Button>
             ))}
           </div>
 
@@ -125,23 +128,12 @@ function SettingsInner() {
               <ConnectorsTab
                 state={state}
                 togglePlatform={togglePlatform}
-                fetchAccounts={fetchAccounts}
+                fetchAccounts={() => {}}
               />
             )}
             {activeTab === "billing" && <BillingTab />}
           </div>
 
-          {/* Persistent save bar */}
-          <div className="flex items-center gap-4 pt-4 border-t border-white/5">
-            <Button variant="primary" onClick={handleSave} disabled={state.saving}>
-              {state.saving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
-              )}
-              {state.saving ? "Saving..." : "Save Settings"}
-            </Button>
-          </div>
         </div>
       </div>
     </PageTransition>

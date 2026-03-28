@@ -1,19 +1,11 @@
 @import "tailwindcss";
 
-/* ── Streamdown (used by AI Elements MessageResponse) ── */
 @source "../node_modules/streamdown/dist/*.js";
 
-/* ── Soshi Dark Mode Design System ── */
 @theme {
-  /* Surface tiers */
-  --color-background: #000000;
-  --color-foreground: #FFFFFF;
-  --color-surface-0: #1C1C1E;
-  --color-surface-1: #2A2A2C;
-  --color-surface-2: #3A3A3C;
-  --color-surface-3: #48484A;
-
-  /* Accent palette (Apple HIG Dark) */
+  /* Apple HIG Dark — macOS-style base gray */
+  --color-background: #161618;
+  --color-foreground: #F5F5F7;
   --color-accent: #0A84FF;
   --color-accent-purple: #BF5AF2;
   --color-accent-green: #30D158;
@@ -21,52 +13,61 @@
   --color-accent-orange: #FF9F0A;
   --color-accent-pink: #FF375F;
   --color-brand-gold: #FF9F0A;
+  --color-success: #30D158;
+  --color-surface-0: #161618;
+  --color-surface-1: #1C1C1E;
+  --color-surface-2: #2C2C2E;
+  --color-surface-3: #3A3A3C;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-muted: #48484A;
 
-  /* Borders & muted */
-  --color-border: rgba(255, 255, 255, 0.05);
-  --color-muted: rgba(255, 255, 255, 0.40);
-
-  /* shadcn/ui token mapping */
   --color-primary: #0A84FF;
   --color-primary-foreground: #FFFFFF;
-  --color-secondary: #2A2A2C;
-  --color-secondary-foreground: rgba(255, 255, 255, 0.90);
-  --color-muted-foreground: rgba(255, 255, 255, 0.40);
+  --color-secondary: #2C2C2E;
+  --color-secondary-foreground: #F5F5F7;
+  --color-muted-foreground: rgba(255, 255, 255, 0.4);
   --color-accent-foreground: #FFFFFF;
   --color-destructive: #FF453A;
-  --color-input: rgba(255, 255, 255, 0.05);
+  --color-input: rgba(255, 255, 255, 0.06);
   --color-ring: #0A84FF;
   --color-popover: #1C1C1E;
-  --color-popover-foreground: rgba(255, 255, 255, 0.90);
-  --color-card: #2A2A2C;
-  --color-card-foreground: rgba(255, 255, 255, 0.90);
+  --color-popover-foreground: #F5F5F7;
+  --color-card: #1C1C1E;
+  --color-card-foreground: #F5F5F7;
 
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
 }
 
-/* ── Font tokens: inline because they reference var() ── */
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-/* ── Force dark mode ── */
 html {
   color-scheme: dark;
 }
 
 body {
-  background: #1C1C1E;
-  color: #FFFFFF;
+  background: var(--color-background);
+  color: var(--color-foreground);
   font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "SF Pro",
     "Segoe UI", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Keyframes ── */
+.shadow-elevation-1 {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+.shadow-elevation-2 {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+.shadow-elevation-3 {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -77,31 +78,23 @@ body {
   50% { transform: translateY(-6px); }
 }
 
-/* ── Shimmer skeleton ── */
 .shimmer {
-  background: linear-gradient(
-    90deg,
-    #2A2A2C 25%,
-    #3A3A3C 50%,
-    #2A2A2C 75%
-  );
+  background: linear-gradient(90deg, var(--color-surface-2) 25%, var(--color-surface-3) 50%, var(--color-surface-2) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
-/* ── Float animation ── */
 .float {
   animation: float 3s ease-in-out infinite;
 }
 
-/* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--color-muted); border-radius: 3px; }
 
 .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
 .scrollbar-none::-webkit-scrollbar { display: none; }
 .scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 
-::selection { background: #0A84FF; color: #fff; }
+::selection { background: var(--color-accent); color: #fff; }

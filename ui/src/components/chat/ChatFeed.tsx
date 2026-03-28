@@ -102,7 +102,7 @@ export function ChatFeed({ messages, aiMessages = [], isAiThinking, loading, onR
         {/* AI thinking indicator */}
         {isAiThinking && (
           <div className="flex items-center gap-2">
-            <Shimmer as="span" className="text-[13px] font-medium text-white/40">
+            <Shimmer as="span" className="text-[13px] font-medium text-muted-foreground">
               Socials is thinking...
             </Shimmer>
           </div>

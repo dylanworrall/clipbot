@@ -472,7 +472,7 @@ export function ClipEditor({
   /* ---- Render ---- */
 
   return (
-    <div className="bg-[#2A2A2C] rounded-2xl border border-white/5 shadow-2xl overflow-hidden flex flex-col h-full">
+    <div className="bg-surface-1 rounded-2xl border border-border shadow-elevation-2 overflow-hidden flex flex-col h-full">
       {/* ═══════ Header ═══════ */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-border/50 bg-surface-1 flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -521,7 +521,7 @@ export function ClipEditor({
             <EditorErrorBoundary>
               <Suspense
                 fallback={
-                  <div className="flex items-center gap-2 text-sm text-white/40">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Loading editor...
                   </div>
@@ -545,7 +545,7 @@ export function ClipEditor({
               Choose Media
             </button>
           ) : (
-            <p className="text-[13px] text-white/30">No media loaded</p>
+            <p className="text-[13px] text-muted-foreground/70">No media loaded</p>
           )}
         </div>
 

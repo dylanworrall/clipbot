@@ -69,7 +69,7 @@ function ScoreBadge({ score }: { score: number }) {
       ? "text-[#30D158]"
       : score >= 6
         ? "text-[#FF9F0A]"
-        : "text-white/40";
+        : "text-muted-foreground";
   return (
     <span className={`text-[13px] font-bold tabular-nums ${color}`}>
       {score.toFixed(1)}
@@ -147,7 +147,7 @@ function SwipeCard({
           rotate: 15,
           transition: { duration: 0.3 },
         }}
-        className="w-full max-w-lg bg-[#2A2A2C] rounded-2xl border border-white/5 shadow-2xl cursor-grab active:cursor-grabbing select-none"
+        className="w-full max-w-lg bg-surface-1 rounded-2xl border border-border shadow-2xl cursor-grab active:cursor-grabbing select-none"
       >
         {/* Card Header */}
         <div className="flex items-center justify-between p-6 pb-0">
@@ -160,7 +160,7 @@ function SwipeCard({
             {item.platforms.map((p) => (
               <span
                 key={p}
-                className="px-2 py-0.5 rounded-md bg-white/5 text-white/40 text-[10px] font-medium capitalize"
+                className="px-2 py-0.5 rounded-md bg-white/5 text-muted-foreground text-[10px] font-medium capitalize"
               >
                 {p}
               </span>
@@ -172,11 +172,11 @@ function SwipeCard({
         {/* Card Content */}
         <div className="p-6 pt-4">
           {item.title && item.title !== item.content.slice(0, 50) && (
-            <h3 className="text-[15px] font-semibold text-white/90 mb-2">
+            <h3 className="text-[15px] font-semibold text-foreground mb-2">
               {item.title}
             </h3>
           )}
-          <p className="text-[18px] leading-relaxed text-white/90 whitespace-pre-wrap">
+          <p className="text-[18px] leading-relaxed text-foreground whitespace-pre-wrap">
             {item.content}
           </p>
         </div>
@@ -199,12 +199,12 @@ function SwipeCard({
 
         {/* Swipe Hints */}
         {isTop && (
-          <div className="flex items-center justify-between px-6 pb-4 pt-2 border-t border-white/5">
-            <div className="flex items-center gap-1.5 text-[11px] text-white/20">
+          <div className="flex items-center justify-between px-6 pb-4 pt-2 border-t border-border">
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/50">
               <ArrowLeft size={10} />
               <span>Swipe to reject</span>
             </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-white/20">
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/50">
               <span>Swipe to approve</span>
               <ArrowRight size={10} />
             </div>
@@ -270,8 +270,8 @@ export default function QueuePage() {
           {/* Header */}
           <div className="flex justify-between items-start mb-8">
             <div>
-              <h1 className="text-2xl font-bold text-white/90 mb-1">Queue</h1>
-              <p className="text-white/50 text-[13px] font-medium">
+              <h1 className="text-2xl font-bold text-foreground mb-1">Queue</h1>
+              <p className="text-muted-foreground text-[13px] font-medium">
                 {pendingCount > 0
                   ? `${pendingCount} item${pendingCount !== 1 ? "s" : ""} to review`
                   : "Swipe through AI-generated content"}
@@ -311,7 +311,7 @@ export default function QueuePage() {
           {/* Loading */}
           {loading && (
             <div className="flex items-center justify-center py-24">
-              <Loader2 size={20} className="animate-spin text-white/40" />
+              <Loader2 size={20} className="animate-spin text-muted-foreground" />
             </div>
           )}
 
@@ -325,10 +325,10 @@ export default function QueuePage() {
               <div className="w-16 h-16 rounded-2xl bg-[#BF5AF2]/10 flex items-center justify-center mx-auto mb-4">
                 <Layers3 size={28} className="text-[#BF5AF2]" />
               </div>
-              <p className="text-[16px] font-semibold text-white/60 mb-1">
+              <p className="text-[16px] font-semibold text-foreground/60 mb-1">
                 Queue is empty
               </p>
-              <p className="text-[13px] text-white/30 max-w-sm mx-auto mb-6">
+              <p className="text-[13px] text-muted-foreground/70 max-w-sm mx-auto mb-6">
                 Generate content from chat to fill the queue. Ask Socials to
                 &quot;generate 5 tweets for the queue&quot; or use the autopilot.
               </p>

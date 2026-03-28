@@ -82,13 +82,13 @@ function LoginForm() {
   };
 
   return (
-    <div className="flex h-screen items-center justify-center bg-[#1C1C1E] px-4">
+    <div className="flex h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <h1 className="text-[28px] font-serif text-white tracking-wide">
             {mode === "signin" ? "Welcome back" : "Create account"}
           </h1>
-          <p className="mt-2 text-[13px] text-white/50 font-medium">
+          <p className="mt-2 text-[13px] text-muted-foreground font-medium">
             {mode === "signin"
               ? "Sign in to your Socials account"
               : "Start creating viral clips with AI"}
@@ -96,13 +96,13 @@ function LoginForm() {
         </div>
 
         {/* Mode selector — Tab Switcher pattern */}
-        <div className="bg-[#2A2A2C] p-1 rounded-lg flex gap-1">
+        <div className="bg-surface-1 p-1 rounded-lg flex gap-1">
           <button
             onClick={() => { setMode("signin"); setError(""); }}
             className={`flex-1 px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
               mode === "signin"
-                ? "bg-[#3A3A3C] text-white shadow-sm"
-                : "text-white/50 hover:text-white"
+                ? "bg-surface-2 text-white shadow-sm"
+                : "text-muted-foreground hover:text-white"
             }`}
           >
             <LogIn size={14} />
@@ -112,8 +112,8 @@ function LoginForm() {
             onClick={() => { setMode("signup"); setError(""); }}
             className={`flex-1 px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
               mode === "signup"
-                ? "bg-[#3A3A3C] text-white shadow-sm"
-                : "text-white/50 hover:text-white"
+                ? "bg-surface-2 text-white shadow-sm"
+                : "text-muted-foreground hover:text-white"
             }`}
           >
             <UserPlus size={14} />
@@ -168,7 +168,7 @@ function LoginForm() {
         </div>
 
         {error && (
-          <div className="rounded-xl bg-[#FF453A]/10 border border-white/5 px-4 py-3 text-[13px] font-medium text-[#FF453A]">
+          <div className="rounded-xl bg-[#FF453A]/10 border border-border px-4 py-3 text-[13px] font-medium text-[#FF453A]">
             {error}
           </div>
         )}

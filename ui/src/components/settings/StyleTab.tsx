@@ -3,7 +3,7 @@
 import type { SettingsState } from "@/hooks/useSettings";
 
 const selectClass =
-  "w-full bg-[#1C1C1E] rounded-lg px-3 py-2.5 text-[14px] text-white border border-white/5 focus:outline-none focus:border-[#0A84FF]/50 transition-colors";
+  "w-full bg-surface-2/40 rounded-lg px-3 py-2.5 text-[14px] text-white border border-border focus:outline-none focus:border-[#0A84FF]/50 transition-colors";
 
 interface StyleTabProps {
   state: SettingsState;
@@ -14,13 +14,13 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
   return (
     <div className="space-y-6">
       {/* Pipeline Settings */}
-      <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-5">
-        <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
+      <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-5">
+        <h2 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
           Pipeline
         </h2>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">Quality</label>
+            <label className="text-[12px] font-medium text-muted-foreground">Quality</label>
             <select
               value={state.defaultQuality}
               onChange={(e) => updateField("defaultQuality", e.target.value)}
@@ -34,7 +34,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">Niche</label>
+            <label className="text-[12px] font-medium text-muted-foreground">Niche</label>
             <select
               value={state.niche}
               onChange={(e) => updateField("niche", e.target.value)}
@@ -49,7 +49,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">
+            <label className="text-[12px] font-medium text-muted-foreground">
               Max Clips: {state.defaultMaxClips}
             </label>
             <input
@@ -63,7 +63,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">
+            <label className="text-[12px] font-medium text-muted-foreground">
               Min Score: {state.defaultMinScore}
             </label>
             <input
@@ -77,7 +77,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">
+            <label className="text-[12px] font-medium text-muted-foreground">
               Max Duration: {state.defaultMaxDuration}s
             </label>
             <input
@@ -92,7 +92,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">
+            <label className="text-[12px] font-medium text-muted-foreground">
               Pad Before: {state.padBefore}s
             </label>
             <input
@@ -107,7 +107,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">
+            <label className="text-[12px] font-medium text-muted-foreground">
               Pad After: {state.padAfter}s
             </label>
             <input
@@ -136,11 +136,11 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
       </div>
 
       {/* Background Fill */}
-      <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-5">
-        <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
+      <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-5">
+        <h2 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
           Background Fill
         </h2>
-        <p className="text-[11px] text-white/35 font-medium">
+        <p className="text-[11px] text-muted-foreground/80 font-medium">
           How to fill the 9:16 vertical frame when the source video is wider.
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -154,8 +154,8 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
               key={opt.value}
               className={`flex flex-col gap-1 cursor-pointer rounded-lg border p-4 text-sm transition-all duration-200 ${
                 state.bgStyle === opt.value
-                  ? "border-[#0A84FF]/40 bg-[#0A84FF]/5 text-white/90"
-                  : "border-white/5 text-white/50 hover:border-white/10"
+                  ? "border-[#0A84FF]/40 bg-[#0A84FF]/5 text-foreground"
+                  : "border-border text-muted-foreground hover:border-border"
               }`}
             >
               <div className="flex items-center gap-2">
@@ -169,18 +169,18 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
                 />
                 <span className="font-medium">{opt.label}</span>
               </div>
-              <span className="text-[10px] text-white/30 ml-5">{opt.desc}</span>
+              <span className="text-[10px] text-muted-foreground/70 ml-5">{opt.desc}</span>
             </label>
           ))}
         </div>
       </div>
 
       {/* Caption Mode */}
-      <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-5">
-        <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
+      <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-5">
+        <h2 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
           Caption Mode
         </h2>
-        <p className="text-[11px] text-white/35 font-medium">
+        <p className="text-[11px] text-muted-foreground/80 font-medium">
           How captions are applied to your clips.
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -200,8 +200,8 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
               key={opt.value}
               className={`flex flex-col gap-1 cursor-pointer rounded-lg border p-4 text-sm transition-all duration-200 ${
                 state.captionMode === opt.value
-                  ? "border-[#0A84FF]/40 bg-[#0A84FF]/5 text-white/90"
-                  : "border-white/5 text-white/50 hover:border-white/10"
+                  ? "border-[#0A84FF]/40 bg-[#0A84FF]/5 text-foreground"
+                  : "border-border text-muted-foreground hover:border-border"
               }`}
             >
               <div className="flex items-center gap-2">
@@ -217,20 +217,20 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
                 />
                 <span className="font-medium">{opt.label}</span>
               </div>
-              <span className="text-[10px] text-white/30 ml-5">{opt.desc}</span>
+              <span className="text-[10px] text-muted-foreground/70 ml-5">{opt.desc}</span>
             </label>
           ))}
         </div>
       </div>
 
       {/* Caption Styling */}
-      <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-5">
-        <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
+      <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-5">
+        <h2 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
           Caption Styling
         </h2>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">Font Family</label>
+            <label className="text-[12px] font-medium text-muted-foreground">Font Family</label>
             <select
               value={state.captionFontFamily}
               onChange={(e) => updateField("captionFontFamily", e.target.value)}
@@ -246,7 +246,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">Font Size: {state.captionFontSize}</label>
+            <label className="text-[12px] font-medium text-muted-foreground">Font Size: {state.captionFontSize}</label>
             <input
               type="range"
               min={32}
@@ -259,7 +259,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">Active Word Color</label>
+            <label className="text-[12px] font-medium text-muted-foreground">Active Word Color</label>
             <div className="flex items-center gap-2">
               <input
                 type="color"
@@ -267,12 +267,12 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
                 onChange={(e) => updateField("captionActiveColor", e.target.value)}
                 className="h-8 w-8 rounded cursor-pointer"
               />
-              <span className="text-[11px] text-white/30 font-mono">{state.captionActiveColor}</span>
+              <span className="text-[11px] text-muted-foreground/70 font-mono">{state.captionActiveColor}</span>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">Inactive Word Color</label>
+            <label className="text-[12px] font-medium text-muted-foreground">Inactive Word Color</label>
             <div className="flex items-center gap-2">
               <input
                 type="color"
@@ -280,12 +280,12 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
                 onChange={(e) => updateField("captionInactiveColor", e.target.value + "99")}
                 className="h-8 w-8 rounded cursor-pointer"
               />
-              <span className="text-[11px] text-white/30 font-mono">{state.captionInactiveColor}</span>
+              <span className="text-[11px] text-muted-foreground/70 font-mono">{state.captionInactiveColor}</span>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">Outline Color</label>
+            <label className="text-[12px] font-medium text-muted-foreground">Outline Color</label>
             <div className="flex items-center gap-2">
               <input
                 type="color"
@@ -293,12 +293,12 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
                 onChange={(e) => updateField("captionOutlineColor", e.target.value)}
                 className="h-8 w-8 rounded cursor-pointer"
               />
-              <span className="text-[11px] text-white/30 font-mono">{state.captionOutlineColor}</span>
+              <span className="text-[11px] text-muted-foreground/70 font-mono">{state.captionOutlineColor}</span>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">Caption Position</label>
+            <label className="text-[12px] font-medium text-muted-foreground">Caption Position</label>
             <div className="flex gap-2">
               {(["top", "center", "bottom"] as const).map((pos) => (
                 <label
@@ -320,7 +320,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">
+            <label className="text-[12px] font-medium text-muted-foreground">
               Words Per Line: {state.captionMaxWords}
             </label>
             <input
@@ -334,7 +334,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">Animation Preset</label>
+            <label className="text-[12px] font-medium text-muted-foreground">Animation Preset</label>
             <select
               value={state.captionAnimation}
               onChange={(e) => updateField("captionAnimation", e.target.value)}
@@ -350,13 +350,13 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
       </div>
 
       {/* Hook Text */}
-      <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-5">
-        <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
+      <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-5">
+        <h2 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
           Hook Text
         </h2>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">
+            <label className="text-[12px] font-medium text-muted-foreground">
               Hook Font Size: {state.hookFontSize}
             </label>
             <input
@@ -371,7 +371,7 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">Hook Color</label>
+            <label className="text-[12px] font-medium text-muted-foreground">Hook Color</label>
             <div className="flex items-center gap-2">
               <input
                 type="color"
@@ -379,12 +379,12 @@ export function StyleTab({ state, updateField }: StyleTabProps) {
                 onChange={(e) => updateField("hookColor", e.target.value)}
                 className="h-8 w-8 rounded cursor-pointer"
               />
-              <span className="text-[11px] text-white/30 font-mono">{state.hookColor}</span>
+              <span className="text-[11px] text-muted-foreground/70 font-mono">{state.hookColor}</span>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">Hook Position</label>
+            <label className="text-[12px] font-medium text-muted-foreground">Hook Position</label>
             <div className="flex gap-2">
               {(["top", "center"] as const).map((pos) => (
                 <label

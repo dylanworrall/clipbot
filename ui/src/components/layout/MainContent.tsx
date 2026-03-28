@@ -12,7 +12,7 @@ export function MainContent({ children }: { children: React.ReactNode }) {
   return (
     <main
       className={cn(
-        "min-h-screen bg-[#1C1C1E] text-white transition-[margin-left] duration-300",
+        "min-h-screen bg-background text-foreground transition-[margin-left] duration-300",
         isLogin ? "ml-0" : collapsed ? "ml-22" : "ml-62"
       )}
     >

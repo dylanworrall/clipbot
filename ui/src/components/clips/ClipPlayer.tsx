@@ -132,7 +132,7 @@ export function ClipPlayer({ src, poster, className }: ClipPlayerProps) {
           </button>
 
           {/* Time display */}
-          <span className="text-xs text-white/90 font-mono bg-white/10 rounded-full px-2.5 py-0.5">
+          <span className="text-xs text-foreground font-mono bg-white/10 rounded-full px-2.5 py-0.5">
             {formatDuration(currentTime)} / {formatDuration(duration)}
           </span>
 

@@ -8,7 +8,7 @@ import { authClient, useSession, signOut } from "@/lib/auth-client";
 import type { SettingsState } from "@/hooks/useSettings";
 
 const selectClass =
-  "w-full bg-[#1C1C1E] rounded-lg px-3 py-2.5 text-[14px] text-white border border-white/5 focus:outline-none focus:border-[#0A84FF]/50 transition-colors";
+  "w-full bg-surface-2/40 rounded-lg px-3 py-2.5 text-[14px] text-white border border-border focus:outline-none focus:border-[#0A84FF]/50 transition-colors";
 
 type AuthMethod = "api-key" | "setup-token";
 
@@ -67,28 +67,28 @@ function AuthSection() {
   return (
     <div className="space-y-4">
       {connected ? (
-        <div className="flex items-center gap-2 rounded-xl bg-[#30D158]/10 border border-white/5 px-4 py-3 text-[13px] font-medium">
+        <div className="flex items-center gap-2 rounded-xl bg-[#30D158]/10 border border-border px-4 py-3 text-[13px] font-medium">
           <CheckCircle2 size={14} className="text-[#30D158] shrink-0" />
           <span className="text-[#30D158]">
             Connected via {connectedMethod === "api-key" ? "API Key" : "Setup Token"}{" "}
-            <span className="text-white/35">({maskedKey})</span>
+            <span className="text-muted-foreground/80">({maskedKey})</span>
           </span>
         </div>
       ) : (
-        <div className="flex items-center gap-2 rounded-xl bg-[#FF453A]/10 border border-white/5 px-4 py-3 text-[13px] font-medium">
+        <div className="flex items-center gap-2 rounded-xl bg-[#FF453A]/10 border border-border px-4 py-3 text-[13px] font-medium">
           <XCircle size={14} className="text-[#FF453A] shrink-0" />
           <span className="text-[#FF453A]">Not connected</span>
         </div>
       )}
 
       {/* Method tabs — Soshi tab switcher */}
-      <div className="bg-[#1C1C1E] p-1 rounded-lg flex gap-1">
+      <div className="bg-surface-2/40 p-1 rounded-lg flex gap-1">
         <button
           onClick={() => { setMethod("api-key"); setError(""); }}
           className={`flex-1 px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors flex items-center justify-center gap-2 ${
             method === "api-key"
-              ? "bg-[#2A2A2C] text-white shadow-sm"
-              : "text-white/50 hover:text-white"
+              ? "bg-surface-1 text-white shadow-sm"
+              : "text-muted-foreground hover:text-white"
           }`}
         >
           <Key size={12} /> API Key
@@ -97,8 +97,8 @@ function AuthSection() {
           onClick={() => { setMethod("setup-token"); setError(""); }}
           className={`flex-1 px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors flex items-center justify-center gap-2 ${
             method === "setup-token"
-              ? "bg-[#2A2A2C] text-white shadow-sm"
-              : "text-white/50 hover:text-white"
+              ? "bg-surface-1 text-white shadow-sm"
+              : "text-muted-foreground hover:text-white"
           }`}
         >
           <Terminal size={12} /> Setup Token
@@ -135,12 +135,12 @@ function AuthSection() {
 
       {method === "setup-token" && (
         <div className="space-y-3">
-          <div className="rounded-xl bg-[#FF9F0A]/10 border border-white/5 px-3 py-2 text-[11px] text-[#FF9F0A] font-medium flex items-start gap-2">
+          <div className="rounded-xl bg-[#FF9F0A]/10 border border-border px-3 py-2 text-[11px] text-[#FF9F0A] font-medium flex items-start gap-2">
             <AlertTriangle size={12} className="shrink-0 mt-0.5" />
             <span>Uses your Claude Pro/Max subscription. May be restricted by Anthropic TOS.</span>
           </div>
-          <p className="text-[11px] text-white/35 font-medium">
-            Run <code className="bg-[#1C1C1E] px-1.5 py-0.5 rounded text-white/70">claude setup-token</code> in your terminal, then paste below:
+          <p className="text-[11px] text-muted-foreground/80 font-medium">
+            Run <code className="bg-surface-2/40 px-1.5 py-0.5 rounded text-foreground/70">claude setup-token</code> in your terminal, then paste below:
           </p>
           <Input
             id="settings-setup-token"
@@ -161,7 +161,7 @@ function AuthSection() {
       )}
 
       {error && (
-        <div className="rounded-xl bg-[#FF453A]/10 border border-white/5 px-3 py-2 text-[13px] font-medium text-[#FF453A]">
+        <div className="rounded-xl bg-[#FF453A]/10 border border-border px-3 py-2 text-[13px] font-medium text-[#FF453A]">
           {error}
         </div>
       )}
@@ -206,8 +206,8 @@ function AccountSection() {
   if (!user) {
     return (
       <div className="text-center py-6">
-        <User size={24} className="text-white/20 mx-auto mb-2" />
-        <p className="text-[13px] text-white/40 font-medium">Not signed in</p>
+        <User size={24} className="text-muted-foreground/50 mx-auto mb-2" />
+        <p className="text-[13px] text-muted-foreground font-medium">Not signed in</p>
         <a href="/login" className="text-[13px] text-[#0A84FF] font-medium hover:underline mt-1 inline-block">
           Sign in
         </a>
@@ -225,8 +225,8 @@ function AccountSection() {
           </span>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[15px] font-medium text-white/90 truncate">{user.name || "No name set"}</p>
-          <p className="text-[12px] text-white/40 truncate flex items-center gap-1">
+          <p className="text-[15px] font-medium text-foreground truncate">{user.name || "No name set"}</p>
+          <p className="text-[12px] text-muted-foreground truncate flex items-center gap-1">
             <Mail size={10} />
             {user.email}
           </p>
@@ -235,14 +235,14 @@ function AccountSection() {
 
       {/* Name edit */}
       <div className="space-y-1.5">
-        <label className="text-[12px] font-medium text-white/40">Display Name</label>
+        <label className="text-[12px] font-medium text-muted-foreground">Display Name</label>
         <div className="flex gap-2">
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleUpdateName()}
-            className="flex-1 bg-[#1C1C1E] rounded-lg px-3 py-2.5 text-[14px] text-white border border-white/5 focus:outline-none focus:border-[#0A84FF]/50 transition-colors placeholder:text-white/20"
+            className="flex-1 bg-surface-2/40 rounded-lg px-3 py-2.5 text-[14px] text-white border border-border focus:outline-none focus:border-[#0A84FF]/50 transition-colors placeholder:text-muted-foreground/50"
             placeholder="Your name"
           />
           <Button
@@ -257,15 +257,15 @@ function AccountSection() {
 
       {/* Email (read-only) */}
       <div className="space-y-1.5">
-        <label className="text-[12px] font-medium text-white/40">Email</label>
-        <div className="bg-[#1C1C1E] rounded-lg px-3 py-2.5 text-[14px] text-white/50 border border-white/5">
+        <label className="text-[12px] font-medium text-muted-foreground">Email</label>
+        <div className="bg-surface-2/40 rounded-lg px-3 py-2.5 text-[14px] text-muted-foreground border border-border">
           {user.email}
         </div>
-        <p className="text-[10px] text-white/25">Email cannot be changed</p>
+        <p className="text-[10px] text-muted-foreground/60">Email cannot be changed</p>
       </div>
 
       {/* Sign out */}
-      <div className="pt-2 border-t border-white/5">
+      <div className="pt-2 border-t border-border">
         <button
           onClick={handleSignOut}
           className="flex items-center gap-2 text-[13px] font-medium text-[#FF453A] hover:text-[#FF453A]/80 transition-colors"
@@ -282,16 +282,16 @@ export function GeneralTab({ state, updateField }: GeneralTabProps) {
   return (
     <div className="space-y-6">
       {/* Account */}
-      <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-5">
-        <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
+      <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-5">
+        <h2 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
           Account
         </h2>
         <AccountSection />
       </div>
 
       {!isCloudMode && (
-        <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-5">
-          <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
+        <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-5">
+          <h2 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
             Claude Authentication
           </h2>
           <AuthSection />
@@ -300,8 +300,8 @@ export function GeneralTab({ state, updateField }: GeneralTabProps) {
 
       {!isCloudMode && (
         <>
-          <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-5">
-            <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
+          <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-5">
+            <h2 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
               Other API Keys
             </h2>
             <Input
@@ -314,12 +314,12 @@ export function GeneralTab({ state, updateField }: GeneralTabProps) {
             />
           </div>
 
-          <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-5">
-            <h2 className="text-xs font-semibold text-white/40 tracking-wider uppercase">
+          <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-5">
+            <h2 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
               Claude Configuration
             </h2>
             <div className="space-y-1.5">
-              <label className="text-[12px] font-medium text-white/40">Claude Model</label>
+              <label className="text-[12px] font-medium text-muted-foreground">Claude Model</label>
               <select
                 value={state.claudeModel}
                 onChange={(e) => updateField("claudeModel", e.target.value)}
@@ -331,9 +331,9 @@ export function GeneralTab({ state, updateField }: GeneralTabProps) {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[12px] font-medium text-white/40">
+              <label className="text-[12px] font-medium text-muted-foreground">
                 Analysis Temperature:{" "}
-                <span className="text-white/90">{state.claudeTemperature.toFixed(1)}</span>
+                <span className="text-foreground">{state.claudeTemperature.toFixed(1)}</span>
               </label>
               <input
                 type="range"
@@ -344,7 +344,7 @@ export function GeneralTab({ state, updateField }: GeneralTabProps) {
                 onChange={(e) => updateField("claudeTemperature", Number(e.target.value))}
                 className="w-full accent-[#0A84FF]"
               />
-              <p className="text-[10px] text-white/25">
+              <p className="text-[10px] text-muted-foreground/60">
                 {state.claudeTemperature === 0
                   ? "Deterministic — same video always produces identical clips"
                   : state.claudeTemperature <= 0.3

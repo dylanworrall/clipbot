@@ -104,7 +104,7 @@ export function AutopilotTab() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-[13px] font-medium text-white/40 py-12 justify-center">
+      <div className="flex items-center gap-2 text-[13px] font-medium text-muted-foreground py-12 justify-center">
         <Loader2 size={16} className="animate-spin" />
         Loading Autopilot...
       </div>
@@ -116,20 +116,20 @@ export function AutopilotTab() {
   return (
     <div className="space-y-6">
       {/* Header Card -- Enable + Config */}
-      <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-5">
+      <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#30D158]/10">
               <Zap size={18} className="text-[#30D158]" />
             </div>
             <div>
-              <h2 className="text-[14px] font-semibold text-white/90 flex items-center gap-2">
+              <h2 className="text-[14px] font-semibold text-foreground flex items-center gap-2">
                 Content Autopilot
                 <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-[#30D158]/10 text-[#30D158] uppercase tracking-wider">
                   Beta
                 </span>
               </h2>
-              <p className="text-[11px] text-white/35 mt-0.5">
+              <p className="text-[11px] text-muted-foreground/80 mt-0.5">
                 Automatically research trends and generate draft posts daily
               </p>
             </div>
@@ -152,13 +152,13 @@ export function AutopilotTab() {
 
         {config.enabled && (
           <>
-            <div className="border-t border-white/5" />
+            <div className="border-t border-border" />
 
             {/* Posts per day */}
             <div className="space-y-1.5">
-              <label className="text-[12px] font-medium text-white/40">
+              <label className="text-[12px] font-medium text-muted-foreground">
                 Posts per day:{" "}
-                <span className="text-white/90">{config.postsPerDay}</span>
+                <span className="text-foreground">{config.postsPerDay}</span>
               </label>
               <input
                 type="range"
@@ -171,7 +171,7 @@ export function AutopilotTab() {
                 }
                 className="w-full accent-[#30D158]"
               />
-              <div className="flex justify-between text-[10px] text-white/25">
+              <div className="flex justify-between text-[10px] text-muted-foreground/60">
                 <span>1</span>
                 <span>5</span>
                 <span>10</span>
@@ -180,7 +180,7 @@ export function AutopilotTab() {
 
             {/* Preferred time */}
             <div className="space-y-1.5">
-              <label className="text-[12px] font-medium text-white/40 flex items-center gap-1.5">
+              <label className="text-[12px] font-medium text-muted-foreground flex items-center gap-1.5">
                 <Clock size={12} />
                 Preferred posting time
               </label>
@@ -190,9 +190,9 @@ export function AutopilotTab() {
                 onChange={(e) =>
                   updateConfig({ preferredTime: e.target.value })
                 }
-                className="w-full bg-[#1C1C1E] rounded-lg px-3 py-2.5 text-[14px] text-white border border-white/5 focus:border-[#0A84FF]/50 focus:outline-none transition-colors [color-scheme:dark]"
+                className="w-full bg-surface-2/40 rounded-lg px-3 py-2.5 text-[14px] text-white border border-border focus:border-[#0A84FF]/50 focus:outline-none transition-colors [color-scheme:dark]"
               />
-              <p className="text-[10px] text-white/25">
+              <p className="text-[10px] text-muted-foreground/60">
                 Drafts will be scheduled around this time each day.
               </p>
             </div>
@@ -202,8 +202,8 @@ export function AutopilotTab() {
 
       {/* Platforms */}
       {config.enabled && (
-        <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-4">
-          <h3 className="text-xs font-semibold text-white/40 tracking-wider uppercase mb-4">
+        <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-4">
+          <h3 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase mb-4">
             Target Platforms
           </h3>
           <div className="grid grid-cols-2 gap-2">
@@ -216,7 +216,7 @@ export function AutopilotTab() {
                   className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all ${
                     isSelected
                       ? "bg-[#30D158]/10 text-[#30D158] border border-[#30D158]/20"
-                      : "bg-[#1C1C1E] text-white/50 border border-white/5 hover:text-white/70 hover:border-white/10"
+                      : "bg-surface-2/40 text-muted-foreground border border-border hover:text-foreground/70 hover:border-border"
                   }`}
                 >
                   <div
@@ -238,13 +238,13 @@ export function AutopilotTab() {
 
       {/* Run Now */}
       {config.enabled && (
-        <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm space-y-4">
+        <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-[14px] font-semibold text-white/90">
+              <h3 className="text-[14px] font-semibold text-foreground">
                 Run Autopilot Now
               </h3>
-              <p className="text-[11px] text-white/35 mt-0.5">
+              <p className="text-[11px] text-muted-foreground/80 mt-0.5">
                 Research trends and prepare draft content immediately
               </p>
             </div>
@@ -279,8 +279,8 @@ export function AutopilotTab() {
 
       {/* Last Run Status */}
       {config.enabled && config.lastRunAt && (
-        <div className="bg-[#2A2A2C] rounded-2xl p-5 border border-white/5 shadow-sm">
-          <h3 className="text-xs font-semibold text-white/40 tracking-wider uppercase mb-4">
+        <div className="bg-surface-1 rounded-2xl p-5 border border-border shadow-sm">
+          <h3 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase mb-4">
             Last Run
           </h3>
           <div className="flex items-center gap-3">
@@ -298,10 +298,10 @@ export function AutopilotTab() {
               )}
             </div>
             <div>
-              <p className="text-[13px] font-medium text-white/70 capitalize">
+              <p className="text-[13px] font-medium text-foreground/70 capitalize">
                 {config.lastRunStatus || "Unknown"}
               </p>
-              <p className="text-[11px] text-white/35">
+              <p className="text-[11px] text-muted-foreground/80">
                 {new Date(config.lastRunAt).toLocaleString()}
               </p>
             </div>

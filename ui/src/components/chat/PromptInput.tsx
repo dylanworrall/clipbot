@@ -199,11 +199,11 @@ export function PromptInput({ onSubmit, onChat, spaceId: externalSpaceId, fullWi
   };
 
   return (
-    <div className={cn(fullWidth ? "" : "bg-[#1C1C1E] px-4 py-3")}>
+    <div className={cn(fullWidth ? "" : "bg-background px-4 py-3")}>
       {/* Slash command autocomplete */}
       {matchingCommands.length > 0 && (
         <div className={cn(
-          "bg-[#1C1C1E]/95 backdrop-blur-2xl border border-white/10 ring-1 ring-white/5 rounded-2xl mb-2 overflow-hidden shadow-2xl",
+          "bg-surface-0/95 backdrop-blur-2xl border border-border ring-1 ring-white/5 rounded-2xl mb-2 overflow-hidden shadow-2xl",
           !fullWidth && "max-w-2xl mx-auto"
         )}>
           {matchingCommands.map((cmd) => (
@@ -211,14 +211,14 @@ export function PromptInput({ onSubmit, onChat, spaceId: externalSpaceId, fullWi
               key={cmd.command}
               type="button"
               onClick={() => handleSlashSelect(cmd)}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-[#3A3A3C] transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-2 transition-colors"
             >
               <span className="flex items-center justify-center h-6 w-6 rounded-md bg-[#0A84FF]/10 text-[#0A84FF] flex-shrink-0">
                 <Slash size={12} />
               </span>
               <div className="min-w-0">
-                <span className="text-[13px] font-medium text-white/90">{cmd.command}</span>
-                <span className="text-[11px] text-white/40 ml-2">{cmd.description}</span>
+                <span className="text-[13px] font-medium text-foreground">{cmd.command}</span>
+                <span className="text-[11px] text-muted-foreground ml-2">{cmd.description}</span>
               </div>
             </button>
           ))}
@@ -244,19 +244,19 @@ export function PromptInput({ onSubmit, onChat, spaceId: externalSpaceId, fullWi
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         className={cn(
-          "bg-[#2A2A2C] border rounded-2xl overflow-hidden shadow-xl transition-colors",
-          dragOver ? "border-[#0A84FF]/40 bg-[#0A84FF]/5" : "border-white/5",
+          "bg-surface-1 border rounded-2xl overflow-hidden shadow-xl transition-colors",
+          dragOver ? "border-[#0A84FF]/40 bg-[#0A84FF]/5" : "border-border",
           !fullWidth && "max-w-2xl mx-auto"
         )}
       >
         {/* Pending file preview */}
         {pendingFile && (
           <div className="flex items-center gap-3 px-4 pt-3 pb-1">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#BF5AF2]/10 border border-white/5">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#BF5AF2]/10 border border-border">
               <Film size={14} className="text-[#BF5AF2]" />
-              <span className="text-[12px] font-medium text-white/70 truncate max-w-[200px]">{pendingFile.name}</span>
-              <span className="text-[10px] text-white/30">{(pendingFile.size / 1024 / 1024).toFixed(0)}MB</span>
-              <button type="button" onClick={() => setPendingFile(null)} className="text-white/30 hover:text-white transition-colors">
+              <span className="text-[12px] font-medium text-foreground/70 truncate max-w-[200px]">{pendingFile.name}</span>
+              <span className="text-[10px] text-muted-foreground/70">{(pendingFile.size / 1024 / 1024).toFixed(0)}MB</span>
+              <button type="button" onClick={() => setPendingFile(null)} className="text-muted-foreground/70 hover:text-white transition-colors">
                 <X size={12} />
               </button>
             </div>
@@ -273,11 +273,11 @@ export function PromptInput({ onSubmit, onChat, spaceId: externalSpaceId, fullWi
               setError("");
             }}
             disabled={disabled}
-            className="w-full bg-transparent text-[15px] font-medium text-white placeholder:text-white/20 outline-none disabled:opacity-40"
+            className="w-full bg-transparent text-[15px] font-medium text-white placeholder:text-muted-foreground/50 outline-none disabled:opacity-40"
           />
         </div>
 
-        <div className="flex items-center justify-between px-3 py-2 border-t border-white/5">
+        <div className="flex items-center justify-between px-3 py-2 border-t border-border">
           <div className="flex items-center gap-1">
             <SpaceSelector
               value={externalSpaceId ?? activeSpaceId}
@@ -290,7 +290,7 @@ export function PromptInput({ onSubmit, onChat, spaceId: externalSpaceId, fullWi
               type="button"
               onClick={() => fileRef.current?.click()}
               disabled={loading || disabled}
-              className="flex items-center justify-center h-7 w-7 rounded-lg text-white/30 hover:text-white hover:bg-white/10 transition-colors"
+              className="flex items-center justify-center h-7 w-7 rounded-lg text-muted-foreground/70 hover:text-white hover:bg-white/10 transition-colors"
               title="Upload video file (.mov, .mp4, etc.)"
             >
               <Paperclip size={14} />
@@ -316,7 +316,7 @@ export function PromptInput({ onSubmit, onChat, spaceId: externalSpaceId, fullWi
                 "flex items-center justify-center h-8 w-8 rounded-lg transition-colors cursor-pointer",
                 (input.trim() || pendingFile) && !loading && !disabled
                   ? "bg-[#0A84FF] text-white hover:bg-blue-500"
-                  : "bg-[#3A3A3C] text-white/20 cursor-not-allowed"
+                  : "bg-surface-2 text-muted-foreground/50 cursor-not-allowed"
               )}
             >
               {loading ? (

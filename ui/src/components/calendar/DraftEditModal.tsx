@@ -123,25 +123,25 @@ export function DraftEditModal({ post, onClose, onSaved }: DraftEditModalProps) 
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-[#1C1C1E]/95 backdrop-blur-2xl rounded-2xl border border-white/10 ring-1 ring-white/5 shadow-2xl w-full max-w-lg mx-4">
+      <div className="bg-surface-0/95 backdrop-blur-2xl rounded-2xl border border-border ring-1 ring-white/5 shadow-2xl w-full max-w-lg mx-4">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#0A84FF]/10">
               <TypeIcon size={16} className="text-[#0A84FF]" />
             </div>
             <div>
-              <h2 className="text-[14px] font-semibold text-white/90">
+              <h2 className="text-[14px] font-semibold text-foreground">
                 Edit {typeLabel}
               </h2>
-              <p className="text-[11px] text-white/35">
+              <p className="text-[11px] text-muted-foreground/80">
                 {post.status === "draft" ? "Draft" : "Scheduled"} post
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white/70 hover:bg-white/5 transition-colors"
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground/70 hover:bg-white/5 transition-colors"
           >
             <X size={16} />
           </button>
@@ -151,38 +151,38 @@ export function DraftEditModal({ post, onClose, onSaved }: DraftEditModalProps) 
         <div className="px-5 py-4 space-y-4">
           {/* Title */}
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">
+            <label className="text-[12px] font-medium text-muted-foreground">
               Title
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-[#1C1C1E] rounded-lg px-3 py-2.5 text-[14px] text-white border border-white/5 focus:border-[#0A84FF]/50 focus:outline-none transition-colors"
+              className="w-full bg-surface-0 rounded-lg px-3 py-2.5 text-[14px] text-white border border-border focus:border-[#0A84FF]/50 focus:outline-none transition-colors"
               placeholder="Post title..."
             />
           </div>
 
           {/* Content textarea */}
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">
+            <label className="text-[12px] font-medium text-muted-foreground">
               Content
             </label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               rows={5}
-              className="w-full bg-[#1C1C1E] rounded-lg px-3 py-2.5 text-[14px] text-white border border-white/5 focus:border-[#0A84FF]/50 focus:outline-none transition-colors resize-none"
+              className="w-full bg-surface-0 rounded-lg px-3 py-2.5 text-[14px] text-white border border-border focus:border-[#0A84FF]/50 focus:outline-none transition-colors resize-none"
               placeholder="Write your post content..."
             />
-            <p className="text-[10px] text-white/25 text-right">
+            <p className="text-[10px] text-muted-foreground/60 text-right">
               {content.length} characters
             </p>
           </div>
 
           {/* Platforms */}
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40">
+            <label className="text-[12px] font-medium text-muted-foreground">
               Platforms
             </label>
             <div className="flex flex-wrap gap-1.5">
@@ -196,7 +196,7 @@ export function DraftEditModal({ post, onClose, onSaved }: DraftEditModalProps) 
 
           {/* Schedule */}
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-white/40 flex items-center gap-1.5">
+            <label className="text-[12px] font-medium text-muted-foreground flex items-center gap-1.5">
               <Calendar size={12} />
               Schedule
             </label>
@@ -204,7 +204,7 @@ export function DraftEditModal({ post, onClose, onSaved }: DraftEditModalProps) 
               type="datetime-local"
               value={scheduledFor}
               onChange={(e) => setScheduledFor(e.target.value)}
-              className="w-full bg-[#1C1C1E] rounded-lg px-3 py-2.5 text-[14px] text-white border border-white/5 focus:border-[#0A84FF]/50 focus:outline-none transition-colors [color-scheme:dark]"
+              className="w-full bg-surface-0 rounded-lg px-3 py-2.5 text-[14px] text-white border border-border focus:border-[#0A84FF]/50 focus:outline-none transition-colors [color-scheme:dark]"
             />
           </div>
 
@@ -217,7 +217,7 @@ export function DraftEditModal({ post, onClose, onSaved }: DraftEditModalProps) 
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-5 py-4 border-t border-white/5">
+        <div className="flex items-center justify-between px-5 py-4 border-t border-border">
           <Button
             variant="ghost"
             size="sm"
