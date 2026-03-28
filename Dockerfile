@@ -1,12 +1,13 @@
 FROM node:20-slim AS base
 
-# Install system deps: ffmpeg, yt-dlp, python3
+# Install system deps: ffmpeg, yt-dlp, python3, build tools for native modules (better-sqlite3)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     python3 \
     python3-pip \
     python3-venv \
     curl \
+    build-essential \
     && python3 -m venv /opt/venv \
     && /opt/venv/bin/pip install yt-dlp \
     && ln -s /opt/venv/bin/yt-dlp /usr/local/bin/yt-dlp \

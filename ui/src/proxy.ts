@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const isCloudMode = !!process.env.NEXT_PUBLIC_CONVEX_URL;
+const isProduction = process.env.NODE_ENV === "production";
+const isCloudMode = isProduction || !!process.env.NEXT_PUBLIC_CONVEX_URL;
 
 const PUBLIC_PATHS = [
   "/login",
