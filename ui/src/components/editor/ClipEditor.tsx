@@ -537,17 +537,15 @@ export function ClipEditor({
                 />
               </Suspense>
             </EditorErrorBoundary>
+          ) : onChooseMedia ? (
+            <button
+              onClick={onChooseMedia}
+              className="px-5 py-2.5 bg-[#0A84FF] text-white text-sm font-medium rounded-lg hover:bg-blue-500 transition-colors shadow-sm cursor-pointer"
+            >
+              Choose Media
+            </button>
           ) : (
-            {onChooseMedia ? (
-              <button
-                onClick={onChooseMedia}
-                className="px-5 py-2.5 bg-[#0A84FF] text-white text-sm font-medium rounded-lg hover:bg-blue-500 transition-colors shadow-sm cursor-pointer"
-              >
-                Choose Media
-              </button>
-            ) : (
-              <p className="text-[13px] text-white/30">No media loaded</p>
-            )}
+            <p className="text-[13px] text-white/30">No media loaded</p>
           )}
         </div>
 
