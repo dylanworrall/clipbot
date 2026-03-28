@@ -57,9 +57,10 @@ COPY --from=cli-prod-deps /app/node_modules ./node_modules
 COPY ui/ ./ui/
 COPY --from=ui-deps /app/ui/node_modules ./ui/node_modules
 
-# Build Next.js
+# Build Next.js (BETTER_AUTH_SECRET needed at build time to avoid prerender crash)
 WORKDIR /app/ui
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV BETTER_AUTH_SECRET=build-time-placeholder-not-used-at-runtime
 RUN npm run build
 
 # ── Stage 6: Production image ────────────────────────────────────────────

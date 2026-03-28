@@ -60,6 +60,7 @@ db.exec(`
 `);
 
 export const auth = betterAuth({
+  secret: process.env.BETTER_AUTH_SECRET || "dev-secret-change-in-production",
   database: db,
   baseURL: process.env.BETTER_AUTH_URL || (isProduction ? "https://content.soshi.dev" : "http://localhost:3000"),
   emailAndPassword: {
