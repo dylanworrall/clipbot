@@ -121,13 +121,6 @@ export default function EditorPage() {
 
   return (
     <div className="h-screen overflow-hidden p-4 text-white relative">
-      {/* Choose Media button — always visible top-right */}
-      <div className="absolute top-5 right-5 z-40">
-        <Button variant="secondary" size="sm" onClick={openPicker}>
-          <FolderOpen size={14} />
-          Choose Media
-        </Button>
-      </div>
 
       {/* Clip picker modal */}
       {showPicker && (
@@ -178,29 +171,43 @@ export default function EditorPage() {
         </div>
       )}
 
-      {/* Editor */}
+      {/* Editor or empty state */}
       <div className="h-full">
-        <Suspense fallback={
-          <div className="h-full flex items-center justify-center">
-            <div className="flex items-center gap-2 text-white/40">
-              <Film size={18} />
-              <span className="text-[13px] font-medium">Loading editor...</span>
+        {activeClip ? (
+          <Suspense fallback={
+            <div className="h-full flex items-center justify-center">
+              <div className="flex items-center gap-2 text-white/40">
+                <Film size={18} />
+                <span className="text-[13px] font-medium">Loading editor...</span>
+              </div>
             </div>
+          }>
+            <ClipEditor
+              runId={activeClip.runId}
+              clipIndex={activeClip.clipIndex}
+              clipTitle={activeClip.clipTitle}
+              videoSrc={activeClip.videoSrc}
+              durationSec={activeClip.durationSec}
+              words={activeClip.words}
+              hookText={activeClip.hookText}
+              hookDurationSeconds={activeClip.hookDurationSeconds}
+              captionMode={captionMode}
+              onClose={() => setActiveClip(null)}
+            />
+          </Suspense>
+        ) : (
+          <div className="h-full bg-[#2A2A2C] rounded-2xl border border-white/5 shadow-sm flex flex-col items-center justify-center">
+            <div className="w-16 h-16 rounded-2xl bg-[#0A84FF]/10 flex items-center justify-center mb-4">
+              <Film size={28} className="text-[#0A84FF]" />
+            </div>
+            <p className="text-[16px] font-semibold text-white/60 mb-1">No media loaded</p>
+            <p className="text-[13px] text-white/30 mb-6">Select a clip to start editing</p>
+            <Button onClick={openPicker}>
+              <FolderOpen size={16} />
+              Choose Media
+            </Button>
           </div>
-        }>
-          <ClipEditor
-            runId={activeClip?.runId ?? ""}
-            clipIndex={activeClip?.clipIndex ?? 0}
-            clipTitle={activeClip?.clipTitle ?? "No clip selected"}
-            videoSrc={activeClip?.videoSrc ?? ""}
-            durationSec={activeClip?.durationSec ?? 30}
-            words={activeClip?.words ?? []}
-            hookText={activeClip?.hookText}
-            hookDurationSeconds={activeClip?.hookDurationSeconds}
-            captionMode={captionMode}
-            onClose={() => setActiveClip(null)}
-          />
-        </Suspense>
+        )}
       </div>
     </div>
   );
