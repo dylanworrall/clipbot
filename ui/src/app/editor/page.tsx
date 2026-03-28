@@ -192,19 +192,9 @@ export default function EditorPage() {
             hookDurationSeconds={activeClip?.hookDurationSeconds}
             captionMode={captionMode}
             onClose={() => setActiveClip(null)}
+            onChooseMedia={openPicker}
           />
         </Suspense>
-        {/* Inject Choose Media button into the editor's empty slot */}
-        {!activeClip && mounted && (
-          <div className="fixed inset-0 pointer-events-none z-30 flex items-center justify-center">
-            <div className="pointer-events-auto mt-16">
-              <Button onClick={openPicker}>
-                <FolderOpen size={16} />
-                Choose Media
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

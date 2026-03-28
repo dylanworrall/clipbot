@@ -75,6 +75,7 @@ interface ClipEditorProps {
   initialBgStyle?: string;
   initialCaptionStyle?: Partial<CaptionStyleState>;
   onClose: () => void;
+  onChooseMedia?: () => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -240,6 +241,7 @@ export function ClipEditor({
   initialBgStyle = "blurred-zoom",
   initialCaptionStyle,
   onClose,
+  onChooseMedia,
 }: ClipEditorProps) {
   // Style state
   const [captionStyle, setCaptionStyle] = useState<CaptionStyleState>({
@@ -536,13 +538,16 @@ export function ClipEditor({
               </Suspense>
             </EditorErrorBoundary>
           ) : (
-            <div className="flex flex-col items-center justify-center text-center" id="editor-empty-slot">
-              <div className="w-16 h-16 rounded-2xl bg-[#0A84FF]/10 flex items-center justify-center mb-4">
-                <VideoIcon className="h-7 w-7 text-[#0A84FF]" />
-              </div>
-              <p className="text-[15px] font-medium text-white/50 mb-1">No media loaded</p>
-              <p className="text-[12px] text-white/25 mb-5">Choose a clip to start editing</p>
-            </div>
+            {onChooseMedia ? (
+              <button
+                onClick={onChooseMedia}
+                className="px-5 py-2.5 bg-[#0A84FF] text-white text-sm font-medium rounded-lg hover:bg-blue-500 transition-colors shadow-sm cursor-pointer"
+              >
+                Choose Media
+              </button>
+            ) : (
+              <p className="text-[13px] text-white/30">No media loaded</p>
+            )}
           )}
         </div>
 
