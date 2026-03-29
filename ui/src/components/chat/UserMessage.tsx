@@ -2,7 +2,7 @@
 
 import { Message, MessageContent } from "@/components/ai-elements/message";
 import { extractVideoId, youtubeThumbUrl, timeAgo } from "@/lib/utils";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Film } from "lucide-react";
 
 interface UserMessageProps {
   sourceUrl?: string;
@@ -24,32 +24,36 @@ export function UserMessage({ sourceUrl, text, startedAt }: UserMessageProps) {
   }
 
   // URL message (video pipeline)
-  const videoId = sourceUrl ? extractVideoId(sourceUrl) : null;
+  const isLocal = sourceUrl?.startsWith("file://");
+  const videoId = sourceUrl && !isLocal ? extractVideoId(sourceUrl) : null;
   const thumbUrl = videoId ? youtubeThumbUrl(videoId) : null;
+  const displayName = isLocal ? decodeURIComponent(sourceUrl!.split("/").pop() || "Uploaded video") : sourceUrl;
 
   return (
     <Message from="user">
       <MessageContent>
         <div className="flex items-center gap-3">
-          {thumbUrl && (
+          {thumbUrl ? (
             <div className="w-16 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-surface-2">
-              <img
-                src={thumbUrl}
-                alt="Video"
-                className="w-full h-full object-cover"
-              />
+              <img src={thumbUrl} alt="Video" className="w-full h-full object-cover" />
             </div>
-          )}
+          ) : isLocal ? (
+            <div className="w-16 h-10 rounded-lg flex-shrink-0 bg-accent/10 flex items-center justify-center">
+              <Film size={16} className="text-accent" />
+            </div>
+          ) : null}
           <div className="min-w-0 flex-1">
-            <a
-              href={sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[13px] font-medium text-[#0A84FF] hover:underline truncate block"
-            >
-              <ExternalLink className="h-3 w-3 inline mr-1" />
-              {sourceUrl}
-            </a>
+            {isLocal ? (
+              <span className="text-[13px] font-medium text-foreground truncate block">
+                <Film className="h-3 w-3 inline mr-1 text-accent" />
+                {displayName}
+              </span>
+            ) : (
+              <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="text-[13px] font-medium text-[#0A84FF] hover:underline truncate block">
+                <ExternalLink className="h-3 w-3 inline mr-1" />
+                {sourceUrl}
+              </a>
+            )}
             <p className="text-[10px] text-muted-foreground/70 mt-0.5">{timeAgo(startedAt)}</p>
           </div>
         </div>
