@@ -32,11 +32,11 @@ export function detectPlatform(url: string): VideoPlatform {
   }
 }
 
-/** Accept any http/https URL — let yt-dlp do the real validation. */
+/** Accept http/https URLs and file:// paths for local uploads. */
 export function isValidVideoUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
+    return parsed.protocol === "http:" || parsed.protocol === "https:" || parsed.protocol === "file:";
   } catch {
     return false;
   }
