@@ -89,19 +89,52 @@ export function PromptInput({ onSubmit, onChat, spaceId: externalSpaceId, fullWi
     setLoading(true);
     setError("");
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      if (spaceId) formData.append("spaceId", spaceId);
+      // 1. Init upload session
+      const initRes = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "init", fileName: file.name, fileSize: file.size, spaceId }),
+      });
+      const initData = await initRes.json();
+      if (!initRes.ok) throw new Error(initData.error || "Init failed");
 
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      const data = await res.json();
+      const { uploadId, filePath: savedName } = initData;
 
-      if (!res.ok) {
-        throw new Error(data.error || "Upload failed");
+      // 2. Upload in 2MB chunks
+      const CHUNK_SIZE = 2 * 1024 * 1024;
+      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, file.size);
+        const chunk = file.slice(start, end);
+
+        const chunkRes = await fetch("/api/upload", {
+          method: "POST",
+          headers: {
+            "x-upload-id": uploadId,
+            "x-file-name": savedName,
+          },
+          body: chunk,
+        });
+
+        if (!chunkRes.ok) {
+          const err = await chunkRes.json().catch(() => ({ error: "Chunk failed" }));
+          throw new Error(err.error || `Chunk ${i + 1}/${totalChunks} failed`);
+        }
       }
 
+      // 3. Complete — start pipeline
+      const completeRes = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "complete", uploadId, fileName: savedName, spaceId }),
+      });
+      const completeData = await completeRes.json();
+      if (!completeRes.ok) throw new Error(completeData.error || "Complete failed");
+
       setPendingFile(null);
-      onSubmit(data.runId, `file://${file.name}`);
+      onSubmit(completeData.runId, `file://${file.name}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
     }
