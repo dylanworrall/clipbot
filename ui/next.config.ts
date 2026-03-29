@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "2gb",
     },
   },
-};
+  // Allow large file uploads on all API routes
+  api: {
+    bodyParser: {
+      sizeLimit: "500mb",
+    },
+  },
+} as NextConfig;
 
 export default nextConfig;

@@ -125,11 +125,14 @@ export default function CalendarPage() {
     const target = over.id as string;
 
     if (target.startsWith("hour:")) {
-      const payload = target.slice(5);
-      const newDate = payload.slice(0, 10);
-      const newHour = payload.slice(11, 13);
-      const oldMinutes = post.scheduledFor.slice(14, 16);
-      reschedule(postId, `${newDate}T${newHour}:${oldMinutes}:00.000Z`);
+      const payload = target.slice(5); // "2026-03-29T09"
+      const dateParts = payload.slice(0, 10).split("-").map(Number); // [2026, 3, 29]
+      const hour = parseInt(payload.slice(11, 13), 10);
+      const oldDate = new Date(post.scheduledFor);
+      const minutes = oldDate.getMinutes();
+      // Build new date in local time, then convert to ISO
+      const newLocal = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], hour, minutes, 0);
+      reschedule(postId, newLocal.toISOString());
     }
   };
 

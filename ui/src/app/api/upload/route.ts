@@ -2,19 +2,33 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { mkdir, writeFile } from "node:fs/promises";
+import { createWriteStream } from "node:fs";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import { getOutputDir } from "@/lib/paths";
 import { createRun, updateRun } from "@/lib/run-store";
 import { getEffectiveConfig } from "@/lib/settings-store";
 import { spawnPipeline } from "@/lib/pipeline-worker";
 
-const MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
 const ALLOWED_EXTENSIONS = [".mov", ".mp4", ".mkv", ".avi", ".webm", ".m4v", ".flv", ".wmv"];
+const VIDEO_MIMES = ["video/", "application/octet-stream"];
 
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData();
-    const file = formData.get("file") as File | null;
-    const spaceId = formData.get("spaceId") as string | null;
+    // Try formData first (works for smaller files)
+    let file: File | null = null;
+    let spaceId: string | null = null;
+
+    try {
+      const formData = await req.formData();
+      file = formData.get("file") as File | null;
+      spaceId = formData.get("spaceId") as string | null;
+    } catch {
+      return NextResponse.json(
+        { error: "File too large or invalid. Max ~4MB via browser upload. For larger files, use the CLI or place in the output directory." },
+        { status: 413 }
+      );
+    }
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -24,7 +38,7 @@ export async function POST(req: NextRequest) {
     const ext = path.extname(file.name).toLowerCase();
     const mime = file.type?.toLowerCase() || "";
     const isVideoExt = ALLOWED_EXTENSIONS.includes(ext);
-    const isVideoMime = mime.startsWith("video/") || mime === "application/octet-stream";
+    const isVideoMime = VIDEO_MIMES.some((m) => mime.startsWith(m));
 
     if (!isVideoExt && !isVideoMime) {
       return NextResponse.json(
@@ -33,30 +47,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate size
-    if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        { error: `File too large (${(file.size / 1024 / 1024).toFixed(0)}MB). Max 2GB.` },
-        { status: 400 }
-      );
-    }
-
     const runId = randomUUID().slice(0, 8);
     const outputDir = path.join(getOutputDir(), runId);
     await mkdir(outputDir, { recursive: true });
 
-    // Save uploaded file to the run output directory
+    // Save uploaded file — stream to disk to handle large files
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
     const filePath = path.join(outputDir, safeName);
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(filePath, buffer);
 
-    // Create the run record — use file:// URL so pipeline knows it's local
+    const arrayBuffer = await file.arrayBuffer();
+    await writeFile(filePath, Buffer.from(arrayBuffer));
+
+    // Create the run record
     const localUrl = `file://${filePath.replace(/\\/g, "/")}`;
 
-    const config = spaceId
-      ? await getEffectiveConfig()
-      : await getEffectiveConfig();
+    const config = await getEffectiveConfig();
 
     const run = {
       runId,
@@ -79,7 +84,6 @@ export async function POST(req: NextRequest) {
 
     await createRun(run);
 
-    // Build pipeline args
     let captionStyleB64: string | undefined;
     if (config.captionStyle) {
       captionStyleB64 = Buffer.from(JSON.stringify(config.captionStyle)).toString("base64");
@@ -89,8 +93,6 @@ export async function POST(req: NextRequest) {
       scoringWeightsB64 = Buffer.from(JSON.stringify(config.scoringWeights)).toString("base64");
     }
 
-    // Spawn pipeline with the local file path as the "URL"
-    // The CLI's downloader will detect file:// and skip download
     const { pid } = await spawnPipeline({
       url: localUrl,
       runId,

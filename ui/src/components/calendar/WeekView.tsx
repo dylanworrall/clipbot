@@ -109,8 +109,9 @@ export function WeekView({ posts, onPostClick }: WeekViewProps) {
 
   const getPostsForCell = (dateStr: string, hour: number) =>
     posts.filter((p) => {
-      if (!p.scheduledFor.startsWith(dateStr)) return false;
-      return new Date(p.scheduledFor).getHours() === hour;
+      const d = new Date(p.scheduledFor);
+      const postDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      return postDate === dateStr && d.getHours() === hour;
     });
 
   useEffect(() => {
