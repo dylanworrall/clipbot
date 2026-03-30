@@ -79,19 +79,20 @@ export async function fetchTranscript(
     }
   }
 
+  // Local files: skip yt-dlp entirely, go straight to Whisper
+  if (videoUrl.startsWith("file://")) {
+    log.debug("Local file — using Whisper transcription via Gemini");
+    return await whisperFallback(videoUrl, slug, options);
+  }
+
   // Universal fallback: VTT via yt-dlp (works for any platform)
   try {
     return await fetchVttTranscript(videoUrl, slug, options);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    if (message.includes("No subtitles")) {
-      // Final fallback: extract audio and transcribe with Whisper via Gemini
-      log.debug("No subtitles found — falling back to Whisper transcription via Gemini");
-      return await whisperFallback(videoUrl, slug, options);
-    }
-    throw new Error(
-      `No subtitles available for this video. The video may not have captions.`
-    );
+    // Final fallback: extract audio and transcribe with Whisper via Gemini
+    log.debug(`VTT failed (${message.slice(0, 80)}) — falling back to Whisper transcription`);
+    return await whisperFallback(videoUrl, slug, options);
   }
 }
 
@@ -372,26 +373,35 @@ async function whisperFallback(
   const cookiesArgs = await buildCookiesArgs(options?.cookiesFile);
 
   // Step 1: Extract audio
-  try {
-    await execFileAsync("yt-dlp", [
-      ...cookiesArgs,
-      "-f", "bestaudio[ext=m4a]/bestaudio",
-      "--extractor-args", "youtube:player_client=android,web",
-      "-o", audioPath,
-      "--no-playlist",
-      videoUrl,
+  if (videoUrl.startsWith("file://")) {
+    // Local file: use FFmpeg directly to extract audio
+    const localPath = decodeURIComponent(videoUrl.replace("file://", ""));
+    await execFileAsync("ffmpeg", [
+      "-i", localPath,
+      "-vn", "-acodec", "aac", "-b:a", "128k",
+      "-y", audioPath,
     ], { timeout: 300000 });
-  } catch {
-    // Try python module fallback
-    await execFileAsync("python3", [
-      "-m", "yt_dlp",
-      ...cookiesArgs,
-      "-f", "bestaudio[ext=m4a]/bestaudio",
-      "--extractor-args", "youtube:player_client=android,web",
-      "-o", audioPath,
-      "--no-playlist",
-      videoUrl,
-    ], { timeout: 300000 });
+  } else {
+    try {
+      await execFileAsync("yt-dlp", [
+        ...cookiesArgs,
+        "-f", "bestaudio[ext=m4a]/bestaudio",
+        "--extractor-args", "youtube:player_client=android,web",
+        "-o", audioPath,
+        "--no-playlist",
+        videoUrl,
+      ], { timeout: 300000 });
+    } catch {
+      await execFileAsync("python3", [
+        "-m", "yt_dlp",
+        ...cookiesArgs,
+        "-f", "bestaudio[ext=m4a]/bestaudio",
+        "--extractor-args", "youtube:player_client=android,web",
+        "-o", audioPath,
+        "--no-playlist",
+        videoUrl,
+      ], { timeout: 300000 });
+    }
   }
 
   log.debug(`Audio extracted: ${audioPath}`);
