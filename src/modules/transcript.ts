@@ -469,7 +469,7 @@ async function transcribeWithGemini(audio: Buffer, apiKey: string): Promise<stri
   const base64Audio = audio.toString("base64");
 
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
