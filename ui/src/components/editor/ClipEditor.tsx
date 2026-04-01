@@ -384,10 +384,26 @@ export function ClipEditor({
   const handleDelete = useCallback(() => {
     if (!selectedItemId) return;
     setTracks((prev) =>
-      prev.map((track) => ({
-        ...track,
-        items: track.items.filter((it) => it.id !== selectedItemId),
-      }))
+      prev.map((track) => {
+        const idx = track.items.findIndex((it) => it.id === selectedItemId);
+        if (idx === -1) return track;
+
+        const deleted = track.items[idx];
+        const gap = deleted.durationInFrames;
+        const deletedEnd = deleted.from + gap;
+
+        // Remove the item and shift all subsequent items back to close the gap
+        const newItems = track.items
+          .filter((it) => it.id !== selectedItemId)
+          .map((it) => {
+            if (it.from >= deletedEnd) {
+              return { ...it, from: it.from - gap } as Item;
+            }
+            return it;
+          });
+
+        return { ...track, items: newItems };
+      })
     );
     setSelectedItemId(null);
   }, [selectedItemId]);
