@@ -17,6 +17,7 @@ export type BackgroundItem = BaseItem & {
   type: "background";
   src: string;
   fillStyle: "blurred-zoom" | "mirror-reflection" | "split-fill" | "center-crop";
+  startFrom?: number; // frame offset in source video (used after splits)
 };
 
 /** Primary video layer */
@@ -24,6 +25,7 @@ export type VideoItem = BaseItem & {
   type: "video";
   src: string;
   fillStyle: "blurred-zoom" | "mirror-reflection" | "split-fill" | "center-crop";
+  startFrom?: number; // frame offset in source video (used after splits)
 };
 
 /** Hook text overlay shown at the start of the clip */
