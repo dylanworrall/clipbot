@@ -365,9 +365,21 @@ export function ClipEditor({
         if (item.type === "caption") {
           const splitTimeMs = (currentFrame / fps) * 1000;
           const wordsA = item.words.filter((w) => w.startMs < splitTimeMs);
-          const wordsB = item.words.filter((w) => w.startMs >= splitTimeMs);
+          // Rebase Part B word timestamps to start from 0 (Sequence-local time)
+          const wordsB = item.words
+            .filter((w) => w.startMs >= splitTimeMs)
+            .map((w) => ({
+              ...w,
+              startMs: w.startMs - splitTimeMs,
+              endMs: w.endMs - splitTimeMs,
+            }));
           itemA = { ...item, id: `${item.id}-a`, durationInFrames: framesA, words: wordsA };
           itemB = { ...item, id: `${item.id}-b`, from: currentFrame, durationInFrames: framesB, words: wordsB };
+        } else if (item.type === "video" || item.type === "background") {
+          // Track startFrom so the video continues from the split point
+          const existingStartFrom = item.startFrom ?? 0;
+          itemA = { ...item, id: `${item.id}-a`, durationInFrames: framesA, startFrom: existingStartFrom } as Item;
+          itemB = { ...item, id: `${item.id}-b`, from: currentFrame, durationInFrames: framesB, startFrom: existingStartFrom + framesA } as Item;
         } else {
           itemA = { ...item, id: `${item.id}-a`, durationInFrames: framesA } as Item;
           itemB = { ...item, id: `${item.id}-b`, from: currentFrame, durationInFrames: framesB } as Item;
